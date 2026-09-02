@@ -22,32 +22,37 @@ export default function StatCard({
   return (
     <div 
       onClick={onClick}
-      className={`bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 ${onClick ? 'cursor-pointer hover:border-slate-300' : ''}`}
+      className={`bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 flex flex-col justify-between ${onClick ? 'cursor-pointer' : ''}`}
     >
+      {/* Top row: Title + Icon */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
           {title}
         </span>
         {Icon && (
-          <div className={`p-2.5 rounded-xl border ${colorMap[color] || colorMap.sky}`}>
-            <Icon className="w-5 h-5" />
+          <div className={`p-2 rounded-xl border shrink-0 ${colorMap[color] || colorMap.sky}`}>
+            <Icon className="w-4 h-4" />
           </div>
         )}
       </div>
 
-      <div className="flex items-baseline space-x-2">
-        <h3 className="text-2xl font-bold text-slate-900 tracking-tight">
-          {value}
-        </h3>
-        {badge && (
-          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badgeColor}`}>
-            {badge}
-          </span>
-        )}
+      {/* Middle: Big Value + Badge */}
+      <div className="space-y-1.5 my-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+            {value}
+          </h3>
+          {badge && (
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${badgeColor}`}>
+              {badge}
+            </span>
+          )}
+        </div>
       </div>
 
+      {/* Bottom Subtitle */}
       {subtitle && (
-        <p className="mt-1 text-xs text-slate-500 truncate">
+        <p className="mt-2 text-xs text-slate-500 truncate pt-2 border-t border-slate-100">
           {subtitle}
         </p>
       )}
