@@ -27,27 +27,66 @@
   background: #94a3b8;
 }
 
-/* Print optimizations for A4 invoices and tax reports */
+/* Mobile & Desktop Print Optimizations for German A4 Invoices */
 @media print {
-  body {
-    background: #ffffff !important;
-    color: #000000 !important;
+  @page {
+    size: A4 portrait;
+    margin: 8mm 8mm 8mm 8mm;
   }
 
-  .no-print {
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 11pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide app navigation and modal chrome */
+  .no-print, nav, aside, header, .fixed.inset-0:not(#printable-invoice-modal) {
     display: none !important;
   }
 
-  .print-only {
+  #printable-invoice-modal {
+    position: static !important;
     display: block !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 
-  .page-break {
-    page-break-before: always;
+  #printable-invoice-wrapper {
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
   }
 
-  @page {
-    size: A4;
-    margin: 15mm;
+  #printable-invoice {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    min-height: auto !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  #printable-tax-report {
+    width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    page-break-inside: avoid !important;
   }
 }
