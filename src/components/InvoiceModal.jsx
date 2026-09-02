@@ -48,11 +48,14 @@ export default function InvoiceModal({
   const [customerServices, setCustomerServices] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Load customer services whenever customerId changes
+  // Load customer services strictly for the selected customer only
   useEffect(() => {
     if (formData.customerId) {
       api.getServices(formData.customerId)
-        .then((res) => setCustomerServices(res || []))
+        .then((res) => {
+          const onlyThisCustomer = (res || []).filter(s => s.customerId === formData.customerId);
+          setCustomerServices(onlyThisCustomer);
+        })
         .catch(() => setCustomerServices([]));
     } else {
       setCustomerServices([]);

@@ -666,7 +666,15 @@ async function handleLocalRequest(endpoint, options = {}) {
 
   // SERVICES
   if (endpoint.startsWith('/services')) {
-    if (method === 'GET') return db.services;
+    if (method === 'GET') {
+      if (endpoint.includes('customerId=')) {
+        const queryCustId = endpoint.split('customerId=')[1]?.split('&')[0];
+        if (queryCustId) {
+          return (db.services || []).filter(s => s.customerId === queryCustId);
+        }
+      }
+      return db.services || [];
+    }
     if (method === 'POST') {
       const newSrv = { id: `srv-${Date.now()}`, ...body, createdAt: new Date().toISOString() };
       db.services.push(newSrv);
@@ -713,34 +721,47 @@ async function handleLocalRequest(endpoint, options = {}) {
   if (endpoint.startsWith('/invoices')) {
     if (method === 'GET') {
       let repaired = false;
-      let nextCounter = 1;
-      db.invoices.forEach((inv) => {
-        if (!inv.invoiceNumber || inv.invoiceNumber.trim() === '') {
-          inv.invoiceNumber = `RE-2026-${String(nextCounter).padStart(4, '0')}`;
+      const seen = new Set();
+      let maxCounter = 0;
+
+      // Ensure every invoice has a strictly unique, consecutive RE number
+      (db.invoices || []).forEach(inv => {
+        if (!inv.invoiceNumber || inv.invoiceNumber.trim() === '' || seen.has(inv.invoiceNumber)) {
+          maxCounter += 1;
+          inv.invoiceNumber = `RE-2026-${String(maxCounter).padStart(4, '0')}`;
           repaired = true;
         } else {
-          const match = String(inv.invoiceNumber).match(/(\d{4})$/);
+          const match = String(inv.invoiceNumber).match(/RE-\d{4}-(\d+)/);
           if (match) {
             const num = parseInt(match[1], 10);
-            if (!isNaN(num) && num >= nextCounter) nextCounter = num + 1;
+            if (!isNaN(num) && num > maxCounter) maxCounter = num;
           }
         }
+        seen.add(inv.invoiceNumber);
       });
+
       if (repaired) {
         saveLocalData(db);
         pushToFirebase(db);
       }
-      return db.invoices;
+
+      if (endpoint.includes('customerId=')) {
+        const queryCustId = endpoint.split('customerId=')[1]?.split('&')[0];
+        if (queryCustId) {
+          return (db.invoices || []).filter(i => i.customerId === queryCustId);
+        }
+      }
+      return db.invoices || [];
     }
     if (method === 'POST') {
       const itemSum = (body.items || []).reduce((s, it) => s + ((Number(it.unitPrice) || 0) * (Number(it.quantity) || 1)), 0);
       const exactAmount = itemSum > 0 ? itemSum : (Number(body.netAmount) || Number(body.grossAmount) || 0);
       
-      // Calculate next consecutive invoice number
+      // Calculate next strictly unique consecutive invoice number
       let maxNum = 0;
       (db.invoices || []).forEach(inv => {
         if (inv.invoiceNumber) {
-          const match = String(inv.invoiceNumber).match(/(\d{4})$/);
+          const match = String(inv.invoiceNumber).match(/RE-\d{4}-(\d+)/);
           if (match) {
             const num = parseInt(match[1], 10);
             if (!isNaN(num) && num > maxNum) maxNum = num;
@@ -748,7 +769,12 @@ async function handleLocalRequest(endpoint, options = {}) {
         }
       });
       const generatedNumber = `RE-2026-${String(maxNum + 1).padStart(4, '0')}`;
-      const finalInvNumber = (body.invoiceNumber && body.invoiceNumber.trim() !== '') ? body.invoiceNumber : generatedNumber;
+      
+      // If user passed a number that already exists, use generated consecutive number
+      const isDuplicate = body.invoiceNumber && db.invoices.some(i => i.invoiceNumber === body.invoiceNumber);
+      const finalInvNumber = (!body.invoiceNumber || body.invoiceNumber.trim() === '' || isDuplicate)
+        ? generatedNumber 
+        : body.invoiceNumber;
 
       const newInv = {
         ...body,
@@ -801,7 +827,7 @@ async function handleLocalRequest(endpoint, options = {}) {
 
   // EXPENSES
   if (endpoint.startsWith('/expenses')) {
-    if (method === 'GET') return db.expenses;
+    if (method === 'GET') return db.expenses || [];
     if (method === 'POST') {
       const newExp = {
         id: `exp-${Date.now()}`,
@@ -838,7 +864,15 @@ async function handleLocalRequest(endpoint, options = {}) {
 
   // MILEAGE
   if (endpoint.startsWith('/mileage')) {
-    if (method === 'GET') return db.mileage;
+    if (method === 'GET') {
+      if (endpoint.includes('customerId=')) {
+        const queryCustId = endpoint.split('customerId=')[1]?.split('&')[0];
+        if (queryCustId) {
+          return (db.mileage || []).filter(m => m.customerId === queryCustId);
+        }
+      }
+      return db.mileage || [];
+    }
     if (method === 'POST') {
       const km = Number(body.kilometers || 0);
       const rate = Number(body.ratePerKm || 0.30);
