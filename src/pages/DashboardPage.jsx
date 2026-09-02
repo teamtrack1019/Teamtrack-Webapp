@@ -11,7 +11,8 @@ import {
   ArrowUpRight, 
   Clock, 
   CheckCircle2,
-  Sparkles
+  Sparkles,
+  Bell
 } from 'lucide-react';
 import StatCard from '../components/StatCard';
 import { formatCurrency, formatDate } from '../utils/formatters';
@@ -26,6 +27,10 @@ export default function DashboardPage({
 }) {
   const safeStats = stats || {};
   const estimatedYearlyProfit = (safeStats.totalPaidRevenue || 0) - (safeStats.totalExpenses || 0) - (safeStats.totalKmDeduction || 0);
+
+  const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+  const currentMonthName = monthNames[new Date().getMonth()];
+  const currentYear = new Date().getFullYear();
 
   return (
     <div className="w-full max-w-7xl mx-auto p-6 lg:p-8 space-y-6 animate-fadeIn">
@@ -109,36 +114,60 @@ export default function DashboardPage({
         />
       </div>
 
-      {/* MONTHLY ABO BILLING REMINDER BANNER (1-Click Auto Invoicing) */}
-      {safeStats.unbilledAbosCount > 0 && (
-        <div className="bg-gradient-to-r from-sky-50 via-indigo-50/60 to-cyan-50 border border-sky-200 rounded-3xl p-5 md:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-5 shadow-sm">
-          <div className="flex items-start space-x-3.5">
-            <div className="p-3 bg-sky-600 text-white rounded-2xl shrink-0 shadow-md shadow-sky-600/20">
-              <Repeat className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-sky-700 bg-sky-100 px-2.5 py-0.5 rounded-full border border-sky-200">
-                  Abo-Abrechnung Fällig
-                </span>
-              </div>
-              <h4 className="font-black text-slate-900 text-base md:text-lg mt-1">
-                {safeStats.unbilledAbosCount} aktive(s) Kunden-Abo(s) diesen Monat noch nicht abgerechnet
-              </h4>
-              <p className="text-xs text-slate-600 mt-0.5 leading-relaxed max-w-2xl">
-                Abonnements sind aktiv. Sie können alle Monatsrechnungen für die fälligen Kunden mit einem Klick automatisch erstellen lassen.
-              </p>
-            </div>
+      {/* MONTHLY ABO BILLING PANEL & BELL NOTIFICATION */}
+      <div className={`rounded-3xl p-5 md:p-6 border shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-5 transition-all ${
+        safeStats.unbilledAbosCount > 0
+          ? 'bg-gradient-to-r from-amber-50 via-sky-50 to-indigo-50 border-amber-300/80'
+          : 'bg-gradient-to-r from-emerald-50/70 via-sky-50/50 to-slate-50 border-emerald-200/80'
+      }`}>
+        <div className="flex items-start space-x-3.5">
+          <div className={`p-3 rounded-2xl shrink-0 shadow-md ${
+            safeStats.unbilledAbosCount > 0 
+              ? 'bg-amber-500 text-white shadow-amber-500/30' 
+              : 'bg-emerald-600 text-white shadow-emerald-600/20'
+          }`}>
+            {safeStats.unbilledAbosCount > 0 ? (
+              <Bell className="w-6 h-6 animate-bounce" />
+            ) : (
+              <CheckCircle2 className="w-6 h-6" />
+            )}
           </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+                safeStats.unbilledAbosCount > 0
+                  ? 'bg-amber-100 text-amber-800 border-amber-300'
+                  : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+              }`}>
+                {safeStats.unbilledAbosCount > 0 ? '🔔 Abo-Abrechnung Fällig' : '✓ Abos Aktuell'}
+              </span>
+              <span className="text-xs text-slate-500 font-semibold">
+                {currentMonthName} {currentYear}
+              </span>
+            </div>
+            <h4 className="font-black text-slate-900 text-base md:text-lg mt-1">
+              {safeStats.unbilledAbosCount > 0
+                ? `${safeStats.unbilledAbosCount} aktive(s) Kunden-Abo(s) für diesen Monat noch nicht abgerechnet`
+                : `Alle aktiven Kunden-Abos (${safeStats.activeAbosCount || 0} Abos) sind für diesen Monat abgerechnet`}
+            </h4>
+            <p className="text-xs text-slate-600 mt-0.5 leading-relaxed max-w-2xl">
+              {safeStats.unbilledAbosCount > 0
+                ? 'Monatliche Abonnements laufen weiter. Sie können die fälligen Monatsrechnungen jetzt mit 1 Klick automatisch erstellen.'
+                : 'Super! Für alle laufenden Verträge wurden in diesem Monat bereits die Rechnungen gestellt.'}
+            </p>
+          </div>
+        </div>
+
+        {safeStats.unbilledAbosCount > 0 && onBulkGenerateAbos && (
           <button
             onClick={onBulkGenerateAbos}
             className="px-5 py-3 bg-sky-600 hover:bg-sky-700 text-white rounded-2xl text-xs font-bold transition shadow-md shadow-sky-600/20 flex items-center justify-center gap-2 shrink-0 cursor-pointer self-start lg:self-auto"
           >
             <Sparkles className="w-4 h-4 text-sky-200" />
-            <span>⚡ Alle {safeStats.unbilledAbosCount} Abos automatisch abrechnen</span>
+            <span>⚡ Fällige Abos automatisch abrechnen</span>
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Main Grid: Left Side (Invoices) vs Right Side (Finanzamt & Customers) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

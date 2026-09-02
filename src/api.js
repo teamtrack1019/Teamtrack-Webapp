@@ -548,9 +548,9 @@ async function handleLocalRequest(endpoint, options = {}) {
       totalCustomers: db.customers.length,
       activeCustomers: db.customers.filter(c => c.status === 'active').length,
       leadCustomers: db.customers.filter(c => c.status === 'lead').length,
-      recentInvoices: db.invoices.slice(-5).reverse(),
-      recentCustomers: db.customers.slice(-5).reverse(),
-      recentMileage: db.mileage.slice(-5).reverse()
+      recentInvoices: db.invoices.slice(-10).reverse(),
+      recentCustomers: db.customers.slice(-10).reverse(),
+      recentMileage: db.mileage.slice(-10).reverse()
     };
   }
 
