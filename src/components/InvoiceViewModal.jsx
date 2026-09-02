@@ -34,10 +34,75 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
     }
   };
 
-  // Separate Print Dialog Action
+  // 100% Isolated 1-Page Print Function (Guaranteed strictly 1 Seite on iOS & Android)
   const handlePrint = (e) => {
     e.stopPropagation();
-    window.print();
+    if (!printRef.current) return;
+
+    // Create isolated hidden iframe to bypass mobile Safari parent viewport bugs
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html lang="de">
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>Rechnung_${invoice.invoiceNumber || 'TeamTrack'}</title>
+          <script src="https://cdn.tailwindcss.com"></script>
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 10mm 10mm 10mm 10mm;
+            }
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #ffffff !important;
+              color: #0f172a !important;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            #isolated-sheet {
+              width: 100% !important;
+              max-width: 100% !important;
+              box-shadow: none !important;
+              border: none !important;
+              padding: 0 !important;
+              margin: 0 !important;
+            }
+          </style>
+        </head>
+        <body>
+          <div id="isolated-sheet">${printRef.current.innerHTML}</div>
+        </body>
+      </html>
+    `);
+    doc.close();
+
+    iframe.contentWindow.focus();
+    setTimeout(() => {
+      try {
+        iframe.contentWindow.print();
+      } catch (err) {
+        window.print();
+      }
+      setTimeout(() => {
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
+      }, 3000);
+    }, 400);
   };
 
   const isKleinunternehmer = companySettings.isKleinunternehmer !== false;
@@ -52,7 +117,6 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
 
   return (
     <div 
-      id="printable-invoice-modal"
       className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/80 backdrop-blur-sm animate-fadeIn select-none"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -133,12 +197,9 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
           </div>
         </div>
 
-        {/* Printable DIN-A4 German Invoice Document Container */}
-        <div 
-          id="printable-invoice-wrapper"
-          className="p-3 sm:p-6 md:p-8 overflow-y-auto overflow-x-auto flex-1 flex justify-start sm:justify-center bg-slate-200/70"
-        >
-          {/* Paper Sheet (Maintains strict DIN-A4 proportions on phone and PC) */}
+        {/* Preview Scroll Container */}
+        <div className="p-3 sm:p-6 md:p-8 overflow-y-auto overflow-x-auto flex-1 flex justify-start sm:justify-center bg-slate-200/70">
+          {/* Paper Sheet */}
           <div 
             className="p-6 sm:p-8 md:p-12 bg-white rounded-xl shadow-xl border border-slate-300 text-slate-800 w-full max-w-3xl min-w-[640px] sm:min-w-0 flex flex-col justify-between"
             ref={printRef} 
