@@ -335,10 +335,24 @@ function getLocalData() {
     const raw = localStorage.getItem('teamtrack_local_db');
     if (raw) {
       const parsed = JSON.parse(raw);
-      // Ensure kleinunternehmer defaults are set
       if (parsed.companySettings) {
         parsed.companySettings.isKleinunternehmer = true;
         parsed.companySettings.kleinunternehmerText = 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).';
+      }
+      // Force clean any legacy cached VAT invoices in user's browser localStorage
+      if (parsed.invoices && Array.isArray(parsed.invoices)) {
+        parsed.invoices = parsed.invoices.map(inv => {
+          const itemSum = (inv.items || []).reduce((s, it) => s + ((Number(it.unitPrice) || 0) * (Number(it.quantity) || 1)), 0);
+          const validAmount = itemSum > 0 ? itemSum : (Number(inv.netAmount) || 1850);
+          return {
+            ...inv,
+            taxRate: 0,
+            taxAmount: 0,
+            netAmount: validAmount,
+            grossAmount: validAmount,
+            isKleinunternehmer: true
+          };
+        });
       }
       return parsed;
     }
@@ -358,6 +372,12 @@ function handleLocalRequest(endpoint, options = {}) {
   const method = options.method || 'GET';
   const body = options.body ? JSON.parse(options.body) : {};
 
+  // Helper to get invoice true total
+  const getInvTotal = (inv) => {
+    const itemSum = (inv.items || []).reduce((s, it) => s + ((Number(it.unitPrice) || 0) * (Number(it.quantity) || 1)), 0);
+    return itemSum > 0 ? itemSum : Number(inv.netAmount || inv.grossAmount || 0);
+  };
+
   // DASHBOARD STATS
   if (endpoint === '/dashboard/stats') {
     const activeAbos = db.services.filter(s => s.type === 'abo' && s.status === 'active');
@@ -369,10 +389,10 @@ function handleLocalRequest(endpoint, options = {}) {
     }, 0);
 
     const paidInvoices = db.invoices.filter(i => i.status === 'paid');
-    const totalPaidRevenue = paidInvoices.reduce((sum, i) => sum + Number(i.grossAmount || i.netAmount || 0), 0);
+    const totalPaidRevenue = paidInvoices.reduce((sum, i) => sum + getInvTotal(i), 0);
     const totalGrossRevenue = totalPaidRevenue;
     const pendingInvoices = db.invoices.filter(i => i.status === 'sent' || i.status === 'draft');
-    const totalPendingAmount = pendingInvoices.reduce((sum, i) => sum + Number(i.grossAmount || i.netAmount || 0), 0);
+    const totalPendingAmount = pendingInvoices.reduce((sum, i) => sum + getInvTotal(i), 0);
     const totalExpenses = db.expenses.reduce((sum, e) => sum + Number(e.grossAmount || e.netAmount || 0), 0);
     const totalExpensesGross = totalExpenses;
     const totalKm = db.mileage.reduce((sum, m) => sum + Number(m.kilometers || 0), 0);
@@ -407,7 +427,7 @@ function handleLocalRequest(endpoint, options = {}) {
         const activeAbos = custServices.filter(s => s.type === 'abo' && s.status === 'active');
         const totalAboMonthly = activeAbos.reduce((sum, s) => sum + Number(s.price || 0), 0);
         const einmaligeServices = custServices.filter(s => s.type === 'einmalig');
-        const totalRevenue = custInvoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + Number(i.grossAmount || i.netAmount || 0), 0);
+        const totalRevenue = custInvoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + getInvTotal(i), 0);
         return {
           ...cust,
           activeAbosCount: activeAbos.length,
@@ -527,13 +547,16 @@ function handleLocalRequest(endpoint, options = {}) {
   if (endpoint.startsWith('/invoices')) {
     if (method === 'GET') return db.invoices;
     if (method === 'POST') {
+      const itemSum = (body.items || []).reduce((s, it) => s + ((Number(it.unitPrice) || 0) * (Number(it.quantity) || 1)), 0);
+      const exactAmount = itemSum > 0 ? itemSum : (Number(body.netAmount) || Number(body.grossAmount) || 0);
       const newInv = {
         id: `inv-${Date.now()}`,
         invoiceNumber: body.invoiceNumber || `RE-2026-${String(db.invoices.length + 1).padStart(4, '0')}`,
         isKleinunternehmer: true,
         taxRate: 0,
         taxAmount: 0,
-        grossAmount: body.netAmount || body.grossAmount,
+        netAmount: exactAmount,
+        grossAmount: exactAmount,
         ...body,
         createdAt: new Date().toISOString()
       };
@@ -545,7 +568,17 @@ function handleLocalRequest(endpoint, options = {}) {
       const id = endpoint.split('/')[2];
       const idx = db.invoices.findIndex(i => i.id === id);
       if (idx !== -1) {
-        db.invoices[idx] = { ...db.invoices[idx], ...body };
+        const itemSum = (body.items || []).reduce((s, it) => s + ((Number(it.unitPrice) || 0) * (Number(it.quantity) || 1)), 0);
+        const exactAmount = itemSum > 0 ? itemSum : (Number(body.netAmount) || Number(body.grossAmount) || 0);
+        db.invoices[idx] = {
+          ...db.invoices[idx],
+          ...body,
+          taxRate: 0,
+          taxAmount: 0,
+          netAmount: exactAmount,
+          grossAmount: exactAmount,
+          isKleinunternehmer: true
+        };
         saveLocalData(db);
         return db.invoices[idx];
       }
@@ -641,7 +674,7 @@ function handleLocalRequest(endpoint, options = {}) {
     const yearExpenses = db.expenses.filter(e => e.date && e.date.startsWith(year));
     const yearMileage = db.mileage.filter(m => m.date && m.date.startsWith(year));
 
-    const totalRevenue = yearPaidInvoices.reduce((s, i) => s + Number(i.grossAmount || i.netAmount || 0), 0);
+    const totalRevenue = yearPaidInvoices.reduce((s, i) => s + getInvTotal(i), 0);
     const totalExpenses = yearExpenses.reduce((s, e) => s + Number(e.grossAmount || e.netAmount || 0), 0);
 
     const expensesByCategory = {};

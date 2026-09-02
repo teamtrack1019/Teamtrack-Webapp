@@ -25,6 +25,11 @@ export default function InvoicesPage({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
+  const getInvoiceAmount = (inv) => {
+    const itemSum = (inv.items || []).reduce((s, it) => s + ((Number(it.unitPrice) || 0) * (Number(it.quantity) || 1)), 0);
+    return itemSum > 0 ? itemSum : Number(inv.netAmount || inv.grossAmount || 0);
+  };
+
   const filtered = invoices.filter(inv => {
     const matchesSearch = 
       inv.invoiceNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -34,8 +39,8 @@ export default function InvoicesPage({
     return matchesSearch && inv.status === filterStatus;
   });
 
-  const totalPaid = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + Number(i.grossAmount || i.netAmount || 0), 0);
-  const totalOpen = invoices.filter(i => i.status === 'sent' || i.status === 'draft').reduce((s, i) => s + Number(i.grossAmount || i.netAmount || 0), 0);
+  const totalPaid = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + getInvoiceAmount(i), 0);
+  const totalOpen = invoices.filter(i => i.status === 'sent' || i.status === 'draft').reduce((s, i) => s + getInvoiceAmount(i), 0);
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-fadeIn">
@@ -168,6 +173,7 @@ export default function InvoicesPage({
             <tbody className="divide-y divide-slate-100">
               {filtered.map((inv) => {
                 const statusBadge = getStatusBadge(inv.status);
+                const exactAmount = getInvoiceAmount(inv);
 
                 return (
                   <tr key={inv.id} className="hover:bg-slate-50 transition">
@@ -186,7 +192,7 @@ export default function InvoicesPage({
                       0,00 € <span className="text-[10px] text-emerald-600 font-bold">(§ 19 UStG)</span>
                     </td>
                     <td className="p-3.5 text-right font-black text-slate-900 text-sm">
-                      {formatCurrency(inv.grossAmount || inv.netAmount)}
+                      {formatCurrency(exactAmount)}
                     </td>
                     <td className="p-3.5 text-center">
                       <button
