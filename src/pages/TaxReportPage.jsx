@@ -9,6 +9,7 @@ import {
   Download,
   Loader2,
   CheckCircle2, 
+  ShieldCheck,
   Building2,
   Euro
 } from 'lucide-react';
@@ -66,18 +67,27 @@ export default function TaxReportPage() {
   }
 
   const { revenue, expenses, mileage, summary, company } = reportData;
+  const totalRevenue = Number(revenue.gross || revenue.net || 0);
+  const totalExpenses = Number(expenses.gross || expenses.net || 0);
+  const totalMileage = Number(mileage.totalDeduction || 0);
+  const netProfit = Number((totalRevenue - totalExpenses - totalMileage).toFixed(2));
 
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6 animate-fadeIn">
       {/* Action Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <Landmark className="w-7 h-7 text-sky-600" />
-            <span>Finanzamt & EÜR Jahresbericht</span>
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
+              <Landmark className="w-7 h-7 text-sky-600" />
+              <span>Finanzamt & EÜR Jahresbericht</span>
+            </h2>
+            <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-200">
+              § 19 UStG Kleinunternehmer
+            </span>
+          </div>
           <p className="text-slate-500 text-sm mt-0.5">
-            Sene sonu Steuerberater ve Finanzamt için resmi Einnahmen-Überschuss-Rechnung (EÜR) çıktısı
+            Sene sonu Steuerberater ve Finanzamt için resmi EÜR (Einnahmen-Überschuss-Rechnung) raporu
           </p>
         </div>
 
@@ -135,14 +145,15 @@ export default function TaxReportPage() {
         {/* Document Header */}
         <div className="border-b border-slate-300 pb-6 flex justify-between items-start">
           <div>
-            <div className="inline-block px-3 py-1 bg-sky-100 text-sky-800 rounded-full text-xs font-bold uppercase tracking-wider mb-2">
-              Einnahmen-Überschuss-Rechnung (EÜR) § 4 Abs. 3 EStG
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider mb-2 border border-emerald-200">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>EÜR nach § 4 Abs. 3 EStG • Kleinunternehmer gem. § 19 UStG</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
-              Jahresabschluss & Steuerbericht {selectedYear}
+              Einnahmen-Überschuss-Rechnung {selectedYear}
             </h1>
             <p className="text-xs text-slate-500 mt-1">
-              Erstellt am: {formatDate(new Date().toISOString())} mit TeamTrack Pro
+              Erstellt am: {formatDate(new Date().toISOString())} mit TeamTrack
             </p>
           </div>
 
@@ -152,7 +163,7 @@ export default function TaxReportPage() {
             <div>Inhaber: {company?.ownerName}</div>
             <div>{company?.address}</div>
             <div className="font-mono mt-1">Steuernummer: <strong>{company?.taxNumber || '-'}</strong></div>
-            <div className="font-mono">USt-IdNr.: <strong>{company?.vatId || '-'}</strong></div>
+            <div className="text-emerald-700 font-semibold mt-0.5">Status: Kleinunternehmer (§ 19 UStG)</div>
           </div>
         </div>
 
@@ -160,23 +171,23 @@ export default function TaxReportPage() {
         <div className="bg-gradient-to-br from-slate-900 to-sky-950 text-white rounded-2xl p-6 shadow-md border border-slate-800">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-slate-800">
             <div className="space-y-1">
-              <div className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Betriebseinnahmen (Netto)</div>
-              <div className="text-2xl font-black text-white">{formatCurrency(revenue.net)}</div>
-              <div className="text-[11px] text-sky-300">{revenue.invoicesCount} bezahlte Kundenrechnungen</div>
+              <div className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Betriebseinnahmen (Gesamt)</div>
+              <div className="text-2xl font-black text-white">{formatCurrency(totalRevenue)}</div>
+              <div className="text-[11px] text-sky-300">{revenue.invoicesCount} bezahlte Rechnungen (ohne USt.)</div>
             </div>
 
             <div className="space-y-1 pt-4 md:pt-0">
               <div className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Betriebsausgaben + KM-Abzug</div>
               <div className="text-2xl font-black text-rose-300">
-                - {formatCurrency(expenses.net + mileage.totalDeduction)}
+                - {formatCurrency(totalExpenses + totalMileage)}
               </div>
-              <div className="text-[11px] text-slate-400">Ausgaben: {formatCurrency(expenses.net)} | KM: {formatCurrency(mileage.totalDeduction)}</div>
+              <div className="text-[11px] text-slate-400">Ausgaben: {formatCurrency(totalExpenses)} | KM: {formatCurrency(totalMileage)}</div>
             </div>
 
             <div className="space-y-1 pt-4 md:pt-0">
-              <div className="text-xs uppercase tracking-wider text-emerald-400 font-bold">Vorläufiger Reingewinn</div>
-              <div className="text-3xl font-black text-emerald-400">{formatCurrency(summary.netProfit)}</div>
-              <div className="text-[11px] text-emerald-200 font-semibold">Zu versteuernder Überschuss</div>
+              <div className="text-xs uppercase tracking-wider text-emerald-400 font-bold">Steuerlicher Reingewinn</div>
+              <div className="text-3xl font-black text-emerald-400">{formatCurrency(netProfit)}</div>
+              <div className="text-[11px] text-emerald-200 font-semibold">Zu versteuernder EÜR-Überschuss</div>
             </div>
           </div>
         </div>
@@ -185,21 +196,21 @@ export default function TaxReportPage() {
         <div className="space-y-3">
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-2 flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-emerald-600" />
-            <span>1. Betriebseinnahmen (Umsatzerlöse aus Lieferungen und Leistungen)</span>
+            <span>1. Betriebseinnahmen (Erlöse aus Lieferungen und Leistungen)</span>
           </h3>
 
           <div className="bg-slate-50 rounded-xl p-4 border border-slate-200/80 space-y-2 text-xs">
             <div className="flex justify-between py-1 border-b border-slate-200">
-              <span className="text-slate-600">Gesamteinnahmen (Netto ohne MwSt.):</span>
-              <span className="font-mono font-bold text-slate-900">{formatCurrency(revenue.net)}</span>
+              <span className="text-slate-600">Summe aller Kundenerlöse (Zahlungseingänge):</span>
+              <span className="font-mono font-bold text-slate-900">{formatCurrency(totalRevenue)}</span>
             </div>
             <div className="flex justify-between py-1 border-b border-slate-200">
-              <span className="text-slate-600">Vereinnahmte Umsatzsteuer (MwSt. 19% / 7%):</span>
-              <span className="font-mono font-semibold text-slate-800">{formatCurrency(revenue.tax)}</span>
+              <span className="text-slate-600">Vereinnahmte Umsatzsteuer (§ 19 UStG befreit):</span>
+              <span className="font-mono font-semibold text-slate-500">0,00 € (0%)</span>
             </div>
             <div className="flex justify-between py-1 font-bold text-slate-900 text-sm">
-              <span>Gesamteinnahmen Brutto (Geldeingang):</span>
-              <span className="font-mono text-emerald-700">{formatCurrency(revenue.gross)}</span>
+              <span>Gesamte Betriebseinnahmen:</span>
+              <span className="font-mono text-emerald-700">{formatCurrency(totalRevenue)}</span>
             </div>
           </div>
         </div>
@@ -208,7 +219,7 @@ export default function TaxReportPage() {
         <div className="space-y-3">
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-2 flex items-center gap-2">
             <Receipt className="w-4 h-4 text-amber-600" />
-            <span>2. Betriebsausgaben (Eingehende Belege aufgeschlüsselt)</span>
+            <span>2. Betriebsausgaben (Eingehende Belege als Betriebskosten)</span>
           </h3>
 
           <table className="w-full text-left text-xs border-collapse">
@@ -216,9 +227,7 @@ export default function TaxReportPage() {
               <tr>
                 <th className="p-2.5">Ausgabenkategorie</th>
                 <th className="p-2.5 text-center">Anzahl Belege</th>
-                <th className="p-2.5 text-right">Netto (€)</th>
-                <th className="p-2.5 text-right">Vorsteuer (€)</th>
-                <th className="p-2.5 text-right">Brutto (€)</th>
+                <th className="p-2.5 text-right">Steuerlich abzugsfähig (€)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
@@ -226,14 +235,14 @@ export default function TaxReportPage() {
                 <tr key={cat} className="hover:bg-slate-50">
                   <td className="p-2.5 font-medium text-slate-900">{cat}</td>
                   <td className="p-2.5 text-center text-slate-500">{data.count}</td>
-                  <td className="p-2.5 text-right font-mono text-slate-700">{formatCurrency(data.net)}</td>
-                  <td className="p-2.5 text-right font-mono text-slate-600">{formatCurrency(data.tax)}</td>
-                  <td className="p-2.5 text-right font-mono font-bold text-slate-900">{formatCurrency(data.gross)}</td>
+                  <td className="p-2.5 text-right font-mono font-bold text-slate-900">
+                    {formatCurrency(data.gross || data.net)}
+                  </td>
                 </tr>
               ))}
               {Object.keys(expenses.byCategory || {}).length === 0 && (
                 <tr>
-                  <td colSpan={5} className="p-4 text-center text-slate-400">Keine Ausgaben in diesem Jahr.</td>
+                  <td colSpan={3} className="p-4 text-center text-slate-400">Keine Ausgaben in diesem Jahr.</td>
                 </tr>
               )}
             </tbody>
@@ -241,9 +250,7 @@ export default function TaxReportPage() {
               <tr>
                 <td className="p-2.5">Zwischensumme Betriebsausgaben:</td>
                 <td className="p-2.5 text-center">{expenses.count}</td>
-                <td className="p-2.5 text-right font-mono">{formatCurrency(expenses.net)}</td>
-                <td className="p-2.5 text-right font-mono">{formatCurrency(expenses.tax)}</td>
-                <td className="p-2.5 text-right font-mono text-rose-700">{formatCurrency(expenses.gross)}</td>
+                <td className="p-2.5 text-right font-mono text-rose-700">{formatCurrency(totalExpenses)}</td>
               </tr>
             </tfoot>
           </table>
@@ -267,36 +274,29 @@ export default function TaxReportPage() {
             </div>
             <div className="flex justify-between py-1 border-b border-emerald-200/60">
               <span className="text-slate-700">Gesetzliche Pauschale pro Kilometer:</span>
-              <span className="font-mono font-semibold text-slate-900">{mileage.ratePerKm.toFixed(2).replace('.', ',')} € / km</span>
+              <span className="font-mono font-semibold text-slate-900">0,30 € / km</span>
             </div>
             <div className="flex justify-between py-1 font-bold text-slate-900 text-sm">
               <span>Steuerlicher Betriebsausgabenabzug (KM-Pauschale):</span>
-              <span className="font-mono text-emerald-700 text-base">{formatCurrency(mileage.totalDeduction)}</span>
+              <span className="font-mono text-emerald-700 text-base">{formatCurrency(totalMileage)}</span>
             </div>
           </div>
         </div>
 
-        {/* SECTION 4: UMSATZSTEUER-SALDO (ZAHLLAST / ERSTATTUNG) */}
+        {/* SECTION 4: UMSATZSTEUER-STATUS (§ 19 UStG) */}
         <div className="space-y-3">
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-2 flex items-center gap-2">
             <Euro className="w-4 h-4 text-sky-600" />
-            <span>4. Umsatzsteuer-Abrechnung (Zahllast an das Finanzamt)</span>
+            <span>4. Umsatzsteuer-Erklärung & Status (§ 19 UStG)</span>
           </h3>
 
-          <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-xs space-y-2">
-            <div className="flex justify-between py-1 border-b border-slate-200">
-              <span className="text-slate-600">Vereinnahmte Umsatzsteuer (von Kunden erhalten):</span>
-              <span className="font-mono font-semibold text-slate-900">{formatCurrency(summary.vatCollected)}</span>
-            </div>
-            <div className="flex justify-between py-1 border-b border-slate-200">
-              <span className="text-slate-600">Abziehbare Vorsteuer (an Lieferanten bezahlt):</span>
-              <span className="font-mono font-semibold text-rose-700">- {formatCurrency(summary.inputVatDeductible)}</span>
+          <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-xs space-y-2.5">
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-900 leading-relaxed font-medium">
+              "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet und abgeführt (Kleinunternehmerregelung). Es besteht keine Umsatzsteuerzahllast und kein Vorsteuerabzugsanspruch gegenüber dem Finanzamt."
             </div>
             <div className="flex justify-between py-1 font-bold text-slate-900 text-sm">
-              <span>Verbleibende Umsatzsteuerzahllast (an Finanzamt):</span>
-              <span className={`font-mono text-base ${summary.vatPayable >= 0 ? 'text-rose-700' : 'text-emerald-700'}`}>
-                {formatCurrency(summary.vatPayable)}
-              </span>
+              <span>Zahllast an das Finanzamt (USt.):</span>
+              <span className="font-mono text-emerald-700 text-base">0,00 € (Befreit)</span>
             </div>
           </div>
         </div>
