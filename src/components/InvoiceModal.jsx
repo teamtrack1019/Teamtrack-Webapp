@@ -8,7 +8,8 @@ export default function InvoiceModal({
   onSave, 
   invoice = null, 
   customers = [],
-  preselectedCustomerId = null 
+  preselectedCustomerId = null,
+  prefilledItem = null 
 }) {
   const [formData, setFormData] = useState({
     invoiceNumber: '',
@@ -55,6 +56,11 @@ export default function InvoiceModal({
       });
     } else {
       const defaultCust = customers.find(c => c.id === preselectedCustomerId) || customers[0];
+      const initialItemDesc = prefilledItem?.title 
+        ? `${prefilledItem.title}${prefilledItem.type === 'abo' ? ' (Monatliches Abonnement)' : ''}`
+        : 'Papierkram Digitalisierung & WebApp Service';
+      const initialItemPrice = prefilledItem?.price !== undefined ? Number(prefilledItem.price) : 0;
+
       setFormData({
         invoiceNumber: '',
         customerId: defaultCust ? defaultCust.id : '',
@@ -71,11 +77,11 @@ export default function InvoiceModal({
         notes: 'Vielen Dank für Ihren Auftrag und das Vertrauen in unsere digitale Arbeit.',
         paymentTerms: 'Zahlbar innerhalb von 14 Tagen ohne Abzug.',
         items: [
-          { id: '1', description: 'Papierkram Digitalisierung & WebApp Service', quantity: 1, unitPrice: 0, taxRate: 0 }
+          { id: '1', description: initialItemDesc, quantity: 1, unitPrice: initialItemPrice, taxRate: 0 }
         ]
       });
     }
-  }, [invoice, customers, preselectedCustomerId, isOpen]);
+  }, [invoice, customers, preselectedCustomerId, prefilledItem, isOpen]);
 
   if (!isOpen) return null;
 
@@ -113,13 +119,15 @@ export default function InvoiceModal({
   };
 
   const removeItem = (index) => {
-    if (formData.items.length <= 1) return;
+    if (formData.items.length === 1) return;
     const updated = formData.items.filter((_, i) => i !== index);
     setFormData({ ...formData, items: updated });
   };
 
-  // Calculations for Kleinunternehmer (0% MwSt)
-  const totalAmount = formData.items.reduce((sum, item) => sum + ((Number(item.unitPrice) || 0) * (Number(item.quantity) || 1)), 0);
+  // Calculations (§ 19 UStG Kleinunternehmer -> Tax is 0)
+  const netTotal = formData.items.reduce((sum, it) => sum + ((parseFloat(it.unitPrice) || 0) * (parseFloat(it.quantity) || 1)), 0);
+  const taxAmount = 0;
+  const grossTotal = netTotal;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -127,10 +135,11 @@ export default function InvoiceModal({
     try {
       await onSave({
         ...formData,
-        netAmount: totalAmount,
+        isKleinunternehmer: true,
+        taxRate: 0,
+        netAmount: netTotal,
         taxAmount: 0,
-        grossAmount: totalAmount,
-        isKleinunternehmer: true
+        grossAmount: grossTotal
       });
       onClose();
     } catch (err) {
@@ -150,211 +159,151 @@ export default function InvoiceModal({
               <FileText className="w-6 h-6 text-sky-400" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold">
-                  {invoice ? `Rechnung ${invoice.invoiceNumber} bearbeiten` : 'Neue Ausgangsrechnung erstellen'}
-                </h3>
-                <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">
-                  § 19 UStG Kleinunternehmer
-                </span>
-              </div>
+              <h3 className="text-lg font-bold">
+                {invoice ? `Rechnung bearbeiten: ${invoice.invoiceNumber}` : 'Neue Ausgangsrechnung erstellen'}
+              </h3>
               <p className="text-xs text-slate-400">
-                Kein Umsatzsteuerausweis gemäß Kleinunternehmerregelung § 19 UStG
+                § 19 UStG Kleinunternehmerregelung • Rechtssicher nach GoBD
               </p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1">
-          {/* Top Row: Customer & Invoice Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200/80">
-            {/* Customer Picker */}
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto flex-1">
+          {/* Customer Selection & Meta */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                Kunde auswählen *
+                <Building2 className="w-3.5 h-3.5 text-sky-600" />
+                <span>Kunde auswählen *</span>
               </label>
               <select
                 required
                 value={formData.customerId}
                 onChange={(e) => handleCustomerChange(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-sky-500 focus:outline-none"
               >
                 <option value="">-- Kunde wählen --</option>
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.companyName} {c.contactPerson ? `(${c.contactPerson})` : ''}
+                    {c.companyName} ({c.contactPerson || 'Kein Kontakt'})
                   </option>
                 ))}
               </select>
-
-              {formData.customerAddress && (
-                <div className="mt-2 text-xs text-slate-500 bg-white p-2 rounded-lg border border-slate-200">
-                  <div className="font-medium text-slate-700">{formData.customerName}</div>
-                  <div>{formData.customerAddress}</div>
-                  {formData.customerTaxId && <div className="text-[11px] text-slate-400">USt-IdNr: {formData.customerTaxId}</div>}
-                </div>
-              )}
             </div>
 
-            {/* Invoice Meta */}
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Rechnungsnummer
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Automatisch (RE-2026-XXXX)"
-                    value={formData.invoiceNumber}
-                    onChange={(e) => setFormData({ ...formData, invoiceNumber: e.target.value })}
-                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-mono focus:ring-2 focus:ring-sky-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Status
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white"
-                  >
-                    <option value="draft">Entwurf</option>
-                    <option value="sent">Versendet (Offen)</option>
-                    <option value="paid">Bezahlt</option>
-                    <option value="overdue">Überfällig</option>
-                  </select>
-                </div>
-              </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                <span>Rechnungsdatum *</span>
+              </label>
+              <input
+                type="date"
+                required
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"
+              />
+            </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
-                    <Calendar className="w-3 h-3 text-slate-400" />
-                    Rechnungsdatum
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
-                    <Calendar className="w-3 h-3 text-slate-400" />
-                    Fällig am
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.dueDate}
-                    onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                    className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {formData.status === 'paid' && (
-                <div>
-                  <label className="block text-xs font-semibold text-emerald-700 mb-1">
-                    Zahlungseingang am (Bezahlt am)
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.paidAt}
-                    onChange={(e) => setFormData({ ...formData, paidAt: e.target.value })}
-                    className="w-full px-3 py-1.5 border border-emerald-300 bg-emerald-50 rounded-lg text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  />
-                </div>
-              )}
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                <span>Fälligkeitsdatum *</span>
+              </label>
+              <input
+                type="date"
+                required
+                value={formData.dueDate}
+                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"
+              />
             </div>
           </div>
 
-          {/* Line Items Table */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Rechnungspositionen (Leistungen & Posten)
+          {/* Items Table */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                Rechnungspositionen & Leistungen
               </h4>
               <button
                 type="button"
                 onClick={addItem}
-                className="flex items-center space-x-1 px-3 py-1 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-lg text-xs font-semibold transition"
+                className="flex items-center space-x-1 text-xs font-bold text-sky-600 hover:text-sky-700 bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded-lg border border-sky-200 transition cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Position hinzufügen</span>
+                <span>+ Position hinzufügen</span>
               </button>
             </div>
 
-            <div className="border border-slate-200 rounded-xl overflow-hidden">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200">
+            <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-slate-100/80 text-slate-700 font-bold border-b border-slate-200 uppercase tracking-wider">
                   <tr>
-                    <th className="p-2.5">Beschreibung / Leistung</th>
-                    <th className="p-2.5 w-20 text-center">Menge</th>
-                    <th className="p-2.5 w-32 text-right">Einzelpreis (€)</th>
-                    <th className="p-2.5 w-28 text-right">Gesamt (€)</th>
-                    <th className="p-2.5 w-10 text-center"></th>
+                    <th className="p-3">Pos. Beschreibung</th>
+                    <th className="p-3 w-20 text-center">Menge</th>
+                    <th className="p-3 w-32 text-right">Einzelpreis (€)</th>
+                    <th className="p-3 w-32 text-right">Gesamt (€)</th>
+                    <th className="p-3 w-10"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 bg-white">
                   {formData.items.map((item, index) => {
-                    const rowTotal = (Number(item.unitPrice) || 0) * (Number(item.quantity) || 1);
+                    const rowTotal = (parseFloat(item.quantity) || 1) * (parseFloat(item.unitPrice) || 0);
                     return (
-                      <tr key={item.id || index} className="hover:bg-slate-50">
-                        <td className="p-2">
+                      <tr key={item.id || index} className="hover:bg-slate-50/50">
+                        <td className="p-2.5">
                           <input
                             type="text"
                             required
-                            placeholder="z.B. Monatliche Lizenz TeamTrack App oder Papierkram Digitalisierung"
+                            placeholder="z.B. Digitalisierung & WebApp-Entwicklung"
                             value={item.description}
                             onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                            className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                            className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none"
                           />
                         </td>
-                        <td className="p-2">
+                        <td className="p-2.5">
                           <input
                             type="number"
-                            min="1"
                             step="1"
+                            min="1"
+                            required
                             value={item.quantity}
                             onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                            className="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs text-center focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                            className="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs text-center font-bold focus:ring-2 focus:ring-sky-500 focus:outline-none"
                           />
                         </td>
-                        <td className="p-2">
+                        <td className="p-2.5">
                           <input
                             type="number"
                             step="0.01"
                             required
                             value={item.unitPrice}
                             onChange={(e) => handleItemChange(index, 'unitPrice', e.target.value)}
-                            className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs text-right font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                            className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs text-right font-bold focus:ring-2 focus:ring-sky-500 focus:outline-none"
                           />
                         </td>
-                        <td className="p-2 text-right font-bold text-slate-800">
+                        <td className="p-2.5 text-right font-extrabold text-slate-900">
                           {formatCurrency(rowTotal)}
                         </td>
-                        <td className="p-2 text-center">
-                          <button
-                            type="button"
-                            disabled={formData.items.length <= 1}
-                            onClick={() => removeItem(index)}
-                            className="p-1 text-slate-400 hover:text-rose-600 disabled:opacity-30 transition rounded"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                        <td className="p-2.5 text-center">
+                          {formData.items.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeItem(index)}
+                              className="text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );
@@ -364,60 +313,76 @@ export default function InvoiceModal({
             </div>
           </div>
 
-          {/* Kleinunternehmer Notice & Total Calculation Summary */}
-          <div className="flex flex-col md:flex-row items-start justify-between gap-4 pt-2">
-            <div className="w-full md:w-1/2 space-y-2">
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 space-y-1">
-                <div className="font-bold flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Kleinunternehmerregelung (§ 19 UStG) aktiv</span>
-                </div>
-                <p className="text-[11px] text-emerald-800 leading-relaxed italic">
-                  "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung)."
-                </p>
+          {/* Kleinunternehmer Notice & Total Summary Card */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 space-y-2 text-xs text-emerald-900">
+              <div className="flex items-center gap-1.5 font-bold text-emerald-950">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>§ 19 UStG Kleinunternehmerregelung</span>
               </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Rechnungshinweis / Notiz
-                </label>
-                <textarea
-                  rows={2}
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none resize-none"
-                />
-              </div>
+              <p className="text-[11px] leading-relaxed text-emerald-800">
+                Gemäß § 19 UStG wird keine Umsatzsteuer berechnet und ausgewiesen. Der Gesamtbetrag entspricht dem Rechnungsbetrag.
+              </p>
             </div>
 
-            {/* Totals Summary Box */}
-            <div className="w-full md:w-80 bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
-              <div className="flex justify-between text-xs text-slate-600">
-                <span>Umsatzsteuer:</span>
-                <span className="font-semibold text-slate-500">0,00 € (0%)</span>
+            <div className="bg-slate-900 text-white rounded-xl p-4 space-y-2 shadow-sm">
+              <div className="flex items-center justify-between text-xs text-slate-300">
+                <span>Nettobetrag:</span>
+                <span className="font-bold">{formatCurrency(netTotal)}</span>
               </div>
-              <div className="border-t border-slate-200 pt-2 flex justify-between text-sm font-black text-slate-900">
-                <span>Gesamtbetrag (Endbetrag):</span>
-                <span className="text-sky-600 text-base">{formatCurrency(totalAmount)}</span>
+              <div className="flex items-center justify-between text-xs text-slate-300">
+                <span>Umsatzsteuer (§ 19 UStG 0%):</span>
+                <span className="font-bold">0,00 €</span>
+              </div>
+              <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-sm font-extrabold text-sky-400">
+                <span>Rechnungsbetrag Gesamt:</span>
+                <span className="text-base text-white">{formatCurrency(grossTotal)}</span>
               </div>
             </div>
           </div>
 
+          {/* Notes & Payment Terms */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Zahlungsbedingungen (auf Rechnung)
+              </label>
+              <input
+                type="text"
+                value={formData.paymentTerms}
+                onChange={(e) => setFormData({ ...formData, paymentTerms: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Freitext / Schlusssatz
+              </label>
+              <input
+                type="text"
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
           {/* Footer Actions */}
-          <div className="pt-4 border-t border-slate-200 flex items-center justify-end space-x-3">
+          <div className="pt-3 border-t border-slate-200 flex items-center justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl font-medium transition"
+              className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl font-medium transition cursor-pointer"
             >
               Abbrechen
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-sky-600/20 transition disabled:opacity-50"
+              className="px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-sm font-bold shadow-md shadow-sky-600/20 transition disabled:opacity-50 cursor-pointer"
             >
-              {loading ? 'Speichern...' : invoice ? 'Rechnung aktualisieren' : 'Rechnung erstellen & speichern'}
+              {loading ? 'Wird erstellt...' : invoice ? 'Rechnung aktualisieren' : 'Rechnung verbindlich erstellen'}
             </button>
           </div>
         </form>

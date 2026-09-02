@@ -1,51 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  ArrowLeft, 
   Building2, 
   User, 
   Mail, 
   Phone, 
   MapPin, 
   Hash, 
-  Calendar, 
-  Repeat, 
-  Zap, 
   FileText, 
   Car, 
   Plus, 
-  Edit3, 
   Trash2, 
+  Edit3, 
   CheckCircle2, 
   Clock, 
-  ExternalLink,
-  Printer,
-  Sparkles,
-  ChevronRight
+  Repeat, 
+  Zap, 
+  Calendar, 
+  ArrowLeft,
+  DollarSign,
+  Send,
+  Eye,
+  CreditCard,
+  Receipt
 } from 'lucide-react';
 import { api } from '../api';
-import { formatCurrency, formatDate, formatDateTime, getStatusBadge } from '../utils/formatters';
+import { formatCurrency, formatDate, formatDateTime } from '../utils/formatters';
 
-export default function CustomerDetailPage({ 
-  customerId, 
-  onBack, 
-  onOpenDemoEmailModal, 
+export default function CustomerDetailPage({
+  customerId,
+  onBack,
+  onOpenDemoEmailModal,
   onOpenServiceModal,
+  onEditService,
   onOpenInvoiceModal,
   onOpenMileageModal,
   onViewInvoice,
-  onEditCustomer 
+  onEditCustomer
 }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeSubTab, setActiveSubTab] = useState('services'); // 'services', 'invoices', 'mileage', 'emails'
+  const [deletingServiceId, setDeletingServiceId] = useState(null);
 
   const loadData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const res = await api.getCustomer(customerId);
       setData(res);
     } catch (err) {
-      alert('Fehler beim Laden des Kunden: ' + err.message);
+      alert('Fehler beim Laden der Kundendaten: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -75,10 +78,10 @@ export default function CustomerDetailPage({
   const totalOneTimeRevenue = einmalige.reduce((sum, s) => sum + Number(s.price || 0), 0);
 
   const handleDeleteService = async (serviceId) => {
-    if (!window.confirm('Möchtest du diese Leistung wirklich löschen?')) return;
     try {
       await api.deleteService(serviceId);
-      loadData();
+      setDeletingServiceId(null);
+      await loadData();
     } catch (err) {
       alert('Fehler beim Löschen: ' + err.message);
     }
@@ -89,7 +92,7 @@ export default function CustomerDetailPage({
       {/* Back Button */}
       <button
         onClick={onBack}
-        className="flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl transition shadow-sm w-fit"
+        className="flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl transition shadow-sm w-fit cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>Zurück zur Kundenübersicht</span>
@@ -119,18 +122,19 @@ export default function CustomerDetailPage({
               </p>
             )}
 
-            {/* Details Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 text-xs text-slate-600">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600 pt-2">
               {customer.contactPerson && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 text-slate-800 font-medium">
                   <User className="w-4 h-4 text-slate-400 shrink-0" />
-                  <span className="font-medium text-slate-800">Ansprechpartner: {customer.contactPerson}</span>
+                  <span>Ansprechpartner: <strong>{customer.contactPerson}</strong></span>
                 </div>
               )}
               {customer.email && (
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-slate-400 shrink-0" />
-                  <a href={`mailto:${customer.email}`} className="text-sky-600 hover:underline">{customer.email}</a>
+                  <a href={`mailto:${customer.email}`} className="text-sky-600 hover:underline">
+                    {customer.email}
+                  </a>
                 </div>
               )}
               {customer.phone && (
@@ -185,7 +189,7 @@ export default function CustomerDetailPage({
                   </div>
                   <button
                     onClick={() => onOpenDemoEmailModal(customer)}
-                    className="w-full mt-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition"
+                    className="w-full mt-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition cursor-pointer"
                   >
                     Weitere E-Mail senden / loggen
                   </button>
@@ -197,7 +201,7 @@ export default function CustomerDetailPage({
                   </p>
                   <button
                     onClick={() => onOpenDemoEmailModal(customer)}
-                    className="w-full py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition flex items-center justify-center gap-1.5"
+                    className="w-full py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Mail className="w-3.5 h-3.5" />
                     <span>Tanıtım E-Postası Gönder</span>
@@ -210,14 +214,14 @@ export default function CustomerDetailPage({
             <div className="flex space-x-2">
               <button
                 onClick={() => onEditCustomer(customer)}
-                className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5"
+                className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Edit3 className="w-3.5 h-3.5" />
                 <span>Bearbeiten</span>
               </button>
               <button
                 onClick={() => onOpenInvoiceModal(customer.id)}
-                className="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5"
+                className="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <FileText className="w-3.5 h-3.5 text-sky-400" />
                 <span>+ Rechnung</span>
@@ -271,22 +275,22 @@ export default function CustomerDetailPage({
       </div>
 
       {/* Tabs Navigation for Customer Detail Sub-sections */}
-      <div className="flex border-b border-slate-200 space-x-4">
+      <div className="flex border-b border-slate-200 space-x-4 overflow-x-auto">
         <button
           onClick={() => setActiveSubTab('services')}
-          className={`pb-3 text-sm font-bold transition flex items-center gap-2 border-b-2 ${
+          className={`pb-3 text-sm font-bold transition flex items-center gap-2 border-b-2 whitespace-nowrap cursor-pointer ${
             activeSubTab === 'services'
               ? 'border-sky-600 text-sky-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
           <Repeat className="w-4 h-4" />
-          <span>Leistungen & Verträge (Abo vs. Einmalig) ({services.length})</span>
+          <span>Leistungen & Verträge ({services.length})</span>
         </button>
 
         <button
           onClick={() => setActiveSubTab('invoices')}
-          className={`pb-3 text-sm font-bold transition flex items-center gap-2 border-b-2 ${
+          className={`pb-3 text-sm font-bold transition flex items-center gap-2 border-b-2 whitespace-nowrap cursor-pointer ${
             activeSubTab === 'invoices'
               ? 'border-sky-600 text-sky-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -298,7 +302,7 @@ export default function CustomerDetailPage({
 
         <button
           onClick={() => setActiveSubTab('mileage')}
-          className={`pb-3 text-sm font-bold transition flex items-center gap-2 border-b-2 ${
+          className={`pb-3 text-sm font-bold transition flex items-center gap-2 border-b-2 whitespace-nowrap cursor-pointer ${
             activeSubTab === 'mileage'
               ? 'border-sky-600 text-sky-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -310,7 +314,7 @@ export default function CustomerDetailPage({
 
         <button
           onClick={() => setActiveSubTab('emails')}
-          className={`pb-3 text-sm font-bold transition flex items-center gap-2 border-b-2 ${
+          className={`pb-3 text-sm font-bold transition flex items-center gap-2 border-b-2 whitespace-nowrap cursor-pointer ${
             activeSubTab === 'emails'
               ? 'border-sky-600 text-sky-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -324,14 +328,14 @@ export default function CustomerDetailPage({
       {/* SUBTAB 1: SERVICES (ABO VS EINMALIG) */}
       {activeSubTab === 'services' && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-lg font-extrabold text-slate-900">Leistungen & Preismodelle</h3>
               <p className="text-xs text-slate-500">Monatliche Abonnements und einmalige Optimierungsprojekte</p>
             </div>
             <button
               onClick={() => onOpenServiceModal(customer.id, customer.companyName)}
-              className="flex items-center space-x-1.5 px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow transition"
+              className="flex items-center space-x-1.5 px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition cursor-pointer self-start sm:self-auto"
             >
               <Plus className="w-4 h-4" />
               <span>+ Neue Leistung / Abo hinzufügen</span>
@@ -358,21 +362,30 @@ export default function CustomerDetailPage({
 
               <div className="space-y-3">
                 {abos.map((abo) => (
-                  <div key={abo.id} className="p-4 rounded-xl border border-slate-200 hover:border-sky-300 bg-slate-50/50 transition flex flex-col justify-between space-y-2">
+                  <div key={abo.id} className="p-4 rounded-xl border border-slate-200 hover:border-sky-300 bg-slate-50/50 transition flex flex-col justify-between space-y-3">
                     <div className="flex items-start justify-between">
-                      <div>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          abo.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'
-                        }`}>
-                          {abo.status === 'active' ? 'Aktiv' : 'Pausiert/Gekündigt'}
-                        </span>
-                        <h5 className="font-bold text-sm text-slate-900 mt-1">{abo.title}</h5>
+                      <div className="space-y-1">
+                        <button
+                          type="button"
+                          onClick={() => onEditService && onEditService(abo)}
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80 transition ${
+                            abo.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'
+                          }`}
+                        >
+                          {abo.status === 'active' ? '● Aktiv' : 'Pausiert/Gekündigt'} (Klick zum Ändern)
+                        </button>
+                        <h5 
+                          onClick={() => onEditService && onEditService(abo)}
+                          className="font-bold text-sm text-slate-900 hover:text-sky-600 transition cursor-pointer"
+                        >
+                          {abo.title}
+                        </h5>
                         {abo.description && (
-                          <p className="text-xs text-slate-500 mt-0.5">{abo.description}</p>
+                          <p className="text-xs text-slate-500">{abo.description}</p>
                         )}
                       </div>
                       <div className="text-right">
-                        <div className="text-base font-extrabold text-sky-600">
+                        <div className="text-base font-black text-sky-600">
                           {formatCurrency(abo.price)}
                         </div>
                         <div className="text-[10px] text-slate-400 font-semibold uppercase">
@@ -381,17 +394,61 @@ export default function CustomerDetailPage({
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-200/80 text-[11px] text-slate-500">
+                    <div className="flex flex-wrap items-center justify-between pt-2.5 border-t border-slate-200/80 text-[11px] text-slate-500 gap-2">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5 text-slate-400" />
                         <span>Vertragsbeginn: <strong>{formatDate(abo.startDate)}</strong></span>
                       </div>
-                      <button
-                        onClick={() => handleDeleteService(abo.id)}
-                        className="text-slate-400 hover:text-rose-600 transition"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+
+                      <div className="flex items-center space-x-1.5">
+                        <button
+                          type="button"
+                          onClick={() => onOpenInvoiceModal(customer.id, null, abo)}
+                          className="px-2.5 py-1 bg-sky-50 hover:bg-sky-100 text-sky-700 font-semibold rounded-lg border border-sky-200 transition flex items-center gap-1 cursor-pointer"
+                          title="Für dieses Abo eine Rechnung erstellen"
+                        >
+                          <Receipt className="w-3 h-3 text-sky-600" />
+                          <span>Rechnung erstellen</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => onEditService && onEditService(abo)}
+                          className="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition cursor-pointer"
+                          title="Abo bearbeiten (Status / Preis)"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+
+                        {deletingServiceId === abo.id ? (
+                          <div className="flex items-center space-x-1 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-lg">
+                            <span className="text-[10px] text-rose-700 font-bold">Löschen?</span>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteService(abo.id)}
+                              className="text-[10px] bg-rose-600 text-white font-bold px-1.5 py-0.5 rounded hover:bg-rose-700 cursor-pointer"
+                            >
+                              Ja
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeletingServiceId(null)}
+                              className="text-[10px] text-slate-600 px-1 py-0.5 hover:bg-slate-200 rounded cursor-pointer"
+                            >
+                              Nein
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setDeletingServiceId(abo.id)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                            title="Abo löschen"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -423,21 +480,30 @@ export default function CustomerDetailPage({
 
               <div className="space-y-3">
                 {einmalige.map((srv) => (
-                  <div key={srv.id} className="p-4 rounded-xl border border-slate-200 hover:border-emerald-300 bg-slate-50/50 transition flex flex-col justify-between space-y-2">
+                  <div key={srv.id} className="p-4 rounded-xl border border-slate-200 hover:border-emerald-300 bg-slate-50/50 transition flex flex-col justify-between space-y-3">
                     <div className="flex items-start justify-between">
-                      <div>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          srv.status === 'completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                        }`}>
-                          {srv.status === 'completed' ? 'Erledigt' : 'In Arbeit'}
-                        </span>
-                        <h5 className="font-bold text-sm text-slate-900 mt-1">{srv.title}</h5>
+                      <div className="space-y-1">
+                        <button
+                          type="button"
+                          onClick={() => onEditService && onEditService(srv)}
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80 transition ${
+                            srv.status === 'completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                          }`}
+                        >
+                          {srv.status === 'completed' ? '✓ Erledigt' : '⏳ In Arbeit'} (Klick zum Ändern)
+                        </button>
+                        <h5 
+                          onClick={() => onEditService && onEditService(srv)}
+                          className="font-bold text-sm text-slate-900 hover:text-emerald-600 transition cursor-pointer"
+                        >
+                          {srv.title}
+                        </h5>
                         {srv.description && (
-                          <p className="text-xs text-slate-500 mt-0.5">{srv.description}</p>
+                          <p className="text-xs text-slate-500">{srv.description}</p>
                         )}
                       </div>
                       <div className="text-right">
-                        <div className="text-base font-extrabold text-emerald-600">
+                        <div className="text-base font-black text-emerald-600">
                           {formatCurrency(srv.price)}
                         </div>
                         <div className="text-[10px] text-slate-400 font-semibold uppercase">
@@ -446,17 +512,61 @@ export default function CustomerDetailPage({
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-200/80 text-[11px] text-slate-500">
+                    <div className="flex flex-wrap items-center justify-between pt-2.5 border-t border-slate-200/80 text-[11px] text-slate-500 gap-2">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5 text-slate-400" />
                         <span>Datum / Erledigt: <strong>{formatDate(srv.startDate)}</strong></span>
                       </div>
-                      <button
-                        onClick={() => handleDeleteService(srv.id)}
-                        className="text-slate-400 hover:text-rose-600 transition"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+
+                      <div className="flex items-center space-x-1.5">
+                        <button
+                          type="button"
+                          onClick={() => onOpenInvoiceModal(customer.id, null, srv)}
+                          className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold rounded-lg border border-emerald-200 transition flex items-center gap-1 cursor-pointer"
+                          title="Aus dieser Leistung eine Rechnung erstellen"
+                        >
+                          <Receipt className="w-3 h-3 text-emerald-600" />
+                          <span>Rechnung erstellen</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => onEditService && onEditService(srv)}
+                          className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition cursor-pointer"
+                          title="Leistung bearbeiten (Status auf Erledigt setzen / Preis ändern)"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+
+                        {deletingServiceId === srv.id ? (
+                          <div className="flex items-center space-x-1 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-lg">
+                            <span className="text-[10px] text-rose-700 font-bold">Löschen?</span>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteService(srv.id)}
+                              className="text-[10px] bg-rose-600 text-white font-bold px-1.5 py-0.5 rounded hover:bg-rose-700 cursor-pointer"
+                            >
+                              Ja
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeletingServiceId(null)}
+                              className="text-[10px] text-slate-600 px-1 py-0.5 hover:bg-slate-200 rounded cursor-pointer"
+                            >
+                              Nein
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setDeletingServiceId(srv.id)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                            title="Leistung löschen"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -478,129 +588,117 @@ export default function CustomerDetailPage({
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-base font-bold text-slate-900">Ausgangsrechnungen für {customer.companyName}</h3>
-              <p className="text-xs text-slate-500">Alle gestellten Rechnungen mit PDF-Vorschau</p>
+              <p className="text-xs text-slate-500">Alle gestellten Rechnungen mit Status und PDF-Druck</p>
             </div>
             <button
               onClick={() => onOpenInvoiceModal(customer.id)}
-              className="flex items-center space-x-1.5 px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow transition"
+              className="flex items-center space-x-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow transition cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
-              <span>+ Rechnung schreiben</span>
+              <Plus className="w-4 h-4 text-sky-400" />
+              <span>+ Neue Rechnung</span>
             </button>
           </div>
 
-          <table className="w-full text-left text-xs border-collapse">
-            <thead className="bg-slate-50 text-slate-600 font-semibold border-y border-slate-200">
-              <tr>
-                <th className="p-3">Rechnungs-Nr.</th>
-                <th className="p-3">Datum</th>
-                <th className="p-3">Fällig</th>
-                <th className="p-3 text-right">Netto</th>
-                <th className="p-3 text-right">Brutto</th>
-                <th className="p-3 text-center">Status</th>
-                <th className="p-3 text-right">Aktion</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {invoices.map((inv) => (
-                <tr key={inv.id} className="hover:bg-slate-50">
-                  <td className="p-3 font-mono font-bold text-slate-900">{inv.invoiceNumber}</td>
-                  <td className="p-3 text-slate-600">{formatDate(inv.date)}</td>
-                  <td className="p-3 text-slate-600">{formatDate(inv.dueDate)}</td>
-                  <td className="p-3 text-right font-medium text-slate-600">{formatCurrency(inv.netAmount)}</td>
-                  <td className="p-3 text-right font-bold text-slate-900">{formatCurrency(inv.grossAmount)}</td>
-                  <td className="p-3 text-center">
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                      inv.status === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-sky-100 text-sky-800'
+          <div className="divide-y divide-slate-100">
+            {invoices.map((inv) => (
+              <div key={inv.id} className="py-3.5 flex items-center justify-between hover:bg-slate-50/60 p-2 rounded-xl transition">
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-mono font-bold text-xs text-slate-900">{inv.invoiceNumber}</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      inv.status === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                     }`}>
-                      {inv.status === 'paid' ? 'Bezahlt' : 'Offen'}
+                      {inv.status === 'paid' ? 'Bezahlt' : 'Offen / Versendet'}
                     </span>
-                  </td>
-                  <td className="p-3 text-right">
-                    <button
-                      onClick={() => onViewInvoice(inv)}
-                      className="px-3 py-1 bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-sky-700 rounded-lg font-semibold transition"
-                    >
-                      PDF Anzeigen
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {invoices.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="p-6 text-center text-slate-400">
-                    Noch keine Rechnungen für diesen Kunden erstellt.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    Rechnungsdatum: {formatDate(inv.date)} • Fällig am: {formatDate(inv.dueDate)}
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-4">
+                  <div className="text-right">
+                    <div className="text-sm font-extrabold text-slate-900">
+                      {formatCurrency(inv.grossAmount)}
+                    </div>
+                    <div className="text-[10px] text-slate-400 font-medium">§ 19 UStG</div>
+                  </div>
+                  <button
+                    onClick={() => onViewInvoice(inv)}
+                    className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer"
+                    title="Rechnung anzeigen / drucken"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {invoices.length === 0 && (
+              <div className="text-center py-8 text-xs text-slate-400">
+                Noch keine Rechnungen für diesen Kunden vorhanden.
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {/* SUBTAB 3: MILEAGE */}
       {activeSubTab === 'mileage' && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-bold text-slate-900">Dienstfahrten zu {customer.companyName}</h3>
-              <p className="text-xs text-slate-500">0,30 €/km Finanzamt-Fahrtenbuch Einträge</p>
+              <h3 className="text-base font-bold text-slate-900">Dienstfahrten & KM-Erfassung</h3>
+              <p className="text-xs text-slate-500">Fahrtenbuch-Einträge für Kundentermine und Baustellen</p>
             </div>
             <button
               onClick={() => onOpenMileageModal(customer.id)}
-              className="flex items-center space-x-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow transition"
+              className="flex items-center space-x-1.5 px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow transition cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>+ Fahrt eintragen</span>
+              <span>+ Fahrt erfassen</span>
             </button>
           </div>
 
-          <table className="w-full text-left text-xs border-collapse">
-            <thead className="bg-slate-50 text-slate-600 font-semibold border-y border-slate-200">
-              <tr>
-                <th className="p-3">Datum</th>
-                <th className="p-3">Start → Ziel</th>
-                <th className="p-3">Anlass / Reisezweck</th>
-                <th className="p-3 text-center">Distanz (km)</th>
-                <th className="p-3 text-right">Finanzamt Abzug</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {mileage.map((m) => (
-                <tr key={m.id} className="hover:bg-slate-50">
-                  <td className="p-3 font-medium text-slate-900">{formatDate(m.date)}</td>
-                  <td className="p-3 text-slate-600">{m.startLocation} → {m.destination}</td>
-                  <td className="p-3 text-slate-700">{m.purpose}</td>
-                  <td className="p-3 text-center font-bold text-slate-900">{m.kilometers} km</td>
-                  <td className="p-3 text-right font-extrabold text-emerald-600">{formatCurrency(m.totalDeduction)}</td>
-                </tr>
-              ))}
-              {mileage.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="p-6 text-center text-slate-400">
-                    Keine Fahrten zu diesem Kunden hinterlegt.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <div className="divide-y divide-slate-100">
+            {mileage.map((m) => (
+              <div key={m.id} className="py-3 flex items-center justify-between">
+                <div>
+                  <div className="font-semibold text-xs text-slate-900">{m.purpose}</div>
+                  <div className="text-[11px] text-slate-500">
+                    {formatDate(m.date)} • {m.startLocation} ➔ {m.destination}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs font-bold text-slate-900">{m.kilometers} km</div>
+                  <div className="text-[10px] text-emerald-600 font-semibold">{formatCurrency(m.totalDeduction)} Abzug</div>
+                </div>
+              </div>
+            ))}
+
+            {mileage.length === 0 && (
+              <div className="text-center py-8 text-xs text-slate-400">
+                Keine Fahrten für diesen Kunden erfasst.
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {/* SUBTAB 4: EMAIL LOGS */}
       {activeSubTab === 'emails' && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-bold text-slate-900">Versendete Tanıtım & Demo E-Postaları</h3>
-              <p className="text-xs text-slate-500">Historie aller E-Mails an diesen Kunden mit Zeitstempel</p>
+              <h3 className="text-base font-bold text-slate-900">E-Mail Historie</h3>
+              <p className="text-xs text-slate-500">Protokoll aller versendeten Demo- & Akquise-Mails</p>
             </div>
             <button
               onClick={() => onOpenDemoEmailModal(customer)}
-              className="flex items-center space-x-1.5 px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow transition"
+              className="flex items-center space-x-1.5 px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow transition cursor-pointer"
             >
-              <Mail className="w-4 h-4" />
-              <span>+ Neue E-Mail erfassen</span>
+              <Send className="w-4 h-4" />
+              <span>+ E-Mail senden</span>
             </button>
           </div>
 
@@ -608,25 +706,18 @@ export default function CustomerDetailPage({
             {emailLogs.map((log) => (
               <div key={log.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-sky-600" />
-                    <span>{log.subject}</span>
-                  </div>
-                  <span className="text-xs text-slate-500 font-mono">
-                    {formatDateTime(log.sentAt)}
-                  </span>
+                  <div className="font-bold text-xs text-slate-900">{log.subject}</div>
+                  <div className="text-[10px] text-slate-500">{formatDateTime(log.sentAt)}</div>
                 </div>
-                <div className="text-xs text-slate-500">
-                  Empfänger: <span className="font-mono text-slate-700">{log.recipientEmail}</span>
-                </div>
-                <pre className="text-xs font-sans text-slate-700 whitespace-pre-line bg-white p-3 rounded-lg border border-slate-200">
+                <div className="text-[11px] text-slate-600 font-mono bg-white p-2.5 rounded-lg border border-slate-200 whitespace-pre-line">
                   {log.body}
-                </pre>
+                </div>
               </div>
             ))}
+
             {emailLogs.length === 0 && (
-              <div className="p-8 text-center text-xs text-slate-400">
-                Noch keine E-Mails protokolliert.
+              <div className="text-center py-8 text-xs text-slate-400">
+                Noch keine E-Mails in der Historie erfasst.
               </div>
             )}
           </div>
@@ -634,4 +725,17 @@ export default function CustomerDetailPage({
       )}
     </div>
   );
+}
+
+function getStatusBadge(status) {
+  switch (status) {
+    case 'active':
+      return { label: 'Aktiv', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' };
+    case 'lead':
+      return { label: 'Interessent / Lead', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' };
+    case 'inactive':
+      return { label: 'Inaktiv', bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200' };
+    default:
+      return { label: status, bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200' };
+  }
 }

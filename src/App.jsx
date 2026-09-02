@@ -75,6 +75,7 @@ export default function App() {
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [preselectedInvoiceCustId, setPreselectedInvoiceCustId] = useState(null);
+  const [prefilledInvoiceItem, setPrefilledInvoiceItem] = useState(null);
 
   const [expenseModalOpen, setExpenseModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
@@ -226,9 +227,10 @@ export default function App() {
     setServiceModalOpen(true);
   };
 
-  const handleOpenInvoiceModal = (preselectedCustId = null, invoice = null) => {
+  const handleOpenInvoiceModal = (preselectedCustId = null, invoice = null, prefilledItem = null) => {
     setPreselectedInvoiceCustId(preselectedCustId);
     setEditingInvoice(invoice);
+    setPrefilledInvoiceItem(prefilledItem);
     setInvoiceModalOpen(true);
   };
 
@@ -261,52 +263,43 @@ export default function App() {
         }}
       />
 
-      {/* Main Content Viewport */}
-      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden bg-slate-50">
-        {/* Top Navbar */}
-        <Navbar
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        <Navbar 
+          onOpenMobileMenu={() => setIsMobileMenuOpen(true)} 
           onOpenCustomerModal={() => {
             setEditingCustomer(null);
             setCustomerModalOpen(true);
           }}
           onOpenInvoiceModal={() => handleOpenInvoiceModal()}
-          onOpenMileageModal={() => handleOpenMileageModal()}
           onOpenExpenseModal={() => {
             setEditingExpense(null);
             setExpenseModalOpen(true);
           }}
-          onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          onOpenMileageModal={() => handleOpenMileageModal()}
+          companySettings={companySettings}
         />
 
-        {/* Scrollable Main Area */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-0 pb-16 md:pb-6">
+        <main className="flex-1 overflow-y-auto pb-20 md:pb-6">
           {activeTab === 'dashboard' && (
             <DashboardPage
               stats={stats}
-              onNavigate={(tab) => {
-                setSelectedCustomerId(null);
-                setActiveTab(tab);
+              onNavigate={(tab) => setActiveTab(tab)}
+              onSelectCustomer={(id) => {
+                setSelectedCustomerId(id);
+                setActiveTab('customer-detail');
               }}
-              onOpenCustomerModal={() => {
-                setEditingCustomer(null);
-                setCustomerModalOpen(true);
-              }}
-              onOpenInvoiceModal={() => handleOpenInvoiceModal()}
-              onOpenMileageModal={() => handleOpenMileageModal()}
-              onOpenExpenseModal={() => {
-                setEditingExpense(null);
-                setExpenseModalOpen(true);
-              }}
-              onSelectCustomer={handleSelectCustomer}
+              onViewInvoice={handleViewInvoice}
             />
           )}
 
           {activeTab === 'customers' && (
             <CustomersPage
               customers={customers}
-              onSelectCustomer={handleSelectCustomer}
+              onSelectCustomer={(id) => {
+                setSelectedCustomerId(id);
+                setActiveTab('customer-detail');
+              }}
               onOpenCustomerModal={() => {
                 setEditingCustomer(null);
                 setCustomerModalOpen(true);
@@ -330,7 +323,11 @@ export default function App() {
               }}
               onOpenDemoEmailModal={handleOpenDemoEmail}
               onOpenServiceModal={(custId, custName) => handleOpenService(custId, custName)}
-              onOpenInvoiceModal={(custId) => handleOpenInvoiceModal(custId)}
+              onEditService={(srv) => {
+                const cust = customers.find(c => c.id === selectedCustomerId);
+                handleOpenService(selectedCustomerId, cust ? cust.companyName : '', srv);
+              }}
+              onOpenInvoiceModal={(custId, inv, prefilled) => handleOpenInvoiceModal(custId, inv, prefilled)}
               onOpenMileageModal={(custId) => handleOpenMileageModal(custId)}
               onViewInvoice={handleViewInvoice}
               onEditCustomer={(cust) => {
@@ -484,6 +481,7 @@ export default function App() {
         invoice={editingInvoice}
         customers={customers}
         preselectedCustomerId={preselectedInvoiceCustId}
+        prefilledItem={prefilledInvoiceItem}
       />
 
       <ExpenseModal
