@@ -19,7 +19,7 @@ import StatCard from '../components/StatCard';
 import { formatCurrency, formatDate } from '../utils/formatters';
 
 export default function DashboardPage({ 
-  stats, 
+  stats = {}, 
   onNavigate, 
   onOpenCustomerModal, 
   onOpenInvoiceModal, 
@@ -27,15 +27,8 @@ export default function DashboardPage({
   onOpenExpenseModal,
   onSelectCustomer 
 }) {
-  if (!stats) {
-    return (
-      <div className="p-8 text-center text-slate-500">
-        Dashboard-Daten werden geladen...
-      </div>
-    );
-  }
-
-  const estimatedYearlyProfit = (stats.totalPaidRevenue || 0) - (stats.totalExpenses || 0) - (stats.totalKmDeduction || 0);
+  const safeStats = stats || {};
+  const estimatedYearlyProfit = (safeStats.totalPaidRevenue || 0) - (safeStats.totalExpenses || 0) - (safeStats.totalKmDeduction || 0);
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 animate-fadeIn">
@@ -78,8 +71,8 @@ export default function DashboardPage({
         {/* MRR Card (Monthly Recurring Revenue) */}
         <StatCard
           title="Monatliche Abos (MRR)"
-          value={formatCurrency(stats.mrr)}
-          subtitle={`${stats.activeAbosCount || 0} aktive monatliche Kundenverträge`}
+          value={formatCurrency(safeStats.mrr || 0)}
+          subtitle={`${safeStats.activeAbosCount || 0} aktive monatliche Kundenverträge`}
           icon={Repeat}
           color="sky"
           badge="Wiederkehrend"
@@ -90,8 +83,8 @@ export default function DashboardPage({
         {/* Paid Revenue */}
         <StatCard
           title="Einnahmen (Bezahlt Netto)"
-          value={formatCurrency(stats.totalPaidRevenue)}
-          subtitle={`Brutto: ${formatCurrency(stats.totalGrossRevenue)}`}
+          value={formatCurrency(safeStats.totalPaidRevenue || 0)}
+          subtitle={`Brutto: ${formatCurrency(safeStats.totalGrossRevenue || 0)}`}
           icon={TrendingUp}
           color="emerald"
           badge="Umsatz"
@@ -102,8 +95,8 @@ export default function DashboardPage({
         {/* Expenses */}
         <StatCard
           title="Betriebsausgaben (Netto)"
-          value={formatCurrency(stats.totalExpenses)}
-          subtitle={`Brutto: ${formatCurrency(stats.totalExpensesGross)}`}
+          value={formatCurrency(safeStats.totalExpenses || 0)}
+          subtitle={`Brutto: ${formatCurrency(safeStats.totalExpensesGross || 0)}`}
           icon={Receipt}
           color="amber"
           badge="Ausgaben"
@@ -114,8 +107,8 @@ export default function DashboardPage({
         {/* Mileage Pauschale */}
         <StatCard
           title="Finanzamt KM-Abzug"
-          value={formatCurrency(stats.totalKmDeduction)}
-          subtitle={`${stats.totalKm?.toFixed(1) || 0} km gefahren (0,30 €/km)`}
+          value={formatCurrency(safeStats.totalKmDeduction || 0)}
+          subtitle={`${safeStats.totalKm ? Number(safeStats.totalKm).toFixed(1) : '0.0'} km gefahren (0,30 €/km)`}
           icon={Car}
           color="purple"
           badge="Fahrtenbuch"
@@ -129,7 +122,7 @@ export default function DashboardPage({
         {/* Left 2 Cols: Recent Invoices & Quick Actions */}
         <div className="lg:col-span-2 space-y-6">
           {/* Open / Pending Invoices Alert */}
-          {stats.pendingInvoicesCount > 0 && (
+          {safeStats.pendingInvoicesCount > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-amber-500 text-white rounded-xl">
@@ -137,10 +130,10 @@ export default function DashboardPage({
                 </div>
                 <div>
                   <h4 className="font-bold text-amber-900 text-sm">
-                    {stats.pendingInvoicesCount} offene Rechnung(en) ausstehend
+                    {safeStats.pendingInvoicesCount} offene Rechnung(en) ausstehend
                   </h4>
                   <p className="text-xs text-amber-700">
-                    Gesamtbetrag offen: <span className="font-bold">{formatCurrency(stats.totalPendingAmount)}</span>
+                    Gesamtbetrag offen: <span className="font-bold">{formatCurrency(safeStats.totalPendingAmount)}</span>
                   </p>
                 </div>
               </div>
@@ -180,8 +173,8 @@ export default function DashboardPage({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {stats.recentInvoices && stats.recentInvoices.length > 0 ? (
-                    stats.recentInvoices.map((inv) => (
+                  {safeStats.recentInvoices && safeStats.recentInvoices.length > 0 ? (
+                    safeStats.recentInvoices.map((inv) => (
                       <tr key={inv.id} className="hover:bg-slate-50 transition">
                         <td className="p-3 pl-5 font-mono font-semibold text-slate-800">
                           {inv.invoiceNumber}
@@ -238,15 +231,15 @@ export default function DashboardPage({
             <div className="space-y-2 text-xs border-y border-white/10 py-3 my-3">
               <div className="flex justify-between text-slate-300">
                 <span>Einnahmen (Netto):</span>
-                <span className="font-semibold text-white">{formatCurrency(stats.totalPaidRevenue)}</span>
+                <span className="font-semibold text-white">{formatCurrency(safeStats.totalPaidRevenue || 0)}</span>
               </div>
               <div className="flex justify-between text-slate-300">
                 <span>Ausgaben (Netto):</span>
-                <span className="font-semibold text-rose-300">- {formatCurrency(stats.totalExpenses)}</span>
+                <span className="font-semibold text-rose-300">- {formatCurrency(safeStats.totalExpenses || 0)}</span>
               </div>
               <div className="flex justify-between text-slate-300">
                 <span>KM-Pauschale Abzug:</span>
-                <span className="font-semibold text-emerald-300">- {formatCurrency(stats.totalKmDeduction)}</span>
+                <span className="font-semibold text-emerald-300">- {formatCurrency(safeStats.totalKmDeduction || 0)}</span>
               </div>
             </div>
 
@@ -274,13 +267,13 @@ export default function DashboardPage({
                 onClick={() => onNavigate('customers')}
                 className="text-xs font-semibold text-sky-600 hover:text-sky-700"
               >
-                Alle ({stats.totalCustomers})
+                Alle ({safeStats.totalCustomers || 0})
               </button>
             </div>
 
             <div className="space-y-2.5">
-              {stats.recentCustomers && stats.recentCustomers.length > 0 ? (
-                stats.recentCustomers.map((c) => (
+              {safeStats.recentCustomers && safeStats.recentCustomers.length > 0 ? (
+                safeStats.recentCustomers.map((c) => (
                   <div
                     key={c.id}
                     onClick={() => onSelectCustomer(c.id)}

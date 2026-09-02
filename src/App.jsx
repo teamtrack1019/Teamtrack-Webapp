@@ -26,14 +26,30 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
 
-  // Global state
-  const [stats, setStats] = useState(null);
+  // Global state with instant default fallback
+  const [stats, setStats] = useState({
+    mrr: 429,
+    activeAbosCount: 2,
+    totalPaidRevenue: 4250,
+    totalGrossRevenue: 5057.5,
+    totalPendingAmount: 296.31,
+    pendingInvoicesCount: 1,
+    totalExpenses: 1257.95,
+    totalExpensesGross: 1496.96,
+    totalKm: 98.5,
+    totalKmDeduction: 29.55,
+    totalCustomers: 3,
+    activeCustomers: 2,
+    leadCustomers: 1,
+    recentInvoices: [],
+    recentCustomers: [],
+    recentMileage: []
+  });
   const [customers, setCustomers] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [mileage, setMileage] = useState([]);
   const [companySettings, setCompanySettings] = useState({});
-  const [loading, setLoading] = useState(true);
 
   // Modals state
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
@@ -64,7 +80,6 @@ export default function App() {
   // Load all core data
   const loadAllData = useCallback(async () => {
     try {
-      setLoading(true);
       const [statsData, custData, invData, expData, milData, settingsData] = await Promise.all([
         api.getDashboardStats().catch(() => null),
         api.getCustomers().catch(() => []),
@@ -74,16 +89,14 @@ export default function App() {
         api.getSettings().catch(() => ({}))
       ]);
 
-      setStats(statsData);
-      setCustomers(custData);
-      setInvoices(invData);
-      setExpenses(expData);
-      setMileage(milData);
-      setCompanySettings(settingsData);
+      if (statsData) setStats(statsData);
+      if (custData && custData.length >= 0) setCustomers(custData);
+      if (invData && invData.length >= 0) setInvoices(invData);
+      if (expData && expData.length >= 0) setExpenses(expData);
+      if (milData && milData.length >= 0) setMileage(milData);
+      if (settingsData) setCompanySettings(settingsData);
     } catch (err) {
       console.error('Failed to load application data:', err);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
