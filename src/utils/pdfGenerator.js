@@ -2,7 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatCurrency, formatDate } from './formatters';
 
-export function downloadInvoicePdf(invoice, companySettings = {}) {
+export function createInvoiceDoc(invoice, companySettings = {}) {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -21,7 +21,7 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
   }, 0);
   const totalAmount = calculatedItemsTotal > 0 ? calculatedItemsTotal : Number(invoice.netAmount || invoice.grossAmount || 0);
 
-  // 1. TOP HEADER
+  // 1. TOP HEADER (Spacious & Clean)
   doc.setFillColor(2, 132, 199);
   doc.roundedRect(margin, 20, 11, 11, 2.5, 2.5, 'F');
   doc.setTextColor(255, 255, 255);
@@ -54,7 +54,7 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
     doc.text(`Web: ${companySettings.website}`, margin, contactY);
   }
 
-  // Header Right: RECHNUNG & Number (Clean & Official, No BEZAHLT badge)
+  // Header Right: RECHNUNG & Number (Clean, No BEZAHLT stamp)
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
@@ -252,9 +252,25 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
   doc.text('Kleinunternehmer gem. § 19 UStG', col3X, footerY + 7.6);
   doc.text('Kein Umsatzsteuerausweis', col3X, footerY + 11.4);
 
-  // Save the PDF file
+  return doc;
+}
+
+export function downloadInvoicePdf(invoice, companySettings = {}) {
+  const doc = createInvoiceDoc(invoice, companySettings);
   const fileName = `Rechnung_${invoice.invoiceNumber || 'TeamTrack'}.pdf`.replace(/\s+/g, '_');
   doc.save(fileName);
+}
+
+export function printInvoicePdfDirectly(invoice, companySettings = {}) {
+  const doc = createInvoiceDoc(invoice, companySettings);
+  doc.autoPrint();
+  const blobUrl = doc.output('bloburl');
+  
+  // Open directly in a dedicated window or invisible iframe so there are ZERO browser URLs!
+  const printWindow = window.open(blobUrl, '_blank');
+  if (!printWindow) {
+    doc.save(`Rechnung_${invoice.invoiceNumber || 'TeamTrack'}.pdf`);
+  }
 }
 
 export function downloadTaxReportPdf(reportData) {
