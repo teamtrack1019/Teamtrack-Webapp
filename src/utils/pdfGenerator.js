@@ -265,14 +265,118 @@ export function printInvoicePdfDirectly(invoice, companySettings = {}) {
   const doc = createInvoiceDoc(invoice, companySettings);
   doc.autoPrint();
   const blobUrl = doc.output('bloburl');
-  
-  // Open directly in a dedicated window or invisible iframe so there are ZERO browser URLs!
-  const printWindow = window.open(blobUrl, '_blank');
-  if (!printWindow) {
-    doc.save(`Rechnung_${invoice.invoiceNumber || 'TeamTrack'}.pdf`);
-  }
+  window.open(blobUrl, '_blank');
 }
 
+// -------------------------------------------------------------
+// FAHRTENBUCH / KM-TRACKING PDF GENERATOR (Finanzamt-konform)
+// -------------------------------------------------------------
+export function createMileageDoc(mileageList = [], companySettings = {}) {
+  const doc = new jsPDF({
+    orientation: 'landscape', // Landscape for clean table columns
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth(); // 297mm
+  const margin = 16;
+
+  const totalKm = mileageList.reduce((s, m) => s + Number(m.kilometers || 0), 0);
+  const totalDeduction = mileageList.reduce((s, m) => s + Number(m.totalDeduction || (m.kilometers * 0.3)), 0);
+
+  // Header Title Banner
+  doc.setFillColor(15, 23, 42); // Dark slate
+  doc.roundedRect(margin, 14, pageWidth - (margin * 2), 20, 3, 3, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Betriebliches Fahrtenbuch & KM-Nachweis (Finanzamt)', margin + 6, 23);
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(186, 230, 253);
+  doc.text(`Steuerlicher Nachweis nach § 9 Abs. 1 Nr. 4a EStG • ${companySettings.companyName || 'TeamTrack'} • Steuernummer: ${companySettings.taxNumber || '-'}`, margin + 6, 29);
+
+  // Summary KPI Row
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(margin, 38, pageWidth - (margin * 2), 16, 2, 2, 'FD');
+
+  doc.setFontSize(8.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Gesamte Dienstreisen:', margin + 6, 47);
+  doc.text('Gesamtfahrstrecke:', margin + 70, 47);
+  doc.text('Kilometerpauschale:', margin + 140, 47);
+  doc.text('Steuerlicher Abzug (Betriebsausgabe):', margin + 200, 47);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text(`${mileageList.length} Fahrten`, margin + 40, 47);
+  doc.text(`${totalKm.toFixed(1)} km`, margin + 102, 47);
+  doc.text('0,30 € / km', margin + 172, 47);
+  doc.setTextColor(16, 185, 129);
+  doc.setFontSize(10);
+  doc.text(formatCurrency(totalDeduction), pageWidth - margin - 6, 47, { align: 'right' });
+
+  // Table Data
+  const tableData = mileageList.map((m, idx) => [
+    idx + 1,
+    formatDate(m.date),
+    m.customerName || 'Allgemeine Betriebsfahrt',
+    `${m.startLocation || 'Büro'} → ${m.destination || '-'}`,
+    m.purpose || 'Kundenbesuch / Vor-Ort Service',
+    `${m.kilometers} km`,
+    formatCurrency(m.totalDeduction || (m.kilometers * 0.3))
+  ]);
+
+  autoTable(doc, {
+    startY: 58,
+    margin: { left: margin, right: margin },
+    head: [['Pos.', 'Datum', 'Kunde / Geschäftspartner', 'Reiseweg (Start → Zielort)', 'Reisezweck / Anlass', 'Distanz', 'Pauschale (€)']],
+    body: tableData,
+    theme: 'grid',
+    headStyles: {
+      fillColor: [15, 23, 42],
+      textColor: [255, 255, 255],
+      fontSize: 8,
+      fontStyle: 'bold',
+      cellPadding: 3
+    },
+    bodyStyles: {
+      fontSize: 8,
+      textColor: [30, 41, 59],
+      cellPadding: 3
+    },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 12 },
+      1: { halign: 'center', cellWidth: 22 },
+      2: { halign: 'left', cellWidth: 50, fontStyle: 'bold' },
+      3: { halign: 'left', cellWidth: 65 },
+      4: { halign: 'left' },
+      5: { halign: 'center', cellWidth: 22, fontStyle: 'bold' },
+      6: { halign: 'right', cellWidth: 28, fontStyle: 'bold', textColor: [16, 185, 129] }
+    }
+  });
+
+  return doc;
+}
+
+export function downloadMileagePdf(mileageList = [], companySettings = {}) {
+  const doc = createMileageDoc(mileageList, companySettings);
+  doc.save('Finanzamt_Fahrtenbuch_2026.pdf');
+}
+
+export function printMileagePdfDirectly(mileageList = [], companySettings = {}) {
+  const doc = createMileageDoc(mileageList, companySettings);
+  doc.autoPrint();
+  const blobUrl = doc.output('bloburl');
+  window.open(blobUrl, '_blank');
+}
+
+// -------------------------------------------------------------
+// FINANZAMT EÜR REPORT PDF
+// -------------------------------------------------------------
 export function downloadTaxReportPdf(reportData) {
   const doc = new jsPDF({
     orientation: 'portrait',

@@ -8,12 +8,15 @@ import {
   Calendar, 
   Building2, 
   Printer, 
+  Download,
+  Loader2,
   Edit3, 
   Trash2,
   ArrowRightLeft,
   FileCheck2
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
+import { downloadMileagePdf, printMileagePdfDirectly } from '../utils/pdfGenerator';
 
 export default function MileagePage({ 
   mileage, 
@@ -22,6 +25,7 @@ export default function MileagePage({
   onDeleteMileage 
 }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const filtered = mileage.filter(m => {
     return (
@@ -35,8 +39,25 @@ export default function MileagePage({
   const totalKm = mileage.reduce((s, m) => s + Number(m.kilometers || 0), 0);
   const totalDeduction = mileage.reduce((s, m) => s + Number(m.totalDeduction || 0), 0);
 
+  // 1-Click Vector PDF Download
+  const handleDownloadPdf = () => {
+    try {
+      setIsDownloading(true);
+      downloadMileagePdf(mileage);
+    } catch (err) {
+      alert('PDF Fehler: ' + err.message);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  // Vector Print (Clean, No cuts, No splits)
   const handlePrint = () => {
-    window.print();
+    try {
+      printMileagePdfDirectly(mileage);
+    } catch (err) {
+      window.print();
+    }
   };
 
   return (
@@ -53,18 +74,44 @@ export default function MileagePage({
           </p>
         </div>
 
-        <div className="flex items-center space-x-2.5 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+          {/* Direct PDF Download Button */}
           <button
-            onClick={handlePrint}
-            className="flex items-center space-x-1.5 px-4 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition shadow-sm"
+            type="button"
+            onClick={handleDownloadPdf}
+            disabled={isDownloading}
+            className="flex items-center space-x-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/30 transition disabled:opacity-50 cursor-pointer"
+            title="Fahrtenbuch direkt als PDF-Datei herunterladen"
           >
-            <Printer className="w-4 h-4 text-slate-600" />
-            <span>Fahrtenbuch Drucken / PDF</span>
+            {isDownloading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>PDF wird erstellt...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" />
+                <span>PDF Herunterladen</span>
+              </>
+            )}
           </button>
 
+          {/* Direct Clean Print Button */}
           <button
+            type="button"
+            onClick={handlePrint}
+            className="flex items-center space-x-1.5 px-3.5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition cursor-pointer"
+            title="Fahrtenbuch sauber drucken"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Drucken</span>
+          </button>
+
+          {/* New Entry Button */}
+          <button
+            type="button"
             onClick={() => onOpenMileageModal()}
-            className="flex items-center space-x-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-emerald-600/20 transition"
+            className="flex items-center space-x-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-md transition"
           >
             <Plus className="w-4 h-4" />
             <span>+ Neue Fahrt erfassen</span>
@@ -129,19 +176,8 @@ export default function MileagePage({
         </div>
       </div>
 
-      {/* Printable Fahrtenbuch Table */}
+      {/* Fahrtenbuch Table */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6">
-        {/* Printable Header only shown when printing */}
-        <div className="hidden print-only mb-6">
-          <h1 className="text-xl font-bold text-slate-900">Betriebliches Fahrtenbuch / KM-Nachweis</h1>
-          <p className="text-xs text-slate-500">Nachweis für das Finanzamt über betrieblich veranlasste Fahrten (0,30 €/km)</p>
-          <div className="flex justify-between border-y border-slate-300 py-2 mt-3 text-xs">
-            <div>Gesamtkilometer: <strong>{totalKm.toFixed(1)} km</strong></div>
-            <div>Kilometerpauschale: <strong>0,30 € / km</strong></div>
-            <div>Steuerlicher Abzug: <strong>{formatCurrency(totalDeduction)}</strong></div>
-          </div>
-        </div>
-
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
