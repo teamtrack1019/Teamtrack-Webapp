@@ -188,36 +188,24 @@ export default function CustomersPage({
                   )}
                 </div>
 
-                {/* DEMO / TANITIM EMAIL TRACKING BADGE */}
-                <div className="pt-2 border-t border-slate-100">
-                  {customer.demoEmailSent ? (
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 flex items-center justify-between text-xs">
-                      <div className="flex items-center space-x-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <div>
-                          <div className="font-bold text-emerald-950 text-[11px]">
-                            Tanıtım / Demo Gönderildi
-                          </div>
-                          <div className="text-[10px] text-emerald-700">
-                            {formatDateTime(customer.demoEmailSentAt)}
-                          </div>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => onOpenDemoEmailModal(customer)}
-                        className="text-[10px] font-semibold text-emerald-800 underline hover:text-emerald-950"
-                      >
-                        Erneut
-                      </button>
+                {/* DEMO / TANITIM EMAIL TRACKING BADGE & OUTLOOK BUTTON */}
+                <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                  <button
+                    onClick={() => onOpenDemoEmailModal(customer)}
+                    className="w-full bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-800 rounded-xl p-2.5 flex items-center justify-center space-x-2 text-xs font-bold transition shadow-xs cursor-pointer"
+                  >
+                    <Mail className="w-3.5 h-3.5 text-sky-600" />
+                    <span>E-Mail Senden (Outlook / Demo)</span>
+                  </button>
+
+                  {customer.demoEmailSent && (
+                    <div className="bg-emerald-50 border border-emerald-200/80 rounded-lg px-2.5 py-1 flex items-center justify-between text-[11px] text-emerald-800 font-medium">
+                      <span className="flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                        <span>Gönderildi: {formatDateTime(customer.demoEmailSentAt)}</span>
+                      </span>
+                      <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-100/80 px-1.5 py-0.2 rounded">Kayıtlı</span>
                     </div>
-                  ) : (
-                    <button
-                      onClick={() => onOpenDemoEmailModal(customer)}
-                      className="w-full bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-800 rounded-xl p-2 flex items-center justify-center space-x-1.5 text-xs font-semibold transition"
-                    >
-                      <Mail className="w-3.5 h-3.5 text-sky-600" />
-                      <span>Tanıtım / Demo Maili Gönder</span>
-                    </button>
                   )}
                 </div>
 
