@@ -711,19 +711,54 @@ async function handleLocalRequest(endpoint, options = {}) {
 
   // INVOICES
   if (endpoint.startsWith('/invoices')) {
-    if (method === 'GET') return db.invoices;
+    if (method === 'GET') {
+      let repaired = false;
+      let nextCounter = 1;
+      db.invoices.forEach((inv) => {
+        if (!inv.invoiceNumber || inv.invoiceNumber.trim() === '') {
+          inv.invoiceNumber = `RE-2026-${String(nextCounter).padStart(4, '0')}`;
+          repaired = true;
+        } else {
+          const match = String(inv.invoiceNumber).match(/(\d{4})$/);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (!isNaN(num) && num >= nextCounter) nextCounter = num + 1;
+          }
+        }
+      });
+      if (repaired) {
+        saveLocalData(db);
+        pushToFirebase(db);
+      }
+      return db.invoices;
+    }
     if (method === 'POST') {
       const itemSum = (body.items || []).reduce((s, it) => s + ((Number(it.unitPrice) || 0) * (Number(it.quantity) || 1)), 0);
       const exactAmount = itemSum > 0 ? itemSum : (Number(body.netAmount) || Number(body.grossAmount) || 0);
+      
+      // Calculate next consecutive invoice number
+      let maxNum = 0;
+      (db.invoices || []).forEach(inv => {
+        if (inv.invoiceNumber) {
+          const match = String(inv.invoiceNumber).match(/(\d{4})$/);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (!isNaN(num) && num > maxNum) maxNum = num;
+          }
+        }
+      });
+      const generatedNumber = `RE-2026-${String(maxNum + 1).padStart(4, '0')}`;
+      const finalInvNumber = (body.invoiceNumber && body.invoiceNumber.trim() !== '') ? body.invoiceNumber : generatedNumber;
+
       const newInv = {
+        ...body,
         id: `inv-${Date.now()}`,
-        invoiceNumber: body.invoiceNumber || `RE-2026-${String(db.invoices.length + 1).padStart(4, '0')}`,
+        invoiceNumber: finalInvNumber,
         isKleinunternehmer: true,
         taxRate: 0,
         taxAmount: 0,
         netAmount: exactAmount,
         grossAmount: exactAmount,
-        ...body,
         createdAt: new Date().toISOString()
       };
       db.invoices.push(newInv);
@@ -740,6 +775,7 @@ async function handleLocalRequest(endpoint, options = {}) {
         db.invoices[idx] = {
           ...db.invoices[idx],
           ...body,
+          invoiceNumber: (body.invoiceNumber && body.invoiceNumber.trim() !== '') ? body.invoiceNumber : db.invoices[idx].invoiceNumber,
           taxRate: 0,
           taxAmount: 0,
           netAmount: exactAmount,

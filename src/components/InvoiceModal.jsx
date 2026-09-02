@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Plus, Trash2, Calendar, Euro, Building2, X, Sparkles, CheckCircle2 } from 'lucide-react';
+import { 
+  FileText, 
+  Plus, 
+  Trash2, 
+  Calendar, 
+  Euro, 
+  Building2, 
+  X, 
+  Sparkles, 
+  CheckCircle2,
+  Repeat,
+  Zap,
+  Tag
+} from 'lucide-react';
+import { api } from '../api';
 import { formatCurrency } from '../utils/formatters';
 
 export default function InvoiceModal({ 
@@ -31,7 +45,19 @@ export default function InvoiceModal({
     ]
   });
 
+  const [customerServices, setCustomerServices] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Load customer services whenever customerId changes
+  useEffect(() => {
+    if (formData.customerId) {
+      api.getServices(formData.customerId)
+        .then((res) => setCustomerServices(res || []))
+        .catch(() => setCustomerServices([]));
+    } else {
+      setCustomerServices([]);
+    }
+  }, [formData.customerId]);
 
   useEffect(() => {
     if (invoice) {
@@ -44,7 +70,7 @@ export default function InvoiceModal({
         customerEmail: invoice.customerEmail || '',
         date: invoice.date || new Date().toISOString().split('T')[0],
         dueDate: invoice.dueDate || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        taxRate: invoice.taxRate !== undefined ? invoice.taxRate : 0,
+        taxRate: 0,
         isKleinunternehmer: true,
         status: invoice.status || 'draft',
         paidAt: invoice.paidAt || '',
@@ -60,6 +86,27 @@ export default function InvoiceModal({
         ? `${prefilledItem.title}${prefilledItem.type === 'abo' ? ' (Monatliches Abonnement)' : ''}`
         : 'Papierkram Digitalisierung & WebApp Service';
       const initialItemPrice = prefilledItem?.price !== undefined ? Number(prefilledItem.price) : 0;
+
+      // Auto-calculate next consecutive invoice number
+      api.getInvoices().then((invoices) => {
+        let maxNum = 0;
+        (invoices || []).forEach(inv => {
+          if (inv.invoiceNumber) {
+            const match = String(inv.invoiceNumber).match(/(\d{4})$/);
+            if (match) {
+              const num = parseInt(match[1], 10);
+              if (!isNaN(num) && num > maxNum) maxNum = num;
+            }
+          }
+        });
+        const currentYear = new Date().getFullYear();
+        const nextInvNumber = `RE-${currentYear}-${String(maxNum + 1).padStart(4, '0')}`;
+        
+        setFormData(prev => ({
+          ...prev,
+          invoiceNumber: prev.invoiceNumber || nextInvNumber
+        }));
+      }).catch(() => {});
 
       setFormData({
         invoiceNumber: '',
@@ -118,6 +165,29 @@ export default function InvoiceModal({
     });
   };
 
+  const addServiceAsItem = (service) => {
+    const desc = service.type === 'abo' 
+      ? `${service.title} (Monatliches Abonnement)` 
+      : service.title;
+    const price = Number(service.price || 0);
+
+    // If first item is empty default, replace it; otherwise append
+    if (formData.items.length === 1 && formData.items[0].description === 'Papierkram Digitalisierung & WebApp Service' && formData.items[0].unitPrice === 0) {
+      setFormData({
+        ...formData,
+        items: [{ id: String(Date.now()), description: desc, quantity: 1, unitPrice: price, taxRate: 0 }]
+      });
+    } else {
+      setFormData({
+        ...formData,
+        items: [
+          ...formData.items,
+          { id: String(Date.now()), description: desc, quantity: 1, unitPrice: price, taxRate: 0 }
+        ]
+      });
+    }
+  };
+
   const removeItem = (index) => {
     if (formData.items.length === 1) return;
     const updated = formData.items.filter((_, i) => i !== index);
@@ -150,20 +220,25 @@ export default function InvoiceModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-200 flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-200 flex flex-col max-h-[94vh]">
         {/* Header */}
-        <div className="p-5 bg-slate-900 text-white flex items-center justify-between">
+        <div className="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-sky-500/20 rounded-xl border border-sky-500/30">
-              <FileText className="w-6 h-6 text-sky-400" />
+              <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-sky-400" />
             </div>
             <div>
-              <h3 className="text-lg font-bold">
-                {invoice ? `Rechnung bearbeiten: ${invoice.invoiceNumber}` : 'Neue Ausgangsrechnung erstellen'}
+              <h3 className="text-base sm:text-lg font-bold flex items-center gap-2">
+                <span>{invoice ? 'Rechnung bearbeiten' : 'Neue Ausgangsrechnung'}</span>
+                {formData.invoiceNumber && (
+                  <span className="font-mono text-xs sm:text-sm bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded border border-sky-500/30">
+                    {formData.invoiceNumber}
+                  </span>
+                )}
               </h3>
-              <p className="text-xs text-slate-400">
-                § 19 UStG Kleinunternehmerregelung • Rechtssicher nach GoBD
+              <p className="text-[11px] sm:text-xs text-slate-400">
+                § 19 UStG Kleinunternehmer • Fortlaufende Rechnungsnummer
               </p>
             </div>
           </div>
@@ -175,11 +250,11 @@ export default function InvoiceModal({
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto flex-1">
-          {/* Customer Selection & Meta */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
-            <div>
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1">
+          {/* Top Metadata Row: Customer, Invoice No & Dates */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5 bg-slate-50 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80">
+            <div className="sm:col-span-2">
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-sky-600" />
                 <span>Kunde auswählen *</span>
@@ -188,7 +263,7 @@ export default function InvoiceModal({
                 required
                 value={formData.customerId}
                 onChange={(e) => handleCustomerChange(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 focus:ring-2 focus:ring-sky-500 focus:outline-none"
               >
                 <option value="">-- Kunde wählen --</option>
                 {customers.map((c) => (
@@ -209,7 +284,7 @@ export default function InvoiceModal({
                 required
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"
               />
             </div>
 
@@ -223,36 +298,134 @@ export default function InvoiceModal({
                 required
                 value={formData.dueDate}
                 onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"
               />
             </div>
           </div>
 
-          {/* Items Table */}
+          {/* Quick Add From Customer Services (Abos / Einmalige Leistungen) */}
+          {customerServices.length > 0 && (
+            <div className="bg-sky-50/70 border border-sky-200 rounded-2xl p-3.5 space-y-2">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-sky-900">
+                <Sparkles className="w-4 h-4 text-sky-600 shrink-0" />
+                <span>Kunden-Leistungen mit 1 Klick als Position hinzufügen:</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {customerServices.map((srv) => (
+                  <button
+                    key={srv.id}
+                    type="button"
+                    onClick={() => addServiceAsItem(srv)}
+                    className="px-3 py-1.5 bg-white hover:bg-sky-600 hover:text-white text-slate-800 text-xs font-bold rounded-xl border border-sky-300 shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {srv.type === 'abo' ? (
+                      <Repeat className="w-3.5 h-3.5 text-sky-600" />
+                    ) : (
+                      <Zap className="w-3.5 h-3.5 text-emerald-600" />
+                    )}
+                    <span>{srv.title}</span>
+                    <span className="text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded text-[11px] font-extrabold ml-1">
+                      {formatCurrency(srv.price)}
+                    </span>
+                    <Plus className="w-3 h-3 ml-0.5 opacity-70" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Items Section (Mobile-Friendly Responsive Cards + Desktop Table) */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                Rechnungspositionen & Leistungen
+                Rechnungspositionen & Beträge
               </h4>
               <button
                 type="button"
                 onClick={addItem}
-                className="flex items-center space-x-1 text-xs font-bold text-sky-600 hover:text-sky-700 bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded-lg border border-sky-200 transition cursor-pointer"
+                className="flex items-center space-x-1 text-xs font-bold text-sky-600 hover:text-sky-700 bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded-xl border border-sky-200 transition cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>+ Position hinzufügen</span>
               </button>
             </div>
 
-            <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+            {/* MOBILE LAYOUT (< md): Intuitive Cards */}
+            <div className="md:hidden space-y-3">
+              {formData.items.map((item, index) => {
+                const rowTotal = (parseFloat(item.quantity) || 1) * (parseFloat(item.unitPrice) || 0);
+                return (
+                  <div key={item.id || index} className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-700">Position #{index + 1}</span>
+                      {formData.items.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeItem(index)}
+                          className="p-1 text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-500 mb-0.5">Beschreibung</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="z.B. Monatliche Betreuung & Hosting"
+                        value={item.description}
+                        onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-500 mb-0.5">Menge</label>
+                        <input
+                          type="number"
+                          step="1"
+                          min="1"
+                          required
+                          value={item.quantity}
+                          onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-center focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-500 mb-0.5">Einzelpreis (€)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          required
+                          value={item.unitPrice}
+                          onChange={(e) => handleItemChange(index, 'unitPrice', e.target.value)}
+                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-right focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs">
+                      <span className="text-slate-500 font-medium">Zeilensumme:</span>
+                      <span className="font-extrabold text-slate-900">{formatCurrency(rowTotal)}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* DESKTOP LAYOUT (>= md): Full Table */}
+            <div className="hidden md:block border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
               <table className="w-full text-left text-xs border-collapse">
                 <thead className="bg-slate-100/80 text-slate-700 font-bold border-b border-slate-200 uppercase tracking-wider">
                   <tr>
                     <th className="p-3">Pos. Beschreibung</th>
-                    <th className="p-3 w-20 text-center">Menge</th>
-                    <th className="p-3 w-32 text-right">Einzelpreis (€)</th>
-                    <th className="p-3 w-32 text-right">Gesamt (€)</th>
-                    <th className="p-3 w-10"></th>
+                    <th className="p-3 w-24 text-center">Menge</th>
+                    <th className="p-3 w-36 text-right">Einzelpreis (€)</th>
+                    <th className="p-3 w-36 text-right">Gesamt (€)</th>
+                    <th className="p-3 w-12 text-center"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 bg-white">
@@ -267,7 +440,7 @@ export default function InvoiceModal({
                             placeholder="z.B. Digitalisierung & WebApp-Entwicklung"
                             value={item.description}
                             onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                            className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                            className="w-full px-3 py-1.5 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none"
                           />
                         </td>
                         <td className="p-2.5">
@@ -278,7 +451,7 @@ export default function InvoiceModal({
                             required
                             value={item.quantity}
                             onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                            className="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs text-center font-bold focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                            className="w-full px-2 py-1.5 border border-slate-200 rounded-xl text-xs text-center font-bold focus:ring-2 focus:ring-sky-500 focus:outline-none"
                           />
                         </td>
                         <td className="p-2.5">
@@ -288,7 +461,7 @@ export default function InvoiceModal({
                             required
                             value={item.unitPrice}
                             onChange={(e) => handleItemChange(index, 'unitPrice', e.target.value)}
-                            className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs text-right font-bold focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                            className="w-full px-2.5 py-1.5 border border-slate-200 rounded-xl text-xs text-right font-bold focus:ring-2 focus:ring-sky-500 focus:outline-none"
                           />
                         </td>
                         <td className="p-2.5 text-right font-extrabold text-slate-900">
@@ -301,7 +474,7 @@ export default function InvoiceModal({
                               onClick={() => removeItem(index)}
                               className="text-slate-400 hover:text-rose-600 transition cursor-pointer"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           )}
                         </td>
@@ -314,8 +487,8 @@ export default function InvoiceModal({
           </div>
 
           {/* Kleinunternehmer Notice & Total Summary Card */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 space-y-2 text-xs text-emerald-900">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 space-y-1.5 text-xs text-emerald-900">
               <div className="flex items-center gap-1.5 font-bold text-emerald-950">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>§ 19 UStG Kleinunternehmerregelung</span>
@@ -325,7 +498,7 @@ export default function InvoiceModal({
               </p>
             </div>
 
-            <div className="bg-slate-900 text-white rounded-xl p-4 space-y-2 shadow-sm">
+            <div className="bg-slate-900 text-white rounded-2xl p-4 space-y-2 shadow-sm">
               <div className="flex items-center justify-between text-xs text-slate-300">
                 <span>Nettobetrag:</span>
                 <span className="font-bold">{formatCurrency(netTotal)}</span>
@@ -373,14 +546,14 @@ export default function InvoiceModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl font-medium transition cursor-pointer"
+              className="px-4 py-2 text-xs sm:text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl font-medium transition cursor-pointer"
             >
               Abbrechen
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-sm font-bold shadow-md shadow-sky-600/20 transition disabled:opacity-50 cursor-pointer"
+              className="px-5 sm:px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-sky-600/20 transition disabled:opacity-50 cursor-pointer"
             >
               {loading ? 'Wird erstellt...' : invoice ? 'Rechnung aktualisieren' : 'Rechnung verbindlich erstellen'}
             </button>
