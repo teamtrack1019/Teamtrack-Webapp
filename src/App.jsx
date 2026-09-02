@@ -217,6 +217,20 @@ export default function App() {
     setActiveTab('customer-detail');
   };
 
+  const handleBulkGenerateAbos = async () => {
+    try {
+      const res = await api.generateMonthlyAboInvoices();
+      await loadAllData();
+      if (res.createdCount > 0) {
+        alert(`Erfolg: ${res.createdCount} Monatsrechnung(en) für diesen Monat wurden automatisch erstellt!`);
+      } else {
+        alert('Alle aktiven Kunden-Abos für diesen Monat wurden bereits abgerechnet.');
+      }
+    } catch (err) {
+      alert('Fehler bei der automatischen Abrechnung: ' + err.message);
+    }
+  };
+
   const handleOpenDemoEmail = (cust) => {
     setDemoEmailCustomer(cust);
     setDemoEmailModalOpen(true);
@@ -292,6 +306,7 @@ export default function App() {
                 setActiveTab('customer-detail');
               }}
               onViewInvoice={handleViewInvoice}
+              onBulkGenerateAbos={handleBulkGenerateAbos}
             />
           )}
 
@@ -355,6 +370,7 @@ export default function App() {
               onDeleteInvoice={handleDeleteInvoice}
               onTogglePaid={handleToggleInvoicePaid}
               onViewInvoice={handleViewInvoice}
+              onBulkGenerateAbos={handleBulkGenerateAbos}
             />
           )}
 

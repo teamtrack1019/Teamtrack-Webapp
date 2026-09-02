@@ -515,9 +515,28 @@ async function handleLocalRequest(endpoint, options = {}) {
       pushToFirebase(db);
     }
 
+    // Check which active abos have not been invoiced yet in the current month
+    const currentMonthPrefix = new Date().toISOString().slice(0, 7);
+    const unbilledAbos = [];
+    activeAbos.forEach(abo => {
+      const customer = db.customers.find(c => c.id === abo.customerId);
+      const alreadyInvoiced = db.invoices.some(inv => 
+        inv.customerId === abo.customerId &&
+        inv.date && inv.date.startsWith(currentMonthPrefix)
+      );
+      if (!alreadyInvoiced && customer) {
+        unbilledAbos.push({
+          abo,
+          customer
+        });
+      }
+    });
+
     return {
       mrr,
       activeAbosCount: activeAbos.length,
+      unbilledAbosCount: unbilledAbos.length,
+      unbilledAbos,
       totalPaidRevenue,
       totalGrossRevenue,
       totalPendingAmount,
@@ -715,6 +734,92 @@ async function handleLocalRequest(endpoint, options = {}) {
         return del;
       }
     }
+  }
+
+  // BULK GENERATE MONTHLY ABO INVOICES
+  if (endpoint === '/invoices/generate-monthly-abos' && method === 'POST') {
+    const currentMonthPrefix = new Date().toISOString().slice(0, 7);
+    const dateStr = new Date().toISOString().split('T')[0];
+    const dueDateStr = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+    const currentMonthName = monthNames[new Date().getMonth()];
+    const currentYear = new Date().getFullYear();
+
+    const createdInvoices = [];
+    const activeAbos = (db.services || []).filter(s => s.type === 'abo' && s.status === 'active');
+
+    let maxNum = 0;
+    (db.invoices || []).forEach(inv => {
+      if (inv.invoiceNumber) {
+        const match = String(inv.invoiceNumber).match(/RE-\d{4}-(\d+)/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (!isNaN(num) && num > maxNum) maxNum = num;
+        }
+      }
+    });
+
+    activeAbos.forEach(abo => {
+      const customer = db.customers.find(c => c.id === abo.customerId);
+      if (!customer) return;
+
+      const alreadyInvoiced = db.invoices.some(inv => 
+        inv.customerId === abo.customerId &&
+        inv.date && inv.date.startsWith(currentMonthPrefix) &&
+        (inv.items || []).some(item => item.description?.toLowerCase().includes(abo.title.toLowerCase()) || item.unitPrice === Number(abo.price))
+      );
+
+      if (!alreadyInvoiced) {
+        maxNum += 1;
+        const invNum = `RE-${currentYear}-${String(maxNum).padStart(4, '0')}`;
+        const price = Number(abo.price || 0);
+
+        const newInv = {
+          id: `inv-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+          invoiceNumber: invNum,
+          customerId: customer.id,
+          customerName: customer.companyName,
+          customerAddress: customer.address || '',
+          customerTaxId: customer.taxNumber || '',
+          customerEmail: customer.email || '',
+          date: dateStr,
+          dueDate: dueDateStr,
+          taxRate: 0,
+          isKleinunternehmer: true,
+          status: 'sent',
+          paidAt: '',
+          notes: 'Vielen Dank für die laufende digitale Zusammenarbeit und Ihr Vertrauen.',
+          paymentTerms: 'Zahlbar innerhalb von 14 Tagen ohne Abzug.',
+          items: [
+            {
+              id: String(Date.now()),
+              description: `${abo.title} - Monatliche Betreuung & Cloud-Service (${currentMonthName} ${currentYear})`,
+              quantity: 1,
+              unitPrice: price,
+              taxRate: 0
+            }
+          ],
+          netAmount: price,
+          taxAmount: 0,
+          grossAmount: price,
+          createdAt: new Date().toISOString()
+        };
+
+        db.invoices.push(newInv);
+        createdInvoices.push(newInv);
+      }
+    });
+
+    if (createdInvoices.length > 0) {
+      saveLocalData(db);
+      pushToFirebase(db);
+    }
+
+    return {
+      success: true,
+      createdCount: createdInvoices.length,
+      invoices: createdInvoices
+    };
   }
 
   // INVOICES
@@ -1007,6 +1112,7 @@ export const api = {
   createInvoice: (data) => request('/invoices', { method: 'POST', body: JSON.stringify(data) }),
   updateInvoice: (id, data) => request(`/invoices/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteInvoice: (id) => request(`/invoices/${id}`, { method: 'DELETE' }),
+  generateMonthlyAboInvoices: () => request('/invoices/generate-monthly-abos', { method: 'POST' }),
   getExpenses: () => request('/expenses'),
   createExpense: (data) => request('/expenses', { method: 'POST', body: JSON.stringify(data) }),
   updateExpense: (id, data) => request(`/expenses/${id}`, { method: 'PUT', body: JSON.stringify(data) }),

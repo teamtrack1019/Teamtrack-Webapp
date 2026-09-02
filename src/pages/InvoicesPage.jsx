@@ -20,7 +20,8 @@ export default function InvoicesPage({
   onEditInvoice, 
   onDeleteInvoice, 
   onTogglePaid,
-  onViewInvoice 
+  onViewInvoice,
+  onBulkGenerateAbos 
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -61,13 +62,25 @@ export default function InvoicesPage({
           </p>
         </div>
 
-        <button
-          onClick={() => onOpenInvoiceModal()}
-          className="flex items-center space-x-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-sky-600/20 transition self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>+ Neue Rechnung erstellen</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+          {onBulkGenerateAbos && (
+            <button
+              onClick={onBulkGenerateAbos}
+              className="flex items-center space-x-1.5 px-3.5 py-2.5 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl text-xs font-bold border border-sky-200 transition shadow-xs cursor-pointer"
+              title="Alle fälligen Kunden-Abos für diesen Monat auf einmal abrechnen"
+            >
+              <span>⚡ Monatsabos abrechnen</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => onOpenInvoiceModal()}
+            className="flex items-center space-x-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-md shadow-sky-600/20 transition cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>+ Neue Rechnung</span>
+          </button>
+        </div>
       </div>
 
       {/* Summary Stats Row */}

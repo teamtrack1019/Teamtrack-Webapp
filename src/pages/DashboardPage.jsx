@@ -20,7 +20,8 @@ export default function DashboardPage({
   onNavigate, 
   onOpenCustomerModal, 
   onOpenInvoiceModal, 
-  onSelectCustomer 
+  onSelectCustomer,
+  onBulkGenerateAbos 
 }) {
   const safeStats = stats || {};
   const estimatedYearlyProfit = (safeStats.totalPaidRevenue || 0) - (safeStats.totalExpenses || 0) - (safeStats.totalKmDeduction || 0);
@@ -106,6 +107,37 @@ export default function DashboardPage({
           onClick={() => onNavigate('mileage')}
         />
       </div>
+
+      {/* MONTHLY ABO BILLING REMINDER BANNER (1-Click Auto Invoicing) */}
+      {safeStats.unbilledAbosCount > 0 && (
+        <div className="bg-gradient-to-r from-sky-50 via-indigo-50/60 to-cyan-50 border border-sky-200 rounded-3xl p-5 md:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-5 shadow-sm">
+          <div className="flex items-start space-x-3.5">
+            <div className="p-3 bg-sky-600 text-white rounded-2xl shrink-0 shadow-md shadow-sky-600/20">
+              <Repeat className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-sky-700 bg-sky-100 px-2.5 py-0.5 rounded-full border border-sky-200">
+                  Abo-Abrechnung Fällig
+                </span>
+              </div>
+              <h4 className="font-black text-slate-900 text-base md:text-lg mt-1">
+                {safeStats.unbilledAbosCount} aktive(s) Kunden-Abo(s) diesen Monat noch nicht abgerechnet
+              </h4>
+              <p className="text-xs text-slate-600 mt-0.5 leading-relaxed max-w-2xl">
+                Abonnements sind aktiv. Sie können alle Monatsrechnungen für die fälligen Kunden mit einem Klick automatisch erstellen lassen.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onBulkGenerateAbos}
+            className="px-5 py-3 bg-sky-600 hover:bg-sky-700 text-white rounded-2xl text-xs font-bold transition shadow-md shadow-sky-600/20 flex items-center justify-center gap-2 shrink-0 cursor-pointer self-start lg:self-auto"
+          >
+            <Sparkles className="w-4 h-4 text-sky-200" />
+            <span>⚡ Alle {safeStats.unbilledAbosCount} Abos automatisch abrechnen</span>
+          </button>
+        </div>
+      )}
 
       {/* Main Grid: Left Side (Invoices) vs Right Side (Finanzamt & Customers) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
