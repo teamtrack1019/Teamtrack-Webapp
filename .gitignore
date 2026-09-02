@@ -1,21 +1,16 @@
 # Dependencies
 node_modules/
-backend/node_modules/
-frontend/node_modules/
 
 # Production build
-frontend/dist/
 dist/
 
-# Local data & logs
-backend/data/*.tmp
+# Local data & tools
+backend/
+git-tool/
+START_TEAMTRACK.bat
 *.log
 .DS_Store
 Thumbs.db
-git-tool/
-setup-git-tool.js
-init-git.js
-push-to-github.js
 
 # Environment variables
 .env
