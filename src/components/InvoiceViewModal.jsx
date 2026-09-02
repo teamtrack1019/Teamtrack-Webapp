@@ -34,7 +34,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
     }
   };
 
-  // 100% Isolated 1-Page Print Function (Suppresses browser URL headers/footers)
+  // 100% Isolated 1-Page Print Function (Guaranteed strictly 1 Seite on iOS & Android)
   const handlePrint = (e) => {
     e.stopPropagation();
     if (!printRef.current) return;
@@ -61,11 +61,11 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
           <style>
             @page {
               size: A4 portrait;
-              margin: 0mm; /* Suppresses browser URL and date header/footer */
+              margin: 6mm 6mm 6mm 6mm;
             }
             html, body {
               margin: 0 !important;
-              padding: 12mm 12mm 12mm 12mm !important;
+              padding: 0 !important;
               background: #ffffff !important;
               color: #0f172a !important;
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -77,8 +77,10 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
               max-width: 100% !important;
               box-shadow: none !important;
               border: none !important;
-              padding: 0 !important;
+              padding: 4mm 4mm 4mm 4mm !important;
               margin: 0 !important;
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
             }
           </style>
         </head>
@@ -197,65 +199,65 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
         </div>
 
         {/* Preview Scroll Container */}
-        <div className="p-3 sm:p-6 md:p-8 overflow-y-auto overflow-x-auto flex-1 flex justify-start sm:justify-center bg-slate-200/70">
-          {/* Paper Sheet */}
+        <div className="p-3 sm:p-6 overflow-y-auto overflow-x-auto flex-1 flex justify-start sm:justify-center bg-slate-200/70">
+          {/* Paper Sheet (Sleek DIN-A4 height strictly under 240mm to guarantee 1 single page) */}
           <div 
-            className="p-6 sm:p-8 md:p-12 bg-white rounded-xl shadow-xl border border-slate-300 text-slate-800 w-full max-w-3xl min-w-[640px] sm:min-w-0 flex flex-col justify-between"
+            className="p-5 sm:p-6 md:p-8 bg-white rounded-xl shadow-xl border border-slate-300 text-slate-800 w-full max-w-3xl min-w-[620px] sm:min-w-0 flex flex-col justify-between"
             ref={printRef} 
             id="printable-invoice"
           >
             <div>
               {/* Header Row: Company Sender & Meta */}
-              <div className="flex justify-between items-start border-b border-slate-200 pb-5">
+              <div className="flex justify-between items-start border-b border-slate-200 pb-3">
                 <div>
                   {/* Logo / Company Name */}
                   <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                     <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-sky-600 text-white flex items-center justify-center text-xs sm:text-sm font-black">TT</span>
                     {companySettings.companyName || 'TeamTrack Digital Solutions'}
                   </div>
-                  <p className="text-xs text-sky-700 font-bold mt-1">
+                  <p className="text-xs text-sky-700 font-bold mt-0.5">
                     {companySettings.tagline || 'Papierkram zu digital & Moderne Web-Anwendungen'}
                   </p>
                   
-                  <div className="mt-2 text-xs text-slate-500 space-y-0.5">
+                  <div className="mt-1.5 text-xs text-slate-500 space-y-0.5">
                     <div>{companySettings.address}</div>
                     <div>Tel: {companySettings.phone} | E-Mail: {companySettings.email}</div>
                     {companySettings.website && <div>Web: {companySettings.website}</div>}
                   </div>
                 </div>
 
-                {/* Invoice Big Title & Number (Clean & Official, No BEZAHLT stamp) */}
+                {/* Invoice Big Title & Number */}
                 <div className="text-right">
                   <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">RECHNUNG</div>
-                  <div className="text-sm font-mono font-bold text-sky-600 mt-1">
+                  <div className="text-sm font-mono font-bold text-sky-600 mt-0.5">
                     {invoice.invoiceNumber}
                   </div>
                 </div>
               </div>
 
               {/* Sender line for window envelope (DIN 5008) */}
-              <div className="pt-3 pb-2 text-[10px] text-slate-400 border-b border-slate-100 uppercase tracking-wider font-semibold">
+              <div className="pt-2 pb-1.5 text-[9.5px] text-slate-400 border-b border-slate-100 uppercase tracking-wider font-semibold">
                 {companySettings.companyName} • {companySettings.address}
               </div>
 
               {/* Customer Address & Invoice Meta Grid */}
-              <div className="grid grid-cols-2 gap-6 py-4">
+              <div className="grid grid-cols-2 gap-4 py-3">
                 {/* Recipient */}
                 <div>
-                  <div className="text-xs text-slate-400 font-bold mb-1">Rechnungsempfänger:</div>
+                  <div className="text-xs text-slate-400 font-bold mb-0.5">Rechnungsempfänger:</div>
                   <div className="font-bold text-sm sm:text-base text-slate-900">{invoice.customerName}</div>
-                  <div className="text-xs sm:text-sm text-slate-600 whitespace-pre-line mt-1">
+                  <div className="text-xs sm:text-sm text-slate-600 whitespace-pre-line mt-0.5">
                     {invoice.customerAddress || 'Keine Adresse angegeben'}
                   </div>
                   {invoice.customerTaxId && (
-                    <div className="text-xs text-slate-500 mt-2 font-mono">
+                    <div className="text-xs text-slate-500 mt-1 font-mono">
                       USt-IdNr / Steuernr: {invoice.customerTaxId}
                     </div>
                   )}
                 </div>
 
                 {/* Metadata Table */}
-                <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-1.5">
+                <div className="bg-slate-50 p-2.5 sm:p-3 rounded-xl border border-slate-200 text-xs space-y-1">
                   <div className="flex justify-between">
                     <span className="text-slate-500">Rechnungsnummer:</span>
                     <span className="font-mono font-bold text-slate-900">{invoice.invoiceNumber}</span>
@@ -273,7 +275,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
                     <span className="font-bold text-sky-700">{formatDate(invoice.dueDate)}</span>
                   </div>
                   {companySettings.taxNumber && (
-                    <div className="flex justify-between pt-1 border-t border-slate-200">
+                    <div className="flex justify-between pt-0.5 border-t border-slate-200">
                       <span className="text-slate-500">Steuernummer:</span>
                       <span className="font-mono text-slate-800">{companySettings.taxNumber}</span>
                     </div>
@@ -286,25 +288,25 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="border-y-2 border-slate-800 bg-slate-100 font-bold text-slate-800">
-                      <th className="py-2 px-3 w-12 text-center">Pos.</th>
-                      <th className="py-2 px-3">Beschreibung / Leistung</th>
-                      <th className="py-2 px-3 w-16 text-center">Menge</th>
-                      <th className="py-2 px-3 w-24 text-right">Einzelpreis</th>
-                      <th className="py-2 px-3 w-28 text-right">Gesamtpreis</th>
+                      <th className="py-1.5 px-3 w-12 text-center">Pos.</th>
+                      <th className="py-1.5 px-3">Beschreibung / Leistung</th>
+                      <th className="py-1.5 px-3 w-16 text-center">Menge</th>
+                      <th className="py-1.5 px-3 w-24 text-right">Einzelpreis</th>
+                      <th className="py-1.5 px-3 w-28 text-right">Gesamtpreis</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
                     {(invoice.items || []).map((item, idx) => (
                       <tr key={item.id || idx}>
-                        <td className="py-2.5 px-3 text-center text-slate-400 font-mono">{idx + 1}</td>
-                        <td className="py-2.5 px-3 font-medium text-slate-900 whitespace-pre-line">
+                        <td className="py-2 px-3 text-center text-slate-400 font-mono">{idx + 1}</td>
+                        <td className="py-2 px-3 font-medium text-slate-900 whitespace-pre-line">
                           {item.description}
                         </td>
-                        <td className="py-2.5 px-3 text-center text-slate-600">{item.quantity}</td>
-                        <td className="py-2.5 px-3 text-right text-slate-600 font-mono">
+                        <td className="py-2 px-3 text-center text-slate-600">{item.quantity}</td>
+                        <td className="py-2 px-3 text-right text-slate-600 font-mono">
                           {formatCurrency(item.unitPrice)}
                         </td>
-                        <td className="py-2.5 px-3 text-right font-bold text-slate-900 font-mono">
+                        <td className="py-2 px-3 text-right font-bold text-slate-900 font-mono">
                           {formatCurrency((Number(item.unitPrice) || 0) * (Number(item.quantity) || 1))}
                         </td>
                       </tr>
@@ -314,21 +316,21 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
               </div>
 
               {/* Totals Summary (§ 19 UStG Kleinunternehmer) */}
-              <div className="flex justify-end mt-3">
-                <div className="w-72 space-y-1.5 text-xs">
-                  <div className="flex justify-between text-slate-900 text-sm font-black py-1.5 border-b-2 border-slate-900">
+              <div className="flex justify-end mt-2.5">
+                <div className="w-72 space-y-1 text-xs">
+                  <div className="flex justify-between text-slate-900 text-sm font-black py-1 border-b-2 border-slate-900">
                     <span>Gesamtbetrag (Endbetrag):</span>
                     <span className="font-mono text-sky-700 text-base">{formatCurrency(totalAmount)}</span>
                   </div>
                   {/* Official § 19 UStG Kleinunternehmer Notice */}
-                  <div className="text-[10.5px] text-slate-600 font-medium italic pt-0.5 leading-relaxed">
+                  <div className="text-[10px] text-slate-600 font-medium italic pt-0.5 leading-relaxed">
                     {kleinunternehmerText}
                   </div>
                 </div>
               </div>
 
               {/* Payment Terms & Notes */}
-              <div className="mt-4 pt-3 border-t border-slate-200 text-xs text-slate-600 space-y-1">
+              <div className="mt-3 pt-2 border-t border-slate-200 text-xs text-slate-600 space-y-0.5">
                 <div className="font-semibold text-slate-900">Zahlungshinweise:</div>
                 <p>{invoice.paymentTerms || 'Bitte überweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen ohne Abzug auf das unten angegebene Bankkonto.'}</p>
                 {invoice.notes && (
@@ -338,7 +340,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
             </div>
 
             {/* DIN Footer with Bank Details & Company Legal Info */}
-            <div className="mt-6 pt-3 border-t border-slate-300 grid grid-cols-3 gap-3 text-[9.5px] text-slate-500 leading-relaxed">
+            <div className="mt-4 pt-2.5 border-t border-slate-300 grid grid-cols-3 gap-2.5 text-[9px] text-slate-500 leading-tight">
               <div>
                 <div className="font-bold text-slate-700">{companySettings.companyName}</div>
                 <div>Inhaber: {companySettings.ownerName}</div>
