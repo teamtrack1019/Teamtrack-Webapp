@@ -3,7 +3,7 @@ import {
   FileText, 
   Plus, 
   Search, 
-  Printer, 
+  Eye, 
   CheckCircle, 
   Clock, 
   AlertCircle, 
@@ -11,7 +11,8 @@ import {
   Trash2,
   Euro,
   Building2,
-  Calendar
+  Calendar,
+  Download
 } from 'lucide-react';
 import { formatCurrency, formatDate, getStatusBadge } from '../utils/formatters';
 
@@ -198,24 +199,27 @@ export default function InvoicesPage({
                       </button>
                     </td>
                     <td className="p-3.5 text-right pr-5">
-                      <div className="flex items-center justify-end space-x-1.5">
+                      <div className="flex items-center justify-end space-x-2">
+                        {/* Clear dedicated Preview & PDF Button */}
                         <button
                           onClick={() => onViewInvoice(inv)}
-                          title="Rechnung anzeigen / Drucken / PDF"
-                          className="flex items-center space-x-1 px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-lg text-xs font-bold transition"
+                          title="Rechnung öffnen, ansehen und als PDF speichern"
+                          className="flex items-center space-x-1.5 px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 rounded-xl text-xs font-bold transition shadow-sm"
                         >
-                          <Printer className="w-3.5 h-3.5" />
-                          <span>PDF / Druck</span>
+                          <Eye className="w-3.5 h-3.5 text-sky-600" />
+                          <span>PDF / Öffnen</span>
                         </button>
                         <button
                           onClick={() => onEditInvoice(inv)}
-                          className="p-1.5 text-slate-400 hover:text-sky-600 rounded-lg transition"
+                          title="Bearbeiten"
+                          className="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-slate-100 rounded-lg transition"
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => onDeleteInvoice(inv.id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition"
+                          title="Löschen"
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
