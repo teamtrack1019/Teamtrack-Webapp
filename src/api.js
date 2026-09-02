@@ -14,7 +14,9 @@ const defaultSeed = {
     iban: 'DE44 1005 0000 1023 4567 89',
     bic: 'BELADE100',
     kmRate: 0.30,
-    defaultTaxRate: 19,
+    isKleinunternehmer: true,
+    kleinunternehmerText: 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).',
+    defaultTaxRate: 0,
     paymentTermsDays: 14,
     invoicePrefix: 'RE-2026-',
     expensePrefix: 'BE-2026-'
@@ -135,17 +137,18 @@ const defaultSeed = {
       dueDate: '2026-08-19',
       status: 'paid',
       paidAt: '2026-08-14',
-      taxRate: 19,
+      taxRate: 0,
       netAmount: 1850.00,
-      taxAmount: 351.50,
-      grossAmount: 2201.50,
+      taxAmount: 0.00,
+      grossAmount: 1850.00,
+      isKleinunternehmer: true,
       items: [
         {
           id: 'item-1',
           description: 'Papierkram Digitalisierung & Prozess-Setup (Einmalig)',
           quantity: 1,
           unitPrice: 1850.00,
-          taxRate: 19,
+          taxRate: 0,
           total: 1850.00
         }
       ],
@@ -165,17 +168,18 @@ const defaultSeed = {
       dueDate: '2026-09-14',
       status: 'sent',
       paidAt: null,
-      taxRate: 19,
+      taxRate: 0,
       netAmount: 249.00,
-      taxAmount: 47.31,
-      grossAmount: 296.31,
+      taxAmount: 0.00,
+      grossAmount: 249.00,
+      isKleinunternehmer: true,
       items: [
         {
           id: 'item-2',
           description: 'TeamTrack Cloud WebApp & Wartung - Monat August 2026 (Abo)',
           quantity: 1,
           unitPrice: 249.00,
-          taxRate: 19,
+          taxRate: 0,
           total: 249.00
         }
       ],
@@ -195,17 +199,18 @@ const defaultSeed = {
       dueDate: '2026-09-08',
       status: 'paid',
       paidAt: '2026-08-28',
-      taxRate: 19,
+      taxRate: 0,
       netAmount: 2400.00,
-      taxAmount: 456.00,
-      grossAmount: 2856.00,
+      taxAmount: 0.00,
+      grossAmount: 2400.00,
+      isKleinunternehmer: true,
       items: [
         {
           id: 'item-3',
           description: 'Bestellsystem Initial-Entwicklung & Web-Applikation',
           quantity: 1,
           unitPrice: 2400.00,
-          taxRate: 19,
+          taxRate: 0,
           total: 2400.00
         }
       ],
@@ -325,11 +330,18 @@ const defaultSeed = {
   ]
 };
 
-// Local storage helper
 function getLocalData() {
   try {
     const raw = localStorage.getItem('teamtrack_local_db');
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Ensure kleinunternehmer defaults are set
+      if (parsed.companySettings) {
+        parsed.companySettings.isKleinunternehmer = true;
+        parsed.companySettings.kleinunternehmerText = 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).';
+      }
+      return parsed;
+    }
   } catch (e) {}
   localStorage.setItem('teamtrack_local_db', JSON.stringify(defaultSeed));
   return defaultSeed;
@@ -341,7 +353,6 @@ function saveLocalData(data) {
   } catch (e) {}
 }
 
-// Local mock processor
 function handleLocalRequest(endpoint, options = {}) {
   const db = getLocalData();
   const method = options.method || 'GET';
@@ -358,12 +369,12 @@ function handleLocalRequest(endpoint, options = {}) {
     }, 0);
 
     const paidInvoices = db.invoices.filter(i => i.status === 'paid');
-    const totalPaidRevenue = paidInvoices.reduce((sum, i) => sum + Number(i.netAmount || 0), 0);
-    const totalGrossRevenue = paidInvoices.reduce((sum, i) => sum + Number(i.grossAmount || 0), 0);
+    const totalPaidRevenue = paidInvoices.reduce((sum, i) => sum + Number(i.grossAmount || i.netAmount || 0), 0);
+    const totalGrossRevenue = totalPaidRevenue;
     const pendingInvoices = db.invoices.filter(i => i.status === 'sent' || i.status === 'draft');
-    const totalPendingAmount = pendingInvoices.reduce((sum, i) => sum + Number(i.grossAmount || 0), 0);
-    const totalExpenses = db.expenses.reduce((sum, e) => sum + Number(e.netAmount || 0), 0);
-    const totalExpensesGross = db.expenses.reduce((sum, e) => sum + Number(e.grossAmount || 0), 0);
+    const totalPendingAmount = pendingInvoices.reduce((sum, i) => sum + Number(i.grossAmount || i.netAmount || 0), 0);
+    const totalExpenses = db.expenses.reduce((sum, e) => sum + Number(e.grossAmount || e.netAmount || 0), 0);
+    const totalExpensesGross = totalExpenses;
     const totalKm = db.mileage.reduce((sum, m) => sum + Number(m.kilometers || 0), 0);
     const totalKmDeduction = db.mileage.reduce((sum, m) => sum + Number(m.totalDeduction || 0), 0);
 
@@ -396,7 +407,7 @@ function handleLocalRequest(endpoint, options = {}) {
         const activeAbos = custServices.filter(s => s.type === 'abo' && s.status === 'active');
         const totalAboMonthly = activeAbos.reduce((sum, s) => sum + Number(s.price || 0), 0);
         const einmaligeServices = custServices.filter(s => s.type === 'einmalig');
-        const totalRevenue = custInvoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + Number(i.netAmount || 0), 0);
+        const totalRevenue = custInvoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + Number(i.grossAmount || i.netAmount || 0), 0);
         return {
           ...cust,
           activeAbosCount: activeAbos.length,
@@ -485,9 +496,7 @@ function handleLocalRequest(endpoint, options = {}) {
 
   // SERVICES
   if (endpoint.startsWith('/services')) {
-    if (method === 'GET') {
-      return db.services;
-    }
+    if (method === 'GET') return db.services;
     if (method === 'POST') {
       const newSrv = { id: `srv-${Date.now()}`, ...body, createdAt: new Date().toISOString() };
       db.services.push(newSrv);
@@ -516,13 +525,15 @@ function handleLocalRequest(endpoint, options = {}) {
 
   // INVOICES
   if (endpoint.startsWith('/invoices')) {
-    if (method === 'GET') {
-      return db.invoices;
-    }
+    if (method === 'GET') return db.invoices;
     if (method === 'POST') {
       const newInv = {
         id: `inv-${Date.now()}`,
         invoiceNumber: body.invoiceNumber || `RE-2026-${String(db.invoices.length + 1).padStart(4, '0')}`,
+        isKleinunternehmer: true,
+        taxRate: 0,
+        taxAmount: 0,
+        grossAmount: body.netAmount || body.grossAmount,
         ...body,
         createdAt: new Date().toISOString()
       };
@@ -552,9 +563,7 @@ function handleLocalRequest(endpoint, options = {}) {
 
   // EXPENSES
   if (endpoint.startsWith('/expenses')) {
-    if (method === 'GET') {
-      return db.expenses;
-    }
+    if (method === 'GET') return db.expenses;
     if (method === 'POST') {
       const newExp = {
         id: `exp-${Date.now()}`,
@@ -588,9 +597,7 @@ function handleLocalRequest(endpoint, options = {}) {
 
   // MILEAGE
   if (endpoint.startsWith('/mileage')) {
-    if (method === 'GET') {
-      return db.mileage;
-    }
+    if (method === 'GET') return db.mileage;
     if (method === 'POST') {
       const km = Number(body.kilometers || 0);
       const rate = Number(body.ratePerKm || 0.30);
@@ -626,7 +633,7 @@ function handleLocalRequest(endpoint, options = {}) {
     }
   }
 
-  // TAX REPORT
+  // TAX REPORT (§ 19 UStG Kleinunternehmer)
   if (endpoint.startsWith('/reports/tax-year/')) {
     const year = endpoint.split('/')[3] || '2026';
     const yearInvoices = db.invoices.filter(i => i.date && i.date.startsWith(year));
@@ -634,44 +641,39 @@ function handleLocalRequest(endpoint, options = {}) {
     const yearExpenses = db.expenses.filter(e => e.date && e.date.startsWith(year));
     const yearMileage = db.mileage.filter(m => m.date && m.date.startsWith(year));
 
-    const totalRevenueNet = yearPaidInvoices.reduce((s, i) => s + Number(i.netAmount || 0), 0);
-    const totalRevenueTax = yearPaidInvoices.reduce((s, i) => s + Number(i.taxAmount || 0), 0);
-    const totalRevenueGross = yearPaidInvoices.reduce((s, i) => s + Number(i.grossAmount || 0), 0);
-
-    const totalExpensesNet = yearExpenses.reduce((s, e) => s + Number(e.netAmount || 0), 0);
-    const totalExpensesTax = yearExpenses.reduce((s, e) => s + Number(e.taxAmount || 0), 0);
-    const totalExpensesGross = yearExpenses.reduce((s, e) => s + Number(e.grossAmount || 0), 0);
+    const totalRevenue = yearPaidInvoices.reduce((s, i) => s + Number(i.grossAmount || i.netAmount || 0), 0);
+    const totalExpenses = yearExpenses.reduce((s, e) => s + Number(e.grossAmount || e.netAmount || 0), 0);
 
     const expensesByCategory = {};
     for (const exp of yearExpenses) {
       const cat = exp.category || 'Sonstiges';
       if (!expensesByCategory[cat]) expensesByCategory[cat] = { net: 0, tax: 0, gross: 0, count: 0 };
-      expensesByCategory[cat].net += Number(exp.netAmount || 0);
-      expensesByCategory[cat].tax += Number(exp.taxAmount || 0);
-      expensesByCategory[cat].gross += Number(exp.grossAmount || 0);
+      const amt = Number(exp.grossAmount || exp.netAmount || 0);
+      expensesByCategory[cat].net += amt;
+      expensesByCategory[cat].gross += amt;
       expensesByCategory[cat].count += 1;
     }
 
     const totalKm = yearMileage.reduce((s, m) => s + Number(m.kilometers || 0), 0);
     const totalMileageDeduction = yearMileage.reduce((s, m) => s + Number(m.totalDeduction || 0), 0);
-    const netProfit = Number((totalRevenueNet - totalExpensesNet - totalMileageDeduction).toFixed(2));
-    const vatPayable = Number((totalRevenueTax - totalExpensesTax).toFixed(2));
+    const netProfit = Number((totalRevenue - totalExpenses - totalMileageDeduction).toFixed(2));
 
     return {
       year,
       company: db.companySettings,
+      isKleinunternehmer: true,
       revenue: {
-        net: Number(totalRevenueNet.toFixed(2)),
-        tax: Number(totalRevenueTax.toFixed(2)),
-        gross: Number(totalRevenueGross.toFixed(2)),
+        net: Number(totalRevenue.toFixed(2)),
+        tax: 0,
+        gross: Number(totalRevenue.toFixed(2)),
         invoicesCount: yearPaidInvoices.length,
         allInvoicesCount: yearInvoices.length,
         items: yearPaidInvoices
       },
       expenses: {
-        net: Number(totalExpensesNet.toFixed(2)),
-        tax: Number(totalExpensesTax.toFixed(2)),
-        gross: Number(totalExpensesGross.toFixed(2)),
+        net: Number(totalExpenses.toFixed(2)),
+        tax: 0,
+        gross: Number(totalExpenses.toFixed(2)),
         count: yearExpenses.length,
         byCategory: expensesByCategory,
         items: yearExpenses
@@ -685,9 +687,9 @@ function handleLocalRequest(endpoint, options = {}) {
       },
       summary: {
         netProfit,
-        vatPayable,
-        vatCollected: Number(totalRevenueTax.toFixed(2)),
-        inputVatDeductible: Number(totalExpensesTax.toFixed(2))
+        vatPayable: 0,
+        vatCollected: 0,
+        inputVatDeductible: 0
       }
     };
   }
@@ -705,7 +707,6 @@ function handleLocalRequest(endpoint, options = {}) {
   return {};
 }
 
-// Universal API request with fallback to local client storage when server API is absent
 async function request(endpoint, options = {}) {
   try {
     const url = `/api${endpoint}`;
@@ -716,9 +717,7 @@ async function request(endpoint, options = {}) {
     if (res.ok) {
       return await res.json();
     }
-  } catch (err) {
-    // API server not reachable, seamlessly fallback to local client processor
-  }
+  } catch (err) {}
   return handleLocalRequest(endpoint, options);
 }
 
@@ -728,25 +727,25 @@ export const api = {
   getCustomer: (id) => request(`/customers/${id}`),
   createCustomer: (data) => request('/customers', { method: 'POST', body: JSON.stringify(data) }),
   updateCustomer: (id, data) => request(`/customers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteCustomer: (id) => request(`/customers/${id}`, { method: 'DELETE' }),
+  deleteCustomer: (id) => request(`/customers/${id}`),
   sendDemoEmail: (id, data) => request(`/customers/${id}/send-demo-email`, { method: 'POST', body: JSON.stringify(data) }),
   getServices: (customerId) => request(`/services${customerId ? `?customerId=${customerId}` : ''}`),
   createService: (data) => request('/services', { method: 'POST', body: JSON.stringify(data) }),
   updateService: (id, data) => request(`/services/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteService: (id) => request(`/services/${id}`, { method: 'DELETE' }),
+  deleteService: (id) => request(`/services/${id}`),
   getInvoices: (customerId) => request(`/invoices${customerId ? `?customerId=${customerId}` : ''}`),
   getInvoice: (id) => request(`/invoices/${id}`),
   createInvoice: (data) => request('/invoices', { method: 'POST', body: JSON.stringify(data) }),
   updateInvoice: (id, data) => request(`/invoices/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteInvoice: (id) => request(`/invoices/${id}`, { method: 'DELETE' }),
+  deleteInvoice: (id) => request(`/invoices/${id}`),
   getExpenses: () => request('/expenses'),
   createExpense: (data) => request('/expenses', { method: 'POST', body: JSON.stringify(data) }),
   updateExpense: (id, data) => request(`/expenses/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteExpense: (id) => request(`/expenses/${id}`, { method: 'DELETE' }),
+  deleteExpense: (id) => request(`/expenses/${id}`),
   getMileage: (customerId) => request(`/mileage${customerId ? `?customerId=${customerId}` : ''}`),
   createMileage: (data) => request('/mileage', { method: 'POST', body: JSON.stringify(data) }),
   updateMileage: (id, data) => request(`/mileage/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteMileage: (id) => request(`/mileage/${id}`, { method: 'DELETE' }),
+  deleteMileage: (id) => request(`/mileage/${id}`),
   getTaxReport: (year) => request(`/reports/tax-year/${year}`),
   getSettings: () => request('/settings'),
   updateSettings: (data) => request('/settings', { method: 'PUT', body: JSON.stringify(data) })

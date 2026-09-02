@@ -6,10 +6,8 @@ import {
   Eye, 
   CheckCircle, 
   Clock, 
-  AlertCircle, 
   Edit3, 
   Trash2,
-  Euro,
   Building2,
   Calendar,
   Download
@@ -36,20 +34,25 @@ export default function InvoicesPage({
     return matchesSearch && inv.status === filterStatus;
   });
 
-  const totalPaid = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + Number(i.grossAmount || 0), 0);
-  const totalOpen = invoices.filter(i => i.status === 'sent' || i.status === 'draft').reduce((s, i) => s + Number(i.grossAmount || 0), 0);
+  const totalPaid = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + Number(i.grossAmount || i.netAmount || 0), 0);
+  const totalOpen = invoices.filter(i => i.status === 'sent' || i.status === 'draft').reduce((s, i) => s + Number(i.grossAmount || i.netAmount || 0), 0);
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-fadeIn">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <FileText className="w-7 h-7 text-sky-600" />
-            <span>Ausgehende Rechnungen (Verkauf)</span>
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
+              <FileText className="w-7 h-7 text-sky-600" />
+              <span>Ausgehende Rechnungen</span>
+            </h2>
+            <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-200">
+              § 19 UStG Kleinunternehmer
+            </span>
+          </div>
           <p className="text-slate-500 text-sm mt-0.5">
-            Müşteri faturaları, KDV hesaplama ve Finanzamt için profesyonel PDF çıktıları
+            Müşteri faturaları, Kleinunternehmerregelung ve resmi DIN-A4 PDF çıktıları
           </p>
         </div>
 
@@ -156,9 +159,8 @@ export default function InvoicesPage({
                 <th className="p-3.5 pl-5">Rechnungs-Nr.</th>
                 <th className="p-3.5">Kunde</th>
                 <th className="p-3.5">Datum / Fällig</th>
-                <th className="p-3.5 text-right">Netto</th>
-                <th className="p-3.5 text-right">MwSt.</th>
-                <th className="p-3.5 text-right">Brutto</th>
+                <th className="p-3.5 text-right">USt.</th>
+                <th className="p-3.5 text-right">Rechnungsbetrag</th>
                 <th className="p-3.5 text-center">Status</th>
                 <th className="p-3.5 text-right pr-5">Aktionen</th>
               </tr>
@@ -180,14 +182,11 @@ export default function InvoicesPage({
                       <div>{formatDate(inv.date)}</div>
                       <div className="text-[11px] text-slate-400">Fällig: {formatDate(inv.dueDate)}</div>
                     </td>
-                    <td className="p-3.5 text-right font-medium text-slate-700">
-                      {formatCurrency(inv.netAmount)}
+                    <td className="p-3.5 text-right text-slate-500 font-medium">
+                      0,00 € <span className="text-[10px] text-emerald-600 font-bold">(§ 19 UStG)</span>
                     </td>
-                    <td className="p-3.5 text-right text-slate-500">
-                      {formatCurrency(inv.taxAmount)} <span className="text-[10px]">({inv.taxRate}%)</span>
-                    </td>
-                    <td className="p-3.5 text-right font-extrabold text-slate-900 text-sm">
-                      {formatCurrency(inv.grossAmount)}
+                    <td className="p-3.5 text-right font-black text-slate-900 text-sm">
+                      {formatCurrency(inv.grossAmount || inv.netAmount)}
                     </td>
                     <td className="p-3.5 text-center">
                       <button
@@ -200,7 +199,6 @@ export default function InvoicesPage({
                     </td>
                     <td className="p-3.5 text-right pr-5">
                       <div className="flex items-center justify-end space-x-2">
-                        {/* Clear dedicated Preview & PDF Button */}
                         <button
                           onClick={() => onViewInvoice(inv)}
                           title="Rechnung öffnen, ansehen und als PDF speichern"
@@ -231,7 +229,7 @@ export default function InvoicesPage({
 
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="p-12 text-center text-slate-400">
+                  <td colSpan={7} className="p-12 text-center text-slate-400">
                     Keine Rechnungen gefunden.
                   </td>
                 </tr>

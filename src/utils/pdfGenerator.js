@@ -12,7 +12,10 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
   const pageWidth = doc.internal.pageSize.getWidth(); // 210mm
   const margin = 20;
 
-  // 1. TOP HEADER (Spacious & Elegant)
+  const isKleinunternehmer = companySettings.isKleinunternehmer !== false;
+  const kleinunternehmerText = companySettings.kleinunternehmerText || 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).';
+
+  // 1. TOP HEADER (Spacious & Crisp)
   // Blue Logo Box (11x11 mm)
   doc.setFillColor(2, 132, 199);
   doc.roundedRect(margin, 20, 11, 11, 2.5, 2.5, 'F');
@@ -87,7 +90,7 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
   const senderAddress = `${companySettings.companyName || 'TeamTrack'} • ${companySettings.address || 'Berlin'}`.toUpperCase();
   doc.text(senderAddress, margin, 59);
 
-  // 3. RECIPIENT & METADATA GRID (Spacious Y = 66)
+  // 3. RECIPIENT & METADATA GRID
   // Recipient (Left)
   doc.setFontSize(8);
   doc.setTextColor(148, 163, 184);
@@ -120,15 +123,14 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
   const metaW = pageWidth - margin - metaX;
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(226, 232, 240);
-  doc.roundedRect(metaX, 62, metaW, 40, 2.5, 2.5, 'FD');
+  doc.roundedRect(metaX, 62, metaW, 36, 2.5, 2.5, 'FD');
 
   const metaRows = [
     { label: 'Rechnungsnummer:', value: invoice.invoiceNumber, bold: true },
     { label: 'Rechnungsdatum:', value: formatDate(invoice.date) },
     { label: 'Liefer-/Leistungsdatum:', value: formatDate(invoice.date) },
     { label: 'Zahlungsziel (Fällig bis):', value: formatDate(invoice.dueDate), color: [2, 132, 199], bold: true },
-    { label: 'Steuernummer:', value: companySettings.taxNumber || '-' },
-    { label: 'USt-IdNr.:', value: companySettings.vatId || '-' }
+    { label: 'Steuernummer:', value: companySettings.taxNumber || '-' }
   ];
 
   let mY = 68;
@@ -145,10 +147,10 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
       doc.setTextColor(15, 23, 42);
     }
     doc.text(row.value || '', metaX + metaW - 4, mY, { align: 'right' });
-    mY += 5.8;
+    mY += 6;
   });
 
-  // 4. POSITIONS TABLE (Starts comfortably at Y = 112 with generous cell padding)
+  // 4. POSITIONS TABLE
   const tableData = (invoice.items || []).map((item, index) => [
     index + 1,
     item.description || 'Dienstleistung',
@@ -158,7 +160,7 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
   ]);
 
   autoTable(doc, {
-    startY: 112,
+    startY: 108,
     margin: { left: margin, right: margin },
     head: [['Pos.', 'Beschreibung / Leistung', 'Menge', 'Einzelpreis', 'Gesamtpreis']],
     body: tableData,
@@ -189,42 +191,32 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
     }
   });
 
-  const finalY = doc.lastAutoTable.finalY + 12;
+  const finalY = doc.lastAutoTable.finalY + 10;
+  const gross = Number(invoice.grossAmount || invoice.netAmount || 0);
 
-  // 5. TOTALS SUMMARY (Right aligned with beautiful spacing)
-  const totalsX = 115;
-  const net = Number(invoice.netAmount || 0);
-  const tax = Number(invoice.taxAmount || 0);
-  const gross = Number(invoice.grossAmount || 0);
-
-  doc.setFontSize(8.5);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 116, 139);
-  doc.text('Nettobetrag:', totalsX, finalY);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(15, 23, 42);
-  doc.text(formatCurrency(net), pageWidth - margin, finalY, { align: 'right' });
-
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 116, 139);
-  doc.text(`Umsatzsteuer (${invoice.taxRate || 19}%):`, totalsX, finalY + 6.5);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(15, 23, 42);
-  doc.text(formatCurrency(tax), pageWidth - margin, finalY + 6.5, { align: 'right' });
+  // 5. TOTALS SUMMARY (§ 19 UStG Kleinunternehmer - NO 19% MwSt line)
+  const totalsX = 100;
+  const totalsW = pageWidth - margin - totalsX;
 
   doc.setDrawColor(15, 23, 42);
-  doc.setLineWidth(0.8);
-  doc.line(totalsX, finalY + 10, pageWidth - margin, finalY + 10);
+  doc.setLineWidth(0.6);
+  doc.line(totalsX, finalY, pageWidth - margin, finalY);
 
-  doc.setFontSize(11);
+  doc.setFontSize(10.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  doc.text('Gesamtbetrag (Brutto):', totalsX, finalY + 17);
+  doc.text('Gesamtbetrag (Endbetrag):', totalsX, finalY + 7);
   doc.setTextColor(2, 132, 199);
-  doc.text(formatCurrency(gross), pageWidth - margin, finalY + 17, { align: 'right' });
+  doc.text(formatCurrency(gross), pageWidth - margin, finalY + 7, { align: 'right' });
 
-  // 6. PAYMENT TERMS & NOTES (Evenly balanced at Y = 205)
-  const termsY = Math.max(finalY + 30, 205);
+  // Official Kleinunternehmer Legal Notice
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(100, 116, 139);
+  doc.text(kleinunternehmerText, totalsX, finalY + 14, { maxWidth: totalsW });
+
+  // 6. PAYMENT TERMS & NOTES
+  const termsY = Math.max(finalY + 28, 205);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
@@ -233,7 +225,7 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(71, 85, 105);
-  doc.text(invoice.paymentTerms || 'Bitte überweisen Sie den Betrag innerhalb von 14 Tagen ohne Abzug auf das unten angegebene Bankkonto.', margin, termsY + 5.5);
+  doc.text(invoice.paymentTerms || 'Bitte überweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen ohne Abzug auf das unten angegebene Bankkonto.', margin, termsY + 5.5);
 
   if (invoice.notes) {
     doc.setFont('helvetica', 'italic');
@@ -241,7 +233,7 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
     doc.text(invoice.notes, margin, termsY + 11.5);
   }
 
-  // 7. FOOTER (Spaced at Y = 265)
+  // 7. FOOTER
   const footerY = 265;
   doc.setDrawColor(226, 232, 240);
   doc.setLineWidth(0.4);
@@ -267,16 +259,79 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
   doc.text(`IBAN: ${companySettings.iban || '-'}`, col2X, footerY + 7.6);
   doc.text(`BIC: ${companySettings.bic || '-'}`, col2X, footerY + 11.4);
 
-  // Column 3: Tax Info
-  const col3X = 148;
+  // Column 3: Tax Info (§ 19 UStG)
+  const col3X = 145;
   doc.setFont('helvetica', 'bold');
   doc.text('Steuerdaten', col3X, footerY);
   doc.setFont('helvetica', 'normal');
   doc.text(`Steuernummer: ${companySettings.taxNumber || '-'}`, col3X, footerY + 3.8);
-  doc.text(`USt-IdNr.: ${companySettings.vatId || '-'}`, col3X, footerY + 7.6);
-  doc.text('Gerichtsstand: Berlin', col3X, footerY + 11.4);
+  doc.text('Kleinunternehmer gem. § 19 UStG', col3X, footerY + 7.6);
+  doc.text('Kein Umsatzsteuerausweis', col3X, footerY + 11.4);
 
   // Save the PDF file
   const fileName = `Rechnung_${invoice.invoiceNumber || 'TeamTrack'}.pdf`.replace(/\s+/g, '_');
+  doc.save(fileName);
+}
+
+export function downloadTaxReportPdf(reportData) {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  const { year, company, revenue, expenses, mileage, summary } = reportData;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 18;
+
+  // Title
+  doc.setFillColor(15, 23, 42);
+  doc.roundedRect(margin, 16, pageWidth - (margin * 2), 22, 3, 3, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Einnahmen-Überschuss-Rechnung (EÜR) ${year}`, margin + 6, 25);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(186, 230, 253);
+  doc.text(`Offizieller Jahresabschluss (§ 19 UStG Kleinunternehmer) • ${company?.companyName || 'TeamTrack'}`, margin + 6, 32);
+
+  // Profit Box
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(margin, 44, pageWidth - (margin * 2), 24, 2, 2, 'FD');
+
+  doc.setFontSize(8.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Betriebseinnahmen (Gesamt):', margin + 6, 52);
+  doc.text('Betriebsausgaben + KM:', margin + 6, 58);
+  doc.text('Reingewinn (EÜR Überschuss):', margin + 6, 64);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text(formatCurrency(revenue.gross || revenue.net), pageWidth - margin - 6, 52, { align: 'right' });
+  doc.setTextColor(225, 29, 72);
+  doc.text(`- ${formatCurrency(expenses.gross || expenses.net + mileage.totalDeduction)}`, pageWidth - margin - 6, 58, { align: 'right' });
+  doc.setTextColor(16, 185, 129);
+  doc.setFontSize(11);
+  doc.text(formatCurrency(summary.netProfit), pageWidth - margin - 6, 64, { align: 'right' });
+
+  // Expenses Table
+  const expTableData = Object.entries(expenses.byCategory || {}).map(([cat, d]) => [
+    cat,
+    d.count,
+    formatCurrency(d.gross || d.net)
+  ]);
+
+  autoTable(doc, {
+    startY: 74,
+    margin: { left: margin, right: margin },
+    head: [['Ausgabenkategorie', 'Belege', 'Betrag (€)']],
+    body: expTableData,
+    theme: 'grid',
+    headStyles: { fillColor: [15, 23, 42], fontSize: 8.5 }
+  });
+
+  const fileName = `Finanzamt_EUR_Bericht_${year}.pdf`;
   doc.save(fileName);
 }

@@ -20,7 +20,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
 
   if (!isOpen || !invoice) return null;
 
-  // Direct 100% reliable 1-click vector PDF Download
+  // Direct 1-click vector PDF Download
   const handleDownloadPdf = (e) => {
     e.stopPropagation();
     try {
@@ -28,7 +28,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
       downloadInvoicePdf(invoice, companySettings);
     } catch (err) {
       console.error('PDF error:', err);
-      alert('PDF oluşturulamadı: ' + err.message);
+      alert('PDF Fehler: ' + err.message);
     } finally {
       setIsDownloading(false);
     }
@@ -40,19 +40,22 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
     window.print();
   };
 
+  const isKleinunternehmer = companySettings.isKleinunternehmer !== false;
+  const kleinunternehmerText = companySettings.kleinunternehmerText || 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).';
+
   const net = Number(invoice.netAmount || 0);
-  const tax = Number(invoice.taxAmount || 0);
-  const gross = Number(invoice.grossAmount || 0);
+  const tax = isKleinunternehmer ? 0 : Number(invoice.taxAmount || 0);
+  const gross = Number(invoice.grossAmount || invoice.netAmount || 0);
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-slate-900/80 backdrop-blur-sm animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-slate-900/80 backdrop-blur-sm animate-fadeIn select-none"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div 
-        className="bg-slate-100 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-700/50 flex flex-col max-h-[94vh]"
+        className="bg-slate-100 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-700/50 flex flex-col max-h-[94vh] select-text"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Top Toolbar */}
@@ -64,8 +67,8 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
             <div>
               <h3 className="text-sm md:text-base font-bold text-white flex items-center gap-2">
                 <span>Rechnung: {invoice.invoiceNumber}</span>
-                <span className="text-[10px] font-semibold bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded border border-sky-500/30">
-                  DIN-A4
+                <span className="text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">
+                  § 19 UStG Kleinunternehmer
                 </span>
               </h3>
               <p className="text-xs text-slate-400">
@@ -74,7 +77,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
             </div>
           </div>
 
-          {/* Action Buttons: Separate Download PDF, Print, Close */}
+          {/* Action Buttons */}
           <div className="flex items-center space-x-2 self-end sm:self-auto">
             {/* Direct PDF Download Button */}
             <button
@@ -134,7 +137,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
           >
             <div>
               {/* Header Row: Company Sender & Meta */}
-              <div className="flex justify-between items-start border-b border-slate-200 pb-8">
+              <div className="flex justify-between items-start border-b border-slate-200 pb-6">
                 <div>
                   {/* Logo / Company Name */}
                   <div className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
@@ -145,7 +148,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
                     {companySettings.tagline || 'Papierkram zu digital & Moderne Web-Anwendungen'}
                   </p>
                   
-                  <div className="mt-4 text-xs text-slate-500 space-y-0.5">
+                  <div className="mt-3 text-xs text-slate-500 space-y-0.5">
                     <div>{companySettings.address}</div>
                     <div>Tel: {companySettings.phone} | E-Mail: {companySettings.email}</div>
                     {companySettings.website && <div>Web: {companySettings.website}</div>}
@@ -168,12 +171,12 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
               </div>
 
               {/* Sender line for window envelope (DIN 5008) */}
-              <div className="pt-6 pb-2 text-[10px] text-slate-400 border-b border-slate-100 uppercase tracking-wider font-semibold">
+              <div className="pt-4 pb-2 text-[10px] text-slate-400 border-b border-slate-100 uppercase tracking-wider font-semibold">
                 {companySettings.companyName} • {companySettings.address}
               </div>
 
               {/* Customer Address & Invoice Meta Grid */}
-              <div className="grid grid-cols-2 gap-8 py-6">
+              <div className="grid grid-cols-2 gap-8 py-5">
                 {/* Recipient */}
                 <div>
                   <div className="text-xs text-slate-400 font-bold mb-1">Rechnungsempfänger:</div>
@@ -222,7 +225,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
               </div>
 
               {/* Positions Table */}
-              <div className="mt-4">
+              <div className="mt-2">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="border-y-2 border-slate-800 bg-slate-100 font-bold text-slate-800">
@@ -253,28 +256,24 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
                 </table>
               </div>
 
-              {/* Totals Summary */}
-              <div className="flex justify-end mt-6">
-                <div className="w-72 space-y-2 text-xs">
-                  <div className="flex justify-between text-slate-600 py-1 border-b border-slate-100">
-                    <span>Nettobetrag:</span>
-                    <span className="font-mono font-semibold">{formatCurrency(net)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-600 py-1 border-b border-slate-100">
-                    <span>Umsatzsteuer ({invoice.taxRate || 19}%):</span>
-                    <span className="font-mono font-semibold">{formatCurrency(tax)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-900 text-sm font-extrabold py-2 border-b-2 border-slate-900">
-                    <span>Gesamtbetrag (Brutto):</span>
+              {/* Totals Summary (§ 19 UStG Kleinunternehmer) */}
+              <div className="flex justify-end mt-4">
+                <div className="w-80 space-y-2 text-xs">
+                  <div className="flex justify-between text-slate-900 text-sm font-black py-2 border-b-2 border-slate-900">
+                    <span>Gesamtbetrag (Endbetrag):</span>
                     <span className="font-mono text-sky-700 text-base">{formatCurrency(gross)}</span>
+                  </div>
+                  {/* Official § 19 UStG Kleinunternehmer Notice */}
+                  <div className="text-[11px] text-slate-600 font-medium italic pt-1 leading-relaxed">
+                    {kleinunternehmerText}
                   </div>
                 </div>
               </div>
 
               {/* Payment Terms & Notes */}
-              <div className="mt-8 pt-6 border-t border-slate-200 text-xs text-slate-600 space-y-2">
+              <div className="mt-6 pt-4 border-t border-slate-200 text-xs text-slate-600 space-y-1.5">
                 <div className="font-semibold text-slate-900">Zahlungshinweise:</div>
-                <p>{invoice.paymentTerms || 'Bitte überweisen Sie den Betrag innerhalb von 14 Tagen auf das unten angegebene Bankkonto.'}</p>
+                <p>{invoice.paymentTerms || 'Bitte überweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen ohne Abzug auf das unten angegebene Bankkonto.'}</p>
                 {invoice.notes && (
                   <p className="italic text-slate-500">{invoice.notes}</p>
                 )}
@@ -282,7 +281,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
             </div>
 
             {/* DIN Footer with Bank Details & Company Legal Info */}
-            <div className="mt-12 pt-6 border-t border-slate-300 grid grid-cols-3 gap-4 text-[10px] text-slate-500 leading-relaxed">
+            <div className="mt-8 pt-4 border-t border-slate-300 grid grid-cols-3 gap-4 text-[10px] text-slate-500 leading-relaxed">
               <div>
                 <div className="font-bold text-slate-700">{companySettings.companyName}</div>
                 <div>Inhaber: {companySettings.ownerName}</div>
@@ -299,8 +298,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
               <div>
                 <div className="font-bold text-slate-700">Steuerdaten</div>
                 <div>Steuernummer: {companySettings.taxNumber}</div>
-                <div>USt-IdNr.: {companySettings.vatId}</div>
-                <div>Gerichtsstand: Berlin</div>
+                <div>{kleinunternehmerText}</div>
               </div>
             </div>
           </div>

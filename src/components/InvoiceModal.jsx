@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Plus, Trash2, Calendar, Euro, Building2, X, Sparkles } from 'lucide-react';
+import { FileText, Plus, Trash2, Calendar, Euro, Building2, X, Sparkles, CheckCircle2 } from 'lucide-react';
 import { formatCurrency } from '../utils/formatters';
 
 export default function InvoiceModal({ 
@@ -19,13 +19,14 @@ export default function InvoiceModal({
     customerEmail: '',
     date: new Date().toISOString().split('T')[0],
     dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    taxRate: 19,
+    taxRate: 0,
+    isKleinunternehmer: true,
     status: 'draft',
     paidAt: '',
     notes: 'Vielen Dank für Ihren Auftrag und das Vertrauen in unsere digitale Arbeit.',
     paymentTerms: 'Zahlbar innerhalb von 14 Tagen ohne Abzug.',
     items: [
-      { id: '1', description: 'Papierkram Digitalisierung & WebApp Service', quantity: 1, unitPrice: 0, taxRate: 19 }
+      { id: '1', description: 'Papierkram Digitalisierung & WebApp Service', quantity: 1, unitPrice: 0, taxRate: 0 }
     ]
   });
 
@@ -42,13 +43,14 @@ export default function InvoiceModal({
         customerEmail: invoice.customerEmail || '',
         date: invoice.date || new Date().toISOString().split('T')[0],
         dueDate: invoice.dueDate || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        taxRate: invoice.taxRate !== undefined ? invoice.taxRate : 19,
+        taxRate: invoice.taxRate !== undefined ? invoice.taxRate : 0,
+        isKleinunternehmer: true,
         status: invoice.status || 'draft',
         paidAt: invoice.paidAt || '',
         notes: invoice.notes || 'Vielen Dank für Ihren Auftrag.',
         paymentTerms: invoice.paymentTerms || 'Zahlbar innerhalb von 14 Tagen ohne Abzug.',
         items: invoice.items && invoice.items.length > 0 ? invoice.items : [
-          { id: '1', description: '', quantity: 1, unitPrice: 0, taxRate: 19 }
+          { id: '1', description: '', quantity: 1, unitPrice: 0, taxRate: 0 }
         ]
       });
     } else {
@@ -62,13 +64,14 @@ export default function InvoiceModal({
         customerEmail: defaultCust ? defaultCust.email : '',
         date: new Date().toISOString().split('T')[0],
         dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        taxRate: 19,
+        taxRate: 0,
+        isKleinunternehmer: true,
         status: 'draft',
         paidAt: '',
         notes: 'Vielen Dank für Ihren Auftrag und das Vertrauen in unsere digitale Arbeit.',
         paymentTerms: 'Zahlbar innerhalb von 14 Tagen ohne Abzug.',
         items: [
-          { id: '1', description: 'Papierkram Digitalisierung & WebApp Service', quantity: 1, unitPrice: 0, taxRate: 19 }
+          { id: '1', description: 'Papierkram Digitalisierung & WebApp Service', quantity: 1, unitPrice: 0, taxRate: 0 }
         ]
       });
     }
@@ -104,7 +107,7 @@ export default function InvoiceModal({
       ...formData,
       items: [
         ...formData.items,
-        { id: String(Date.now()), description: '', quantity: 1, unitPrice: 0, taxRate: formData.taxRate }
+        { id: String(Date.now()), description: '', quantity: 1, unitPrice: 0, taxRate: 0 }
       ]
     });
   };
@@ -115,10 +118,8 @@ export default function InvoiceModal({
     setFormData({ ...formData, items: updated });
   };
 
-  // Calculations
-  const netAmount = formData.items.reduce((sum, item) => sum + ((Number(item.unitPrice) || 0) * (Number(item.quantity) || 1)), 0);
-  const taxAmount = (netAmount * (Number(formData.taxRate) || 0)) / 100;
-  const grossAmount = netAmount + taxAmount;
+  // Calculations for Kleinunternehmer (0% MwSt)
+  const totalAmount = formData.items.reduce((sum, item) => sum + ((Number(item.unitPrice) || 0) * (Number(item.quantity) || 1)), 0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -126,9 +127,10 @@ export default function InvoiceModal({
     try {
       await onSave({
         ...formData,
-        netAmount,
-        taxAmount,
-        grossAmount
+        netAmount: totalAmount,
+        taxAmount: 0,
+        grossAmount: totalAmount,
+        isKleinunternehmer: true
       });
       onClose();
     } catch (err) {
@@ -148,11 +150,16 @@ export default function InvoiceModal({
               <FileText className="w-6 h-6 text-sky-400" />
             </div>
             <div>
-              <h3 className="text-lg font-bold">
-                {invoice ? `Rechnung ${invoice.invoiceNumber} bearbeiten` : 'Neue Ausgangsrechnung erstellen'}
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-bold">
+                  {invoice ? `Rechnung ${invoice.invoiceNumber} bearbeiten` : 'Neue Ausgangsrechnung erstellen'}
+                </h3>
+                <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">
+                  § 19 UStG Kleinunternehmer
+                </span>
+              </div>
               <p className="text-xs text-slate-400">
-                GoBD- & Finanzamt-konforme Rechnung mit PDF-Generierung
+                Kein Umsatzsteuerausweis gemäß Kleinunternehmerregelung § 19 UStG
               </p>
             </div>
           </div>
@@ -197,7 +204,7 @@ export default function InvoiceModal({
               )}
             </div>
 
-            {/* Invoice Meta: Number, Date, Due Date, Status */}
+            {/* Invoice Meta */}
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <div>
@@ -357,22 +364,17 @@ export default function InvoiceModal({
             </div>
           </div>
 
-          {/* Tax Selector & Total Calculation Summary */}
+          {/* Kleinunternehmer Notice & Total Calculation Summary */}
           <div className="flex flex-col md:flex-row items-start justify-between gap-4 pt-2">
             <div className="w-full md:w-1/2 space-y-2">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Umsatzsteuersatz (MwSt.)
-                </label>
-                <select
-                  value={formData.taxRate}
-                  onChange={(e) => setFormData({ ...formData, taxRate: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none"
-                >
-                  <option value={19}>19% Regelsteuersatz (Standard)</option>
-                  <option value={7}>7% Ermäßigter Steuersatz</option>
-                  <option value={0}>0% Steuerfrei / Kleinunternehmer / Reverse Charge B2B</option>
-                </select>
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 space-y-1">
+                <div className="font-bold flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Kleinunternehmerregelung (§ 19 UStG) aktiv</span>
+                </div>
+                <p className="text-[11px] text-emerald-800 leading-relaxed italic">
+                  "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung)."
+                </p>
               </div>
 
               <div>
@@ -391,16 +393,12 @@ export default function InvoiceModal({
             {/* Totals Summary Box */}
             <div className="w-full md:w-80 bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
               <div className="flex justify-between text-xs text-slate-600">
-                <span>Nettobetrag:</span>
-                <span className="font-semibold">{formatCurrency(netAmount)}</span>
+                <span>Umsatzsteuer:</span>
+                <span className="font-semibold text-slate-500">0,00 € (0%)</span>
               </div>
-              <div className="flex justify-between text-xs text-slate-600">
-                <span>MwSt. ({formData.taxRate}%):</span>
-                <span className="font-semibold">{formatCurrency(taxAmount)}</span>
-              </div>
-              <div className="border-t border-slate-200 pt-2 flex justify-between text-sm font-bold text-slate-900">
-                <span>Gesamtbetrag (Brutto):</span>
-                <span className="text-sky-600 text-base">{formatCurrency(grossAmount)}</span>
+              <div className="border-t border-slate-200 pt-2 flex justify-between text-sm font-black text-slate-900">
+                <span>Gesamtbetrag (Endbetrag):</span>
+                <span className="text-sky-600 text-base">{formatCurrency(totalAmount)}</span>
               </div>
             </div>
           </div>
