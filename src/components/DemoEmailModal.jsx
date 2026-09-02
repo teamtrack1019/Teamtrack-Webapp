@@ -3,29 +3,35 @@ import { Mail, Send, Sparkles, CheckCircle2, X, Copy, Check, ExternalLink } from
 
 const EMAIL_TEMPLATES = {
   digitalisierung_intro: {
-    name: '1. Papierkram Digitalisierung (Tanıtım)',
-    subject: 'Schluss mit Zettelwirtschaft: Digitale Prozesse & WebApps für Ihr Unternehmen',
-    body: (cust) => `Sehr geehrte(r) Frau/Herr ${cust.contactPerson || cust.companyName},
+    name: '1. Papierlose Prozesse & Digitalisierung',
+    subject: 'Digitale Prozessoptimierung & smarte Web-Lösungen für Ihr Unternehmen – TeamTrack',
+    body: (cust) => `Sehr geehrte Damen und Herren, 
 
-vielen Dank für Ihr Interesse an einer modernen Digitalisierung Ihrer Betriebsabläufe.
+viele Unternehmen verlieren täglich wertvolle Arbeitszeit durch manuelle Papierprozesse, unübersichtliche Zeiterfassungen und aufwendige Rechnungsstellungen.
+Wir bei TeamTrack unterstützen Unternehmen dabei, ihre täglichen Arbeitsabläufe durch smarte digitale Lösungen zu vereinfachen, Bürokratie abzubauen und Kosten zu senken.
 
-Wir unterstützen Unternehmen wie ${cust.companyName} dabei, lästigen Papierkram, handschriftliche Stundenzettel und unübersichtliche Dokumente in intuitive, maßgeschneiderte Web-Anwendungen zu verwandeln:
+Unsere Kernbereiche im Überblick:
+• Papierlose Prozesse & Digitalisierung: Schluss mit Zettelwirtschaft – alle Dokumente und Abläufe zentral und digital.
+• Digitale Zeit- & km-Erfassung: Rechtssichere und unkomplizierte Zeiterfassung für Mitarbeiter sowie transparente Fahrtenerfassung.
+• Automatische Rechnungsstellung: Rechnungen mit wenigen Klicks fehlerfrei und automatisiert erstellen.
+• Mitarbeiter- & Kundenverwaltung: Übersichtliche Nachverfolgung aller Einsätze und Kundenprozesse.
+• Individuelle Web-Apps & Web-Optimierung: Moderne, schnelle Web-Lösungen, die genau auf Ihre Betriebsabläufe zugeschnitten sind.
 
-✓ 100% digitaler Arbeitsnachweis & Stundenzettel (per Smartphone/Tablet)
-✓ Einfache Kunden- & Auftragsverwaltung
-✓ Automatisiertes Rechnungswesen & GoBD-konforme Ablage
-✓ Zeitersparnis von bis zu 8 Stunden pro Woche
+Bei Interesse oder Fragen stehen wir Ihnen jederzeit gerne für einen unverbindlichen Austausch zur Verfügung. Sie erreichen uns einfach per E-Mail oder telefonisch.
+Wir freuen uns auf Ihre Kontaktaufnahme.
 
-Gerne zeigen wir Ihnen in einer kurzen, unverbindlichen 15-minütigen Live-Demo, wie einfach die Umstellung in der Praxis funktioniert.
+Mit freundlichen Grüßen
+Hakan Ünalsoy
 
-Wann würde es Ihnen diese Woche für ein kurzes Telefonat oder einen Online-Termin passen?
-
-Mit freundlichen Grüßen,
-TeamTrack Digital Solutions`
+TeamTrack
+Tel: 0172 4690446
+E-Mail: teamtrack.software@hotmail.com
+Balthasar-Neumann-Str.38
+97236 Randersacker`
   },
   demo_access: {
     name: '2. Live-Demo & Testzugang Einladung',
-    subject: 'Ihr persönlicher Demo-Zugang: Digitale WebApp & Zeiterfassung',
+    subject: 'Ihr persönlicher Demo-Zugang: Digitale WebApp & Zeiterfassung – TeamTrack',
     body: (cust) => `Hallo Frau/Herr ${cust.contactPerson || cust.companyName},
 
 wie besprochen habe ich für ${cust.companyName} eine Vorschau-Umgebung vorbereitet, damit Sie und Ihr Team die Vorteile direkt live testen können.
@@ -33,14 +39,20 @@ wie besprochen habe ich für ${cust.companyName} eine Vorschau-Umgebung vorberei
 Link zur WebApp Demo: https://teamtrack-webapp.vercel.app
 Test-Login: ${cust.email || 'demo@ihrefirma.de'}
 
-Probieren Sie gerne aus, wie schnell Aufträge und Mitarbeiterberichte erfasst werden können. Bei Fragen stehe ich Ihnen jederzeit persönlich zur Verfügung.
+Probieren Sie gerne aus, wie schnell Aufträge, Stundenzettel und Mitarbeiterberichte erfasst werden können. Bei Fragen stehe ich Ihnen jederzeit persönlich zur Verfügung.
 
-Herzliche Grüße,
-TeamTrack Digital Solutions`
+Mit freundlichen Grüßen
+Hakan Ünalsoy
+
+TeamTrack
+Tel: 0172 4690446
+E-Mail: teamtrack.software@hotmail.com
+Balthasar-Neumann-Str.38
+97236 Randersacker`
   },
   follow_up: {
     name: '3. Follow-Up nach Erstgespräch',
-    subject: 'Zusammenfassung unseres Gesprächs & Nächste Schritte',
+    subject: 'Zusammenfassung unseres Gesprächs & Nächste Schritte – TeamTrack',
     body: (cust) => `Guten Tag Frau/Herr ${cust.contactPerson || cust.companyName},
 
 vielen Dank für das aufschlussreiche Gespräch heute.
@@ -49,8 +61,14 @@ Wie besprochen können wir die Digitalisierung Ihrer Papierformulare und die Ein
 
 Ich freue mich auf Ihre Rückmeldung zur weiteren Vorgehensweise.
 
-Beste Grüße,
-TeamTrack Digital Solutions`
+Mit freundlichen Grüßen
+Hakan Ünalsoy
+
+TeamTrack
+Tel: 0172 4690446
+E-Mail: teamtrack.software@hotmail.com
+Balthasar-Neumann-Str.38
+97236 Randersacker`
   }
 };
 
@@ -195,7 +213,7 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
               </button>
             </div>
             <textarea
-              rows={9}
+              rows={12}
               required
               value={body}
               onChange={(e) => setBody(e.target.value)}
