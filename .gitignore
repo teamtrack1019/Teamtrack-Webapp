@@ -12,6 +12,10 @@ backend/data/*.tmp
 *.log
 .DS_Store
 Thumbs.db
+git-tool/
+setup-git-tool.js
+init-git.js
+push-to-github.js
 
 # Environment variables
 .env
