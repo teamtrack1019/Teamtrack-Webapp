@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Landmark, 
   Printer, 
@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { api } from '../api';
 import { formatCurrency, formatDate } from '../utils/formatters';
-import html2pdf from 'html2pdf.js';
+import { downloadTaxReportPdf } from '../utils/pdfGenerator';
 
 export default function TaxReportPage() {
   const currentYear = new Date().getFullYear().toString();
@@ -22,7 +22,6 @@ export default function TaxReportPage() {
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
-  const reportRef = useRef(null);
 
   const loadReport = async (year) => {
     try {
@@ -40,23 +39,15 @@ export default function TaxReportPage() {
     loadReport(selectedYear);
   }, [selectedYear]);
 
-  // 1-Click direct PDF file download
-  const handleDownloadPdf = async () => {
-    if (!reportRef.current) return;
+  // 1-Click native PDF Download
+  const handleDownloadPdf = () => {
+    if (!reportData) return;
     try {
       setIsDownloading(true);
-      const element = reportRef.current;
-      const opt = {
-        margin: [10, 10, 10, 10],
-        filename: `Finanzamt_EUR_Jahresbericht_${selectedYear}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-      await html2pdf().set(opt).from(element).save();
+      downloadTaxReportPdf(reportData);
     } catch (err) {
-      console.error('PDF generation error:', err);
-      window.print();
+      console.error('Tax PDF error:', err);
+      alert('Fehler: ' + err.message);
     } finally {
       setIsDownloading(false);
     }
@@ -109,7 +100,7 @@ export default function TaxReportPage() {
           <button
             onClick={handleDownloadPdf}
             disabled={isDownloading}
-            className="flex items-center space-x-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/30 transition disabled:opacity-50"
+            className="flex items-center space-x-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/30 transition disabled:opacity-50 cursor-pointer"
             title="Bericht direkt als PDF-Datei herunterladen"
           >
             {isDownloading ? (
@@ -128,7 +119,7 @@ export default function TaxReportPage() {
           {/* Separate Print Button */}
           <button
             onClick={handlePrint}
-            className="flex items-center space-x-1.5 px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition"
+            className="flex items-center space-x-1.5 px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition cursor-pointer"
           >
             <Printer className="w-4 h-4" />
             <span>Drucken</span>
@@ -138,7 +129,6 @@ export default function TaxReportPage() {
 
       {/* Printable Official German EÜR Tax Document */}
       <div 
-        ref={reportRef} 
         className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 md:p-12 space-y-8 text-slate-800" 
         id="printable-tax-report"
       >

@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { FileText, Printer, Download, X, CheckCircle, Loader2 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
-import html2pdf from 'html2pdf.js';
+import { downloadInvoicePdf } from '../utils/pdfGenerator';
 
 export default function InvoiceViewModal({ isOpen, onClose, invoice, companySettings = {} }) {
   const printRef = useRef(null);
@@ -20,37 +20,21 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
 
   if (!isOpen || !invoice) return null;
 
-  // Direct 1-click PDF Download (STRICTLY NO PRINT POPUP)
-  const handleDownloadPdf = async (e) => {
+  // Direct 100% reliable 1-click vector PDF Download
+  const handleDownloadPdf = (e) => {
     e.stopPropagation();
-    if (!printRef.current) return;
     try {
       setIsDownloading(true);
-      const element = printRef.current;
-      const cleanFileName = `Rechnung_${invoice.invoiceNumber || 'TeamTrack'}.pdf`.replace(/\s+/g, '_');
-      
-      const opt = {
-        margin: [8, 8, 8, 8],
-        filename: cleanFileName,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2, 
-          useCORS: true, 
-          backgroundColor: '#ffffff'
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-
-      await html2pdf().set(opt).from(element).save();
+      downloadInvoicePdf(invoice, companySettings);
     } catch (err) {
-      console.error('PDF generation error:', err);
-      alert('PDF oluşturulurken bir hata oluştu: ' + err.message);
+      console.error('PDF error:', err);
+      alert('PDF oluşturulamadı: ' + err.message);
     } finally {
       setIsDownloading(false);
     }
   };
 
-  // Separate Print Dialog Action (ONLY when user explicitly clicks Print)
+  // Separate Print Dialog Action
   const handlePrint = (e) => {
     e.stopPropagation();
     window.print();
@@ -62,13 +46,13 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-slate-900/80 backdrop-blur-sm animate-fadeIn select-none"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-slate-900/80 backdrop-blur-sm animate-fadeIn"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div 
-        className="bg-slate-100 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-700/50 flex flex-col max-h-[94vh] select-text"
+        className="bg-slate-100 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-700/50 flex flex-col max-h-[94vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Top Toolbar */}
@@ -103,7 +87,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
               {isDownloading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>PDF wird erstellt...</span>
+                  <span>Wird heruntergeladen...</span>
                 </>
               ) : (
                 <>
