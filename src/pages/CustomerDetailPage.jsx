@@ -21,13 +21,15 @@ import {
   Send,
   Eye,
   CreditCard,
-  Receipt
+  Receipt,
+  ChevronDown
 } from 'lucide-react';
 import { api } from '../api';
 import { formatCurrency, formatDate, formatDateTime } from '../utils/formatters';
 
 export default function CustomerDetailPage({
   customerId,
+  refreshKey = 0,
   onBack,
   onOpenDemoEmailModal,
   onOpenServiceModal,
@@ -58,7 +60,7 @@ export default function CustomerDetailPage({
     if (customerId) {
       loadData();
     }
-  }, [customerId]);
+  }, [customerId, refreshKey]);
 
   if (loading || !data) {
     return (
@@ -75,7 +77,7 @@ export default function CustomerDetailPage({
   const abos = services.filter(s => s.type === 'abo');
   const einmalige = services.filter(s => s.type === 'einmalig');
   const totalMonthlyMRR = abos.filter(s => s.status === 'active').reduce((sum, s) => sum + Number(s.price || 0), 0);
-  const totalOneTimeRevenue = einmalige.reduce((sum, s) => sum + Number(s.price || 0), 0);
+  const totalOneTimeRevenue = einmalige.filter(s => s.status !== 'cancelled').reduce((sum, s) => sum + Number(s.price || 0), 0);
 
   const handleDeleteService = async (serviceId) => {
     try {
@@ -84,6 +86,15 @@ export default function CustomerDetailPage({
       await loadData();
     } catch (err) {
       alert('Fehler beim Löschen: ' + err.message);
+    }
+  };
+
+  const handleQuickStatusChange = async (service, newStatus) => {
+    try {
+      await api.updateService(service.id, { ...service, status: newStatus });
+      await loadData();
+    } catch (err) {
+      alert('Fehler beim Ändern des Status: ' + err.message);
     }
   };
 
@@ -364,16 +375,26 @@ export default function CustomerDetailPage({
                 {abos.map((abo) => (
                   <div key={abo.id} className="p-4 rounded-xl border border-slate-200 hover:border-sky-300 bg-slate-50/50 transition flex flex-col justify-between space-y-3">
                     <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <button
-                          type="button"
-                          onClick={() => onEditService && onEditService(abo)}
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80 transition ${
-                            abo.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'
-                          }`}
-                        >
-                          {abo.status === 'active' ? '● Aktiv' : 'Pausiert/Gekündigt'} (Klick zum Ändern)
-                        </button>
+                      <div className="space-y-1.5">
+                        {/* Interactive Status Selector */}
+                        <div className="flex items-center gap-1.5">
+                          <select
+                            value={abo.status || 'active'}
+                            onChange={(e) => handleQuickStatusChange(abo, e.target.value)}
+                            className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border focus:outline-none cursor-pointer ${
+                              abo.status === 'active' 
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300' 
+                                : abo.status === 'paused' 
+                                ? 'bg-amber-50 text-amber-800 border-amber-300' 
+                                : 'bg-rose-50 text-rose-800 border-rose-300'
+                            }`}
+                          >
+                            <option value="active">🟢 Aktiv</option>
+                            <option value="paused">⏸️ Pausiert</option>
+                            <option value="cancelled">🚫 Gekündigt</option>
+                          </select>
+                        </div>
+
                         <h5 
                           onClick={() => onEditService && onEditService(abo)}
                           className="font-bold text-sm text-slate-900 hover:text-sky-600 transition cursor-pointer"
@@ -482,16 +503,26 @@ export default function CustomerDetailPage({
                 {einmalige.map((srv) => (
                   <div key={srv.id} className="p-4 rounded-xl border border-slate-200 hover:border-emerald-300 bg-slate-50/50 transition flex flex-col justify-between space-y-3">
                     <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <button
-                          type="button"
-                          onClick={() => onEditService && onEditService(srv)}
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80 transition ${
-                            srv.status === 'completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                          }`}
-                        >
-                          {srv.status === 'completed' ? '✓ Erledigt' : '⏳ In Arbeit'} (Klick zum Ändern)
-                        </button>
+                      <div className="space-y-1.5">
+                        {/* Interactive Status Selector (Quick 1-click change) */}
+                        <div className="flex items-center gap-1.5">
+                          <select
+                            value={srv.status || 'active'}
+                            onChange={(e) => handleQuickStatusChange(srv, e.target.value)}
+                            className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border focus:outline-none cursor-pointer ${
+                              srv.status === 'completed' 
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300' 
+                                : srv.status === 'cancelled' 
+                                ? 'bg-rose-50 text-rose-800 border-rose-300' 
+                                : 'bg-amber-50 text-amber-800 border-amber-300'
+                            }`}
+                          >
+                            <option value="active">⏳ In Arbeit</option>
+                            <option value="completed">✓ Erledigt</option>
+                            <option value="cancelled">🚫 Storniert</option>
+                          </select>
+                        </div>
+
                         <h5 
                           onClick={() => onEditService && onEditService(srv)}
                           className="font-bold text-sm text-slate-900 hover:text-emerald-600 transition cursor-pointer"

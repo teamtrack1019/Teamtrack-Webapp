@@ -86,6 +86,7 @@ export default function App() {
 
   const [viewInvoiceModalOpen, setViewInvoiceModalOpen] = useState(false);
   const [selectedViewInvoice, setSelectedViewInvoice] = useState(null);
+  const [dataRefreshKey, setDataRefreshKey] = useState(0);
 
   // Load all core data
   const loadAllData = useCallback(async () => {
@@ -105,6 +106,7 @@ export default function App() {
       if (expData && expData.length >= 0) setExpenses(expData);
       if (milData && milData.length >= 0) setMileage(milData);
       if (settingsData) setCompanySettings(settingsData);
+      setDataRefreshKey(k => k + 1);
     } catch (err) {
       console.error('Failed to load application data:', err);
     }
@@ -317,6 +319,7 @@ export default function App() {
           {activeTab === 'customer-detail' && selectedCustomerId && (
             <CustomerDetailPage
               customerId={selectedCustomerId}
+              refreshKey={dataRefreshKey}
               onBack={() => {
                 setSelectedCustomerId(null);
                 setActiveTab('customers');
