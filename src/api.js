@@ -499,6 +499,22 @@ async function handleLocalRequest(endpoint, options = {}) {
     const totalKm = db.mileage.reduce((sum, m) => sum + Number(m.kilometers || 0), 0);
     const totalKmDeduction = db.mileage.reduce((sum, m) => sum + Number(m.totalDeduction || 0), 0);
 
+    // Auto-update customer status if they have services/invoices
+    let hasDbUpdates = false;
+    db.customers.forEach(cust => {
+      const custServices = db.services.filter(s => s.customerId === cust.id);
+      const custInvoices = db.invoices.filter(i => i.customerId === cust.id);
+      const hasJobs = custServices.length > 0 || custInvoices.length > 0;
+      if (hasJobs && cust.status !== 'active') {
+        cust.status = 'active';
+        hasDbUpdates = true;
+      }
+    });
+    if (hasDbUpdates) {
+      saveLocalData(db);
+      pushToFirebase(db);
+    }
+
     return {
       mrr,
       activeAbosCount: activeAbos.length,
@@ -522,7 +538,8 @@ async function handleLocalRequest(endpoint, options = {}) {
   // CUSTOMERS
   if (endpoint === '/customers') {
     if (method === 'GET') {
-      return db.customers.map(cust => {
+      let hasChanges = false;
+      const result = db.customers.map(cust => {
         const custServices = db.services.filter(s => s.customerId === cust.id);
         const custInvoices = db.invoices.filter(i => i.customerId === cust.id);
         const activeAbos = custServices.filter(s => s.type === 'abo' && s.status === 'active');
@@ -530,11 +547,13 @@ async function handleLocalRequest(endpoint, options = {}) {
         const einmaligeServices = custServices.filter(s => s.type === 'einmalig');
         const totalRevenue = custInvoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + getInvTotal(i), 0);
         
-        // Auto-upgrade from lead to active if customer has contract/services
-        let currentStatus = cust.status;
-        if (currentStatus === 'lead' && (activeAbos.length > 0 || einmaligeServices.length > 0 || custInvoices.length > 0)) {
-          currentStatus = 'active';
-          cust.status = 'active';
+        // Auto-upgrade: As soon as a customer has ANY service (Abo or Einmalig) or invoice -> AUTOMATICALLY ACTIVE
+        const hasJobs = custServices.length > 0 || custInvoices.length > 0;
+        let currentStatus = hasJobs ? 'active' : (cust.status || 'lead');
+        
+        if (cust.status !== currentStatus) {
+          cust.status = currentStatus;
+          hasChanges = true;
         }
 
         return {
@@ -547,11 +566,17 @@ async function handleLocalRequest(endpoint, options = {}) {
           invoicesCount: custInvoices.length
         };
       });
+
+      if (hasChanges) {
+        saveLocalData(db);
+        pushToFirebase(db);
+      }
+      return result;
     }
     if (method === 'POST') {
       const newCust = {
         id: `cust-${Date.now()}`,
-        status: body.status || 'active',
+        status: body.status || 'lead',
         ...body,
         demoEmailSent: false,
         demoEmailSentAt: null,
@@ -601,11 +626,16 @@ async function handleLocalRequest(endpoint, options = {}) {
       if (!customer) throw new Error('Kunde nicht gefunden');
       const custServices = db.services.filter(s => s.customerId === custId);
       const custInvoices = db.invoices.filter(i => i.customerId === custId);
-      if (customer.status === 'lead' && (custServices.length > 0 || custInvoices.length > 0)) {
+      if ((custServices.length > 0 || custInvoices.length > 0) && customer.status !== 'active') {
         customer.status = 'active';
+        saveLocalData(db);
+        pushToFirebase(db);
       }
       return {
-        customer,
+        customer: {
+          ...customer,
+          status: (custServices.length > 0 || custInvoices.length > 0) ? 'active' : customer.status
+        },
         services: custServices,
         invoices: custInvoices,
         mileage: db.mileage.filter(m => m.customerId === custId),

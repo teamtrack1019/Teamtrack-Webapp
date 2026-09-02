@@ -120,7 +120,9 @@ export default function CustomersPage({
       {/* Customer Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filtered.map((customer) => {
-          const statusBadge = getStatusBadge(customer.status);
+          const hasServicesOrJobs = (Number(customer.activeAbosCount || 0) > 0 || Number(customer.einmaligeCount || 0) > 0 || Number(customer.invoicesCount || 0) > 0);
+          const effectiveStatus = hasServicesOrJobs ? 'active' : (customer.status || 'lead');
+          const statusBadge = getStatusBadge(effectiveStatus);
 
           return (
             <div
@@ -131,27 +133,9 @@ export default function CustomersPage({
               <div className="p-5 space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="space-y-1">
-                    <select
-                      value={customer.status || 'active'}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        if (onUpdateCustomerStatus) {
-                          onUpdateCustomerStatus(customer.id, e.target.value);
-                        }
-                      }}
-                      className={`text-[11px] font-bold px-2 py-0.5 rounded-lg border focus:outline-none cursor-pointer transition ${
-                        customer.status === 'active'
-                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                          : customer.status === 'lead'
-                          ? 'bg-amber-50 text-amber-800 border-amber-300'
-                          : 'bg-slate-100 text-slate-700 border-slate-300'
-                      }`}
-                      title="Kundenstatus ändern"
-                    >
-                      <option value="active">🟢 Aktiv (Kunde)</option>
-                      <option value="lead">🟡 Interessent (Lead)</option>
-                      <option value="inactive">⚪ Inaktiv</option>
-                    </select>
+                    <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}>
+                      {statusBadge.label}
+                    </span>
                     <h3 
                       onClick={() => onSelectCustomer(customer.id)}
                       className="font-bold text-base text-slate-900 group-hover:text-sky-600 transition cursor-pointer leading-snug line-clamp-1 mt-1"
