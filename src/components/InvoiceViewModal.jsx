@@ -1,13 +1,42 @@
-import React, { useRef } from 'react';
-import { FileText, Printer, Download, X, Building2, CheckCircle, Eye } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { FileText, Printer, Download, X, CheckCircle, Loader2 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
+import html2pdf from 'html2pdf.js';
 
 export default function InvoiceViewModal({ isOpen, onClose, invoice, companySettings = {} }) {
   const printRef = useRef(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   if (!isOpen || !invoice) return null;
 
-  const handlePrintOrSavePdf = () => {
+  // Direct 1-click PDF Download (Saves .pdf file directly to Downloads folder)
+  const handleDownloadPdf = async () => {
+    if (!printRef.current) return;
+    try {
+      setIsDownloading(true);
+      const element = printRef.current;
+      const cleanFileName = `Rechnung_${invoice.invoiceNumber || 'TeamTrack'}.pdf`.replace(/\s+/g, '_');
+      
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: cleanFileName,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      // Fallback to print dialog if html2pdf fails
+      window.print();
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  // Separate Print Dialog Action
+  const handlePrint = () => {
     window.print();
   };
 
@@ -19,14 +48,14 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-slate-900/80 backdrop-blur-sm animate-fadeIn">
       <div className="bg-slate-100 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-700/50 flex flex-col max-h-[94vh]">
         {/* Modal Top Toolbar */}
-        <div className="p-4 bg-slate-900 text-white flex items-center justify-between no-print border-b border-slate-800">
+        <div className="p-4 bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 no-print border-b border-slate-800">
           <div className="flex items-center space-x-3">
             <div className="p-2.5 bg-sky-500/20 rounded-xl border border-sky-500/30">
               <FileText className="w-5 h-5 text-sky-400" />
             </div>
             <div>
               <h3 className="text-sm md:text-base font-bold text-white flex items-center gap-2">
-                <span>Rechnungsvorschau: {invoice.invoiceNumber}</span>
+                <span>Rechnung: {invoice.invoiceNumber}</span>
                 <span className="text-[10px] font-semibold bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded border border-sky-500/30">
                   DIN-A4
                 </span>
@@ -37,17 +66,39 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
             </div>
           </div>
 
-          {/* Action Buttons: Save PDF & Print & Close */}
-          <div className="flex items-center space-x-2">
+          {/* Action Buttons: Separate Download PDF, Print, Close */}
+          <div className="flex items-center space-x-2 self-end sm:self-auto">
+            {/* Direct PDF Download Button */}
             <button
-              onClick={handlePrintOrSavePdf}
-              className="flex items-center space-x-1.5 px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/30 transition"
-              title="Als PDF speichern (Save as PDF) oder drucken"
+              onClick={handleDownloadPdf}
+              disabled={isDownloading}
+              className="flex items-center space-x-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/30 transition disabled:opacity-50"
+              title="Rechnung direkt als PDF-Datei auf den PC herunterladen"
             >
-              <Download className="w-4 h-4" />
-              <span>Als PDF speichern / Drucken</span>
+              {isDownloading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>PDF wird erstellt...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  <span>PDF Herunterladen</span>
+                </>
+              )}
             </button>
 
+            {/* Separate Print Button */}
+            <button
+              onClick={handlePrint}
+              className="flex items-center space-x-1.5 px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/30 transition"
+              title="Druckdialog öffnen"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Drucken</span>
+            </button>
+
+            {/* Close Button */}
             <button
               onClick={onClose}
               className="flex items-center space-x-1 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition"

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Landmark, 
   Printer, 
@@ -6,21 +6,23 @@ import {
   TrendingUp, 
   Receipt, 
   Car, 
-  FileSpreadsheet, 
+  Download,
+  Loader2,
   CheckCircle2, 
-  AlertCircle,
   Building2,
-  Euro,
-  Sparkles
+  Euro
 } from 'lucide-react';
 import { api } from '../api';
 import { formatCurrency, formatDate } from '../utils/formatters';
+import html2pdf from 'html2pdf.js';
 
 export default function TaxReportPage() {
   const currentYear = new Date().getFullYear().toString();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const reportRef = useRef(null);
 
   const loadReport = async (year) => {
     try {
@@ -37,6 +39,28 @@ export default function TaxReportPage() {
   useEffect(() => {
     loadReport(selectedYear);
   }, [selectedYear]);
+
+  // 1-Click direct PDF file download
+  const handleDownloadPdf = async () => {
+    if (!reportRef.current) return;
+    try {
+      setIsDownloading(true);
+      const element = reportRef.current;
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: `Finanzamt_EUR_Jahresbericht_${selectedYear}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      window.print();
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const handlePrint = () => {
     window.print();
@@ -66,9 +90,9 @@ export default function TaxReportPage() {
           </p>
         </div>
 
-        <div className="flex items-center space-x-3 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
           {/* Year Selector */}
-          <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-sm">
+          <div className="flex items-center space-x-1.5 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm">
             <Calendar className="w-4 h-4 text-slate-400" />
             <select
               value={selectedYear}
@@ -81,18 +105,43 @@ export default function TaxReportPage() {
             </select>
           </div>
 
+          {/* 1-Click PDF File Download */}
+          <button
+            onClick={handleDownloadPdf}
+            disabled={isDownloading}
+            className="flex items-center space-x-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/30 transition disabled:opacity-50"
+            title="Bericht direkt als PDF-Datei herunterladen"
+          >
+            {isDownloading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>PDF wird erstellt...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" />
+                <span>PDF Herunterladen</span>
+              </>
+            )}
+          </button>
+
+          {/* Separate Print Button */}
           <button
             onClick={handlePrint}
-            className="flex items-center space-x-1.5 px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition"
+            className="flex items-center space-x-1.5 px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition"
           >
             <Printer className="w-4 h-4" />
-            <span>Offiziellen Finanzamt-Bericht drucken / PDF</span>
+            <span>Drucken</span>
           </button>
         </div>
       </div>
 
       {/* Printable Official German EÜR Tax Document */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 md:p-12 space-y-8 text-slate-800" id="printable-tax-report">
+      <div 
+        ref={reportRef} 
+        className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 md:p-12 space-y-8 text-slate-800" 
+        id="printable-tax-report"
+      >
         {/* Document Header */}
         <div className="border-b border-slate-300 pb-6 flex justify-between items-start">
           <div>
