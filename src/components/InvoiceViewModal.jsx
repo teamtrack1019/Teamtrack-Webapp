@@ -43,9 +43,12 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
   const isKleinunternehmer = companySettings.isKleinunternehmer !== false;
   const kleinunternehmerText = companySettings.kleinunternehmerText || 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).';
 
-  const net = Number(invoice.netAmount || 0);
-  const tax = isKleinunternehmer ? 0 : Number(invoice.taxAmount || 0);
-  const gross = Number(invoice.grossAmount || invoice.netAmount || 0);
+  // Calculate items sum strictly
+  const calculatedItemsTotal = (invoice.items || []).reduce((sum, item) => {
+    return sum + ((Number(item.unitPrice) || 0) * (Number(item.quantity) || 1));
+  }, 0);
+
+  const totalAmount = calculatedItemsTotal > 0 ? calculatedItemsTotal : Number(invoice.netAmount || invoice.grossAmount || 0);
 
   return (
     <div 
@@ -215,12 +218,6 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
                       <span className="font-mono text-slate-800">{companySettings.taxNumber}</span>
                     </div>
                   )}
-                  {companySettings.vatId && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">USt-IdNr.:</span>
-                      <span className="font-mono text-slate-800">{companySettings.vatId}</span>
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -248,7 +245,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
                           {formatCurrency(item.unitPrice)}
                         </td>
                         <td className="py-3 px-3 text-right font-bold text-slate-900 font-mono">
-                          {formatCurrency(item.total || (item.unitPrice * item.quantity))}
+                          {formatCurrency((Number(item.unitPrice) || 0) * (Number(item.quantity) || 1))}
                         </td>
                       </tr>
                     ))}
@@ -256,12 +253,12 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
                 </table>
               </div>
 
-              {/* Totals Summary (§ 19 UStG Kleinunternehmer) */}
+              {/* Totals Summary (§ 19 UStG Kleinunternehmer - Exactly equal to items total) */}
               <div className="flex justify-end mt-4">
                 <div className="w-80 space-y-2 text-xs">
                   <div className="flex justify-between text-slate-900 text-sm font-black py-2 border-b-2 border-slate-900">
                     <span>Gesamtbetrag (Endbetrag):</span>
-                    <span className="font-mono text-sky-700 text-base">{formatCurrency(gross)}</span>
+                    <span className="font-mono text-sky-700 text-base">{formatCurrency(totalAmount)}</span>
                   </div>
                   {/* Official § 19 UStG Kleinunternehmer Notice */}
                   <div className="text-[11px] text-slate-600 font-medium italic pt-1 leading-relaxed">

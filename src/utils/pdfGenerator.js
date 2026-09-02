@@ -15,8 +15,13 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
   const isKleinunternehmer = companySettings.isKleinunternehmer !== false;
   const kleinunternehmerText = companySettings.kleinunternehmerText || 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).';
 
-  // 1. TOP HEADER (Spacious & Crisp)
-  // Blue Logo Box (11x11 mm)
+  // Strictly calculate total from items
+  const calculatedItemsTotal = (invoice.items || []).reduce((sum, item) => {
+    return sum + ((Number(item.unitPrice) || 0) * (Number(item.quantity) || 1));
+  }, 0);
+  const totalAmount = calculatedItemsTotal > 0 ? calculatedItemsTotal : Number(invoice.netAmount || invoice.grossAmount || 0);
+
+  // 1. TOP HEADER
   doc.setFillColor(2, 132, 199);
   doc.roundedRect(margin, 20, 11, 11, 2.5, 2.5, 'F');
   doc.setTextColor(255, 255, 255);
@@ -24,19 +29,16 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
   doc.setFont('helvetica', 'bold');
   doc.text('TT', margin + 2.7, 27.5);
 
-  // Company Name (16pt)
   doc.setTextColor(15, 23, 42);
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
   doc.text(companySettings.companyName || 'TeamTrack Digital Solutions', margin + 14, 26);
 
-  // Tagline (9pt)
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(2, 132, 199);
   doc.text(companySettings.tagline || 'Papierkram zu digital & Moderne Web-Anwendungen', margin + 14, 31.5);
 
-  // Company Contact Lines
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 116, 139);
@@ -52,7 +54,7 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
     doc.text(`Web: ${companySettings.website}`, margin, contactY);
   }
 
-  // Header Right: Big Invoice Title & Number
+  // Header Right: RECHNUNG & Number
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
@@ -63,7 +65,6 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
   doc.setTextColor(2, 132, 199);
   doc.text(invoice.invoiceNumber || 'RE-2026-0001', pageWidth - margin, 32.5, { align: 'right' });
 
-  // Paid Badge
   if (invoice.status === 'paid') {
     const paidText = `BEZAHLT am ${formatDate(invoice.paidAt || invoice.date)}`;
     doc.setFontSize(8);
@@ -78,7 +79,6 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
     doc.text(paidText, badgeX + 4.5, 41.8);
   }
 
-  // Top Section Divider
   doc.setDrawColor(241, 245, 249);
   doc.setLineWidth(0.4);
   doc.line(margin, 52, pageWidth - margin, 52);
@@ -91,7 +91,6 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
   doc.text(senderAddress, margin, 59);
 
   // 3. RECIPIENT & METADATA GRID
-  // Recipient (Left)
   doc.setFontSize(8);
   doc.setTextColor(148, 163, 184);
   doc.setFont('helvetica', 'bold');
@@ -156,7 +155,7 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
     item.description || 'Dienstleistung',
     item.quantity || 1,
     formatCurrency(item.unitPrice || 0),
-    formatCurrency(item.total || ((item.unitPrice || 0) * (item.quantity || 1)))
+    formatCurrency((Number(item.unitPrice) || 0) * (Number(item.quantity) || 1))
   ]);
 
   autoTable(doc, {
@@ -192,9 +191,8 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
   });
 
   const finalY = doc.lastAutoTable.finalY + 10;
-  const gross = Number(invoice.grossAmount || invoice.netAmount || 0);
 
-  // 5. TOTALS SUMMARY (§ 19 UStG Kleinunternehmer - NO 19% MwSt line)
+  // 5. TOTALS SUMMARY (§ 19 UStG Kleinunternehmer - Exactly equal to items total)
   const totalsX = 100;
   const totalsW = pageWidth - margin - totalsX;
 
@@ -207,7 +205,7 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
   doc.setTextColor(15, 23, 42);
   doc.text('Gesamtbetrag (Endbetrag):', totalsX, finalY + 7);
   doc.setTextColor(2, 132, 199);
-  doc.text(formatCurrency(gross), pageWidth - margin, finalY + 7, { align: 'right' });
+  doc.text(formatCurrency(totalAmount), pageWidth - margin, finalY + 7, { align: 'right' });
 
   // Official Kleinunternehmer Legal Notice
   doc.setFontSize(7.5);
@@ -284,6 +282,11 @@ export function downloadTaxReportPdf(reportData) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 18;
 
+  const totalRev = Number(revenue.gross || revenue.net || 0);
+  const totalExp = Number(expenses.gross || expenses.net || 0);
+  const totalMil = Number(mileage.totalDeduction || 0);
+  const profit = Number((totalRev - totalExp - totalMil).toFixed(2));
+
   // Title
   doc.setFillColor(15, 23, 42);
   doc.roundedRect(margin, 16, pageWidth - (margin * 2), 22, 3, 3, 'F');
@@ -309,12 +312,12 @@ export function downloadTaxReportPdf(reportData) {
 
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  doc.text(formatCurrency(revenue.gross || revenue.net), pageWidth - margin - 6, 52, { align: 'right' });
+  doc.text(formatCurrency(totalRev), pageWidth - margin - 6, 52, { align: 'right' });
   doc.setTextColor(225, 29, 72);
-  doc.text(`- ${formatCurrency(expenses.gross || expenses.net + mileage.totalDeduction)}`, pageWidth - margin - 6, 58, { align: 'right' });
+  doc.text(`- ${formatCurrency(totalExp + totalMil)}`, pageWidth - margin - 6, 58, { align: 'right' });
   doc.setTextColor(16, 185, 129);
   doc.setFontSize(11);
-  doc.text(formatCurrency(summary.netProfit), pageWidth - margin - 6, 64, { align: 'right' });
+  doc.text(formatCurrency(profit), pageWidth - margin - 6, 64, { align: 'right' });
 
   // Expenses Table
   const expTableData = Object.entries(expenses.byCategory || {}).map(([cat, d]) => [
