@@ -54,7 +54,7 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
     doc.text(`Web: ${companySettings.website}`, margin, contactY);
   }
 
-  // Header Right: RECHNUNG & Number
+  // Header Right: RECHNUNG & Number (Clean & Official, No BEZAHLT badge)
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
@@ -64,20 +64,6 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(2, 132, 199);
   doc.text(invoice.invoiceNumber || 'RE-2026-0001', pageWidth - margin, 32.5, { align: 'right' });
-
-  if (invoice.status === 'paid') {
-    const paidText = `BEZAHLT am ${formatDate(invoice.paidAt || invoice.date)}`;
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    const textWidth = doc.getTextWidth(paidText) + 9;
-    const badgeX = pageWidth - margin - textWidth;
-    
-    doc.setFillColor(236, 253, 245);
-    doc.setDrawColor(167, 243, 208);
-    doc.roundedRect(badgeX, 37.5, textWidth, 6, 3, 3, 'FD');
-    doc.setTextColor(6, 95, 70);
-    doc.text(paidText, badgeX + 4.5, 41.8);
-  }
 
   doc.setDrawColor(241, 245, 249);
   doc.setLineWidth(0.4);
@@ -192,7 +178,7 @@ export function downloadInvoicePdf(invoice, companySettings = {}) {
 
   const finalY = doc.lastAutoTable.finalY + 10;
 
-  // 5. TOTALS SUMMARY (§ 19 UStG Kleinunternehmer - Exactly equal to items total)
+  // 5. TOTALS SUMMARY (§ 19 UStG Kleinunternehmer)
   const totalsX = 100;
   const totalsW = pageWidth - margin - totalsX;
 

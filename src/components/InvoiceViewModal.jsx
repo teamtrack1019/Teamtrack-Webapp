@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { FileText, Printer, Download, X, CheckCircle, Loader2 } from 'lucide-react';
+import { FileText, Printer, Download, X, Loader2 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { downloadInvoicePdf } from '../utils/pdfGenerator';
 
@@ -34,12 +34,11 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
     }
   };
 
-  // 100% Isolated 1-Page Print Function (Guaranteed strictly 1 Seite on iOS & Android)
+  // 100% Isolated 1-Page Print Function (Suppresses browser URL headers/footers)
   const handlePrint = (e) => {
     e.stopPropagation();
     if (!printRef.current) return;
 
-    // Create isolated hidden iframe to bypass mobile Safari parent viewport bugs
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
     iframe.style.right = '0';
@@ -62,11 +61,11 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
           <style>
             @page {
               size: A4 portrait;
-              margin: 10mm 10mm 10mm 10mm;
+              margin: 0mm; /* Suppresses browser URL and date header/footer */
             }
             html, body {
               margin: 0 !important;
-              padding: 0 !important;
+              padding: 12mm 12mm 12mm 12mm !important;
               background: #ffffff !important;
               color: #0f172a !important;
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -225,18 +224,12 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
                   </div>
                 </div>
 
-                {/* Invoice Big Title & Status */}
+                {/* Invoice Big Title & Number (Clean & Official, No BEZAHLT stamp) */}
                 <div className="text-right">
                   <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">RECHNUNG</div>
                   <div className="text-sm font-mono font-bold text-sky-600 mt-1">
                     {invoice.invoiceNumber}
                   </div>
-                  {invoice.status === 'paid' && (
-                    <div className="inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-                      <CheckCircle className="w-3 h-3" />
-                      BEZAHLT am {formatDate(invoice.paidAt || invoice.date)}
-                    </div>
-                  )}
                 </div>
               </div>
 
