@@ -10,13 +10,12 @@ import {
   Landmark, 
   Save, 
   CheckCircle2, 
-  Cloud, 
+  Flame, 
   RefreshCw, 
   Database, 
   Key, 
   Globe, 
   Check, 
-  Copy, 
   ExternalLink,
   ShieldCheck,
   UploadCloud,
@@ -24,11 +23,10 @@ import {
 } from 'lucide-react';
 import { api } from '../api';
 import { 
-  getSupabaseConfig, 
-  saveSupabaseConfig, 
-  testSupabaseConnection, 
-  SUPABASE_SETUP_SQL 
-} from '../supabase';
+  getFirebaseConfig, 
+  saveFirebaseConfig, 
+  testFirebaseConnection 
+} from '../firebase';
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
@@ -54,13 +52,11 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
 
-  // Supabase Cloud Sync States
-  const [supabaseUrl, setSupabaseUrl] = useState('');
-  const [supabaseAnonKey, setSupabaseAnonKey] = useState('');
+  // Firebase Cloud Sync States
+  const [firebaseConfigStr, setFirebaseConfigStr] = useState('');
   const [isCloudConnected, setIsCloudConnected] = useState(false);
   const [cloudStatusMsg, setCloudStatusMsg] = useState('');
   const [testingCloud, setTestingCloud] = useState(false);
-  const [copiedSql, setCopiedSql] = useState(false);
   const [syncingCloud, setSyncingCloud] = useState(false);
 
   useEffect(() => {
@@ -69,11 +65,10 @@ export default function SettingsPage() {
         const data = await api.getSettings();
         setSettings(data);
 
-        // Load Supabase Config
-        const { url, anonKey } = getSupabaseConfig();
-        setSupabaseUrl(url);
-        setSupabaseAnonKey(anonKey);
-        if (url && anonKey) {
+        // Load Firebase Config
+        const cfg = getFirebaseConfig();
+        if (cfg) {
+          setFirebaseConfigStr(JSON.stringify(cfg, null, 2));
           setIsCloudConnected(true);
         }
       } catch (err) {
@@ -101,36 +96,48 @@ export default function SettingsPage() {
     }
   };
 
-  // Test and Save Supabase Connection
-  const handleSaveSupabase = async () => {
-    if (!supabaseUrl.trim() || !supabaseAnonKey.trim()) {
-      saveSupabaseConfig('', '');
+  // Test and Save Firebase Connection
+  const handleSaveFirebase = async () => {
+    if (!firebaseConfigStr.trim()) {
+      saveFirebaseConfig(null);
       setIsCloudConnected(false);
-      setCloudStatusMsg('Cloud-Verbindung getrennt. Es wird der lokale Speicher genutzt.');
+      setCloudStatusMsg('Firebase bağlantısı kaldırıldı. Yerel hafıza kullanılıyor.');
       return;
+    }
+
+    let parsedConfig = null;
+    try {
+      parsedConfig = JSON.parse(firebaseConfigStr);
+    } catch (e) {
+      // Try to parse relaxed JS object format
+      try {
+        const cleaned = firebaseConfigStr
+          .replace(/const\s+firebaseConfig\s*=\s*/, '')
+          .replace(/;/g, '')
+          .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":')
+          .replace(/'/g, '"');
+        parsedConfig = JSON.parse(cleaned);
+      } catch (err2) {
+        setCloudStatusMsg('❌ Geçersiz format. Lütfen Firebase Console\'dan kopyaladığınız JSON nesnesini yapıştırın.');
+        return;
+      }
     }
 
     setTestingCloud(true);
     setCloudStatusMsg('');
-    const result = await testSupabaseConnection(supabaseUrl, supabaseAnonKey);
+    const result = await testFirebaseConnection(parsedConfig);
     setTestingCloud(false);
 
     if (result.success) {
-      saveSupabaseConfig(supabaseUrl, supabaseAnonKey);
+      saveFirebaseConfig(parsedConfig);
       setIsCloudConnected(true);
-      setCloudStatusMsg('🟢 Verbindung erfolgreich! Telefon, Tablet ve Bilgisayar artık canlı senkronize.');
-      // Initial upload/sync
+      setCloudStatusMsg('🟢 Firebase bağlantısı başarılı! Telefon, tablet ve bilgisayar artık anlık (realtime) senkronize.');
+      // Initial upload
       api.uploadLocalToCloud();
     } else {
       setIsCloudConnected(false);
       setCloudStatusMsg(`❌ Bağlantı Hatası: ${result.message}`);
     }
-  };
-
-  const handleCopySql = () => {
-    navigator.clipboard.writeText(SUPABASE_SETUP_SQL);
-    setCopiedSql(true);
-    setTimeout(() => setCopiedSql(false), 3000);
   };
 
   const handleManualCloudSync = async () => {
@@ -139,7 +146,7 @@ export default function SettingsPage() {
       await api.syncCloudNow();
       const updated = await api.getSettings();
       setSettings(updated);
-      setCloudStatusMsg('✅ Bulut verileri başarıyla indirildi ve eşitlendi!');
+      setCloudStatusMsg('✅ Firebase bulut verileri indirildi ve eşitlendi!');
     } catch (err) {
       setCloudStatusMsg('❌ Senkronizasyon hatası: ' + err.message);
     } finally {
@@ -149,7 +156,7 @@ export default function SettingsPage() {
 
   const handleManualCloudUpload = () => {
     api.uploadLocalToCloud();
-    setCloudStatusMsg('✅ Bu cihazdaki tüm veriler Supabase Bulutuna başarıyla yüklendi!');
+    setCloudStatusMsg('✅ Bu cihazdaki tüm veriler Firebase Firestore bulutuna yüklendi!');
   };
 
   if (loading) {
@@ -165,7 +172,7 @@ export default function SettingsPage() {
           <span>Unternehmensdaten & Einstellungen</span>
         </h2>
         <p className="text-slate-500 text-sm mt-0.5">
-          Rechnungsbriefkopf, Steuernummern, Bankverbindung ve Canlı Bulut Senkronizasyonu
+          Rechnungsbriefkopf, Steuernummern, Bankverbindung ve Canlı Firebase Senkronizasyonu
         </p>
       </div>
 
@@ -176,21 +183,21 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* 🌐 SUPABASE CLOUD SYNC CARD (Multi-Device Sync) */}
+      {/* 🔥 FIREBASE CLOUD SYNC CARD (Multi-Device Realtime Sync) */}
       <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-900 text-white p-6 sm:p-7 rounded-2xl border border-slate-700 shadow-xl space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div className="flex items-center space-x-3">
-            <div className="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30">
-              <Cloud className="w-6 h-6" />
+            <div className="p-2.5 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30">
+              <Flame className="w-6 h-6 text-amber-500 fill-amber-500" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-white">
-                  🌐 Supabase Bulut Senkronizasyonu (Telefon ↔ PC ↔ Tablet)
+                  🔥 Firebase Canlı Senkronizasyon (Telefon ↔ PC ↔ Tablet)
                 </h3>
                 {isCloudConnected ? (
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
-                    🟢 Canlı Bulut Aktif
+                    🟢 Firebase Canlı Bağlı
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-slate-800 text-slate-400 px-2.5 py-0.5 rounded-full border border-slate-700">
@@ -205,12 +212,12 @@ export default function SettingsPage() {
           </div>
 
           <a 
-            href="https://supabase.com" 
+            href="https://console.firebase.google.com" 
             target="_blank" 
             rel="noreferrer" 
             className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition self-start sm:self-auto"
           >
-            <span>Supabase'e Git (Ücretsiz)</span>
+            <span>Firebase Console</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </div>
@@ -218,45 +225,36 @@ export default function SettingsPage() {
         {/* Quick Guide */}
         <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60 text-xs text-slate-300 space-y-2">
           <div className="font-bold text-white flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>2 Dakikada Nasıl Bağlanır? (DSGVO / Frankfurt Uyumlu)</span>
+            <ShieldCheck className="w-4 h-4 text-amber-400" />
+            <span>Firebase Bilgilerini Nasıl Alacaksınız? (MitHerz gibi)</span>
           </div>
           <ol className="list-decimal list-inside space-y-1 text-slate-300 leading-relaxed">
-            <li><a href="https://supabase.com" target="_blank" rel="noreferrer" className="text-sky-400 underline font-semibold">supabase.com</a> adresinde ücretsiz bir proje açın (Bölge: <strong>Central EU / Frankfurt 🇩🇪</strong> seçin).</li>
-            <li>Supabase sol menüden <strong>Project Settings → API</strong> kısmına gidin.</li>
-            <li>Oradaki <strong>Project URL</strong> ve <strong>anon / public key</strong>'i aşağıdaki kutulara yapıştırıp <strong>"Bağlan & Kaydet"</strong>e basın.</li>
+            <li><a href="https://console.firebase.google.com" target="_blank" rel="noreferrer" className="text-amber-400 underline font-semibold">Firebase Console</a>'a gidin ve projenizi seçin (veya yeni proje açın).</li>
+            <li>Sol üstteki <strong>Proje Ayarları (Project Settings ⚙️)</strong> bölümüne inin.</li>
+            <li><strong>SDK setup and configuration (Web / Config)</strong> kısmındaki nesneyi (örnek: <code>&#123; "apiKey": "...", "projectId": "..." &#125;</code>) kopyalayıp aşağıdaki kutuya yapıştırın ve <strong>"Bağlantıyı Test Et & Kaydet"</strong>e basın.</li>
           </ol>
         </div>
 
-        {/* Supabase Inputs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
-              <Globe className="w-3.5 h-3.5 text-sky-400" />
-              <span>Supabase Project URL</span>
-            </label>
-            <input
-              type="text"
-              placeholder="https://xyzabcdefg.supabase.co"
-              value={supabaseUrl}
-              onChange={(e) => setSupabaseUrl(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
-              <Key className="w-3.5 h-3.5 text-amber-400" />
-              <span>Supabase Anon / Public Key</span>
-            </label>
-            <input
-              type="password"
-              placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-              value={supabaseAnonKey}
-              onChange={(e) => setSupabaseAnonKey(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            />
-          </div>
+        {/* Firebase Config Textarea */}
+        <div>
+          <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
+            <Key className="w-3.5 h-3.5 text-amber-400" />
+            <span>Firebase Config (JSON veya Obje)</span>
+          </label>
+          <textarea
+            rows={5}
+            placeholder={`{
+  "apiKey": "AIzaSy...",
+  "authDomain": "proje.firebaseapp.com",
+  "projectId": "proje-id",
+  "storageBucket": "proje.appspot.com",
+  "messagingSenderId": "123456789",
+  "appId": "1:123456:web:abcdef"
+}`}
+            value={firebaseConfigStr}
+            onChange={(e) => setFirebaseConfigStr(e.target.value)}
+            className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+          />
         </div>
 
         {/* Status Message */}
@@ -268,27 +266,15 @@ export default function SettingsPage() {
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-          <div className="flex items-center space-x-2">
-            <button
-              type="button"
-              onClick={handleSaveSupabase}
-              disabled={testingCloud}
-              className="flex items-center space-x-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/30 transition disabled:opacity-50 cursor-pointer"
-            >
-              <Database className="w-3.5 h-3.5" />
-              <span>{testingCloud ? 'Bağlanıyor...' : 'Bağlantıyı Test Et & Kaydet'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleCopySql}
-              className="flex items-center space-x-1 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-semibold border border-slate-700 transition cursor-pointer"
-              title="Supabase SQL Editor için kurulum kodunu kopyala"
-            >
-              {copiedSql ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedSql ? 'SQL Kopyalandı!' : 'SQL Tablo Kodunu Kopyala'}</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleSaveFirebase}
+            disabled={testingCloud}
+            className="flex items-center space-x-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold shadow-md shadow-amber-600/30 transition disabled:opacity-50 cursor-pointer"
+          >
+            <Database className="w-3.5 h-3.5" />
+            <span>{testingCloud ? 'Test Ediliyor...' : 'Firebase Bağlantısını Test Et & Kaydet'}</span>
+          </button>
 
           {isCloudConnected && (
             <div className="flex items-center space-x-2">
@@ -296,7 +282,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={handleManualCloudUpload}
                 className="flex items-center space-x-1 px-3 py-2 bg-sky-600/30 hover:bg-sky-600 text-sky-200 hover:text-white rounded-xl text-xs font-semibold border border-sky-500/40 transition cursor-pointer"
-                title="Bu cihazdaki tüm verileri buluta yükle"
+                title="Bu cihazdaki tüm verileri Firebase'e yükle"
               >
                 <UploadCloud className="w-3.5 h-3.5" />
                 <span>Buluta Yükle</span>
@@ -307,7 +293,7 @@ export default function SettingsPage() {
                 onClick={handleManualCloudSync}
                 disabled={syncingCloud}
                 className="flex items-center space-x-1 px-3 py-2 bg-emerald-600/30 hover:bg-emerald-600 text-emerald-200 hover:text-white rounded-xl text-xs font-semibold border border-emerald-500/40 transition cursor-pointer"
-                title="Buluttaki güncel verileri bu cihaza çek"
+                title="Firebase buluttaki güncel verileri bu cihaza çek"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${syncingCloud ? 'animate-spin' : ''}`} />
                 <span>Buluttan Çek</span>

@@ -1,4 +1,5 @@
-import { getSupabaseClient } from './supabase';
+import { getFirebaseDb } from './firebase';
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 
 // Initial default seed data for standalone/Vercel static mode
 const defaultSeed = {
@@ -320,59 +321,87 @@ function saveLocalData(data) {
   } catch (e) {}
 }
 
-// Supabase Async Cloud Sync
-let hasSyncedOnce = false;
+// Firebase Realtime Firestore Synchronization
+let hasStartedListener = false;
 
-async function syncWithSupabase() {
-  const supabase = getSupabaseClient();
-  if (!supabase) return null;
+function initFirebaseRealtimeSync() {
+  if (hasStartedListener) return;
+  const db = getFirebaseDb();
+  if (!db) return;
 
   try {
-    const { data, error } = await supabase
-      .from('teamtrack_store')
-      .select('data')
-      .eq('id', 'main_workspace')
-      .single();
+    hasStartedListener = true;
+    const docRef = doc(db, 'teamtrack_workspaces', 'main_workspace');
+    
+    // Attach real-time snapshot listener
+    onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const cloudData = docSnap.data()?.data;
+        if (cloudData) {
+          saveLocalData(cloudData);
+        }
+      } else {
+        // Document does not exist in Firebase yet -> upload initial data
+        const localData = getLocalData();
+        setDoc(docRef, {
+          data: localData,
+          updatedAt: new Date().toISOString()
+        }).catch(() => {});
+      }
+    }, (err) => {
+      console.warn('Firebase realtime listener warning:', err);
+    });
+  } catch (e) {
+    console.warn('Firebase init error:', e);
+  }
+}
 
-    if (data && data.data) {
-      saveLocalData(data.data);
-      return data.data;
-    } else if (error && (error.code === 'PGRST116' || error.message?.includes('0 rows'))) {
-      // Record doesn't exist yet -> upload current local data
-      const localDb = getLocalData();
-      await supabase.from('teamtrack_store').upsert({
-        id: 'main_workspace',
-        data: localDb,
-        updated_at: new Date().toISOString()
+async function syncWithFirebaseOnce() {
+  const db = getFirebaseDb();
+  if (!db) return null;
+
+  try {
+    initFirebaseRealtimeSync();
+    const docRef = doc(db, 'teamtrack_workspaces', 'main_workspace');
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const cloudData = docSnap.data()?.data;
+      if (cloudData) {
+        saveLocalData(cloudData);
+        return cloudData;
+      }
+    } else {
+      const localData = getLocalData();
+      await setDoc(docRef, {
+        data: localData,
+        updatedAt: new Date().toISOString()
       });
-      return localDb;
+      return localData;
     }
   } catch (err) {
-    console.warn('Supabase cloud sync background warning:', err);
+    console.warn('Firebase sync once warning:', err);
   }
   return null;
 }
 
-function pushToSupabase(db) {
-  const supabase = getSupabaseClient();
-  if (!supabase) return;
+function pushToFirebase(localDb) {
+  const db = getFirebaseDb();
+  if (!db) return;
 
-  // Background non-blocking push
-  supabase.from('teamtrack_store').upsert({
-    id: 'main_workspace',
-    data: db,
-    updated_at: new Date().toISOString()
-  }).then(({ error }) => {
-    if (error) console.warn('Supabase update error:', error);
-  }).catch(() => {});
+  try {
+    const docRef = doc(db, 'teamtrack_workspaces', 'main_workspace');
+    setDoc(docRef, {
+      data: localDb,
+      updatedAt: new Date().toISOString()
+    }).catch((err) => {
+      console.warn('Firebase push update error:', err);
+    });
+  } catch (e) {}
 }
 
 async function handleLocalRequest(endpoint, options = {}) {
-  // Sync from Supabase on first request if connected
-  if (!hasSyncedOnce) {
-    hasSyncedOnce = true;
-    await syncWithSupabase();
-  }
+  // Ensure Firebase real-time listener is attached if credentials exist
+  initFirebaseRealtimeSync();
 
   const db = getLocalData();
   const method = options.method || 'GET';
@@ -455,7 +484,7 @@ async function handleLocalRequest(endpoint, options = {}) {
       };
       db.customers.push(newCust);
       saveLocalData(db);
-      pushToSupabase(db);
+      pushToFirebase(db);
       return newCust;
     }
   }
@@ -486,7 +515,7 @@ async function handleLocalRequest(endpoint, options = {}) {
         db.emailLogs = db.emailLogs || [];
         db.emailLogs.push(emailLog);
         saveLocalData(db);
-        pushToSupabase(db);
+        pushToFirebase(db);
         return { success: true, customer, emailLog };
       }
     }
@@ -508,7 +537,7 @@ async function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         db.customers[idx] = { ...db.customers[idx], ...body, updatedAt: new Date().toISOString() };
         saveLocalData(db);
-        pushToSupabase(db);
+        pushToFirebase(db);
         return db.customers[idx];
       }
     }
@@ -518,7 +547,7 @@ async function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         const deleted = db.customers.splice(idx, 1)[0];
         saveLocalData(db);
-        pushToSupabase(db);
+        pushToFirebase(db);
         return deleted;
       }
     }
@@ -531,7 +560,7 @@ async function handleLocalRequest(endpoint, options = {}) {
       const newSrv = { id: `srv-${Date.now()}`, ...body, createdAt: new Date().toISOString() };
       db.services.push(newSrv);
       saveLocalData(db);
-      pushToSupabase(db);
+      pushToFirebase(db);
       return newSrv;
     }
     if (method === 'PUT') {
@@ -540,7 +569,7 @@ async function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         db.services[idx] = { ...db.services[idx], ...body };
         saveLocalData(db);
-        pushToSupabase(db);
+        pushToFirebase(db);
         return db.services[idx];
       }
     }
@@ -550,7 +579,7 @@ async function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         const del = db.services.splice(idx, 1)[0];
         saveLocalData(db);
-        pushToSupabase(db);
+        pushToFirebase(db);
         return del;
       }
     }
@@ -575,7 +604,7 @@ async function handleLocalRequest(endpoint, options = {}) {
       };
       db.invoices.push(newInv);
       saveLocalData(db);
-      pushToSupabase(db);
+      pushToFirebase(db);
       return newInv;
     }
     if (method === 'PUT') {
@@ -594,7 +623,7 @@ async function handleLocalRequest(endpoint, options = {}) {
           isKleinunternehmer: true
         };
         saveLocalData(db);
-        pushToSupabase(db);
+        pushToFirebase(db);
         return db.invoices[idx];
       }
     }
@@ -604,7 +633,7 @@ async function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         const del = db.invoices.splice(idx, 1)[0];
         saveLocalData(db);
-        pushToSupabase(db);
+        pushToFirebase(db);
         return del;
       }
     }
@@ -622,7 +651,7 @@ async function handleLocalRequest(endpoint, options = {}) {
       };
       db.expenses.push(newExp);
       saveLocalData(db);
-      pushToSupabase(db);
+      pushToFirebase(db);
       return newExp;
     }
     if (method === 'PUT') {
@@ -631,7 +660,7 @@ async function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         db.expenses[idx] = { ...db.expenses[idx], ...body };
         saveLocalData(db);
-        pushToSupabase(db);
+        pushToFirebase(db);
         return db.expenses[idx];
       }
     }
@@ -641,7 +670,7 @@ async function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         const del = db.expenses.splice(idx, 1)[0];
         saveLocalData(db);
-        pushToSupabase(db);
+        pushToFirebase(db);
         return del;
       }
     }
@@ -663,7 +692,7 @@ async function handleLocalRequest(endpoint, options = {}) {
       };
       db.mileage.push(newMil);
       saveLocalData(db);
-      pushToSupabase(db);
+      pushToFirebase(db);
       return newMil;
     }
     if (method === 'PUT') {
@@ -672,7 +701,7 @@ async function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         db.mileage[idx] = { ...db.mileage[idx], ...body };
         saveLocalData(db);
-        pushToSupabase(db);
+        pushToFirebase(db);
         return db.mileage[idx];
       }
     }
@@ -682,7 +711,7 @@ async function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         const del = db.mileage.splice(idx, 1)[0];
         saveLocalData(db);
-        pushToSupabase(db);
+        pushToFirebase(db);
         return del;
       }
     }
@@ -755,7 +784,7 @@ async function handleLocalRequest(endpoint, options = {}) {
     if (method === 'PUT') {
       db.companySettings = { ...db.companySettings, ...body };
       saveLocalData(db);
-      pushToSupabase(db);
+      pushToFirebase(db);
       return db.companySettings;
     }
   }
@@ -796,11 +825,11 @@ export const api = {
   getSettings: () => request('/settings'),
   updateSettings: (data) => request('/settings', { method: 'PUT', body: JSON.stringify(data) }),
   
-  // Direct Cloud Sync Controls
-  syncCloudNow: () => syncWithSupabase(),
+  // Direct Firebase Cloud Sync Controls
+  syncCloudNow: () => syncWithFirebaseOnce(),
   uploadLocalToCloud: () => {
     const db = getLocalData();
-    pushToSupabase(db);
+    pushToFirebase(db);
     return true;
   }
 };
