@@ -10,7 +10,8 @@ import {
   Zap, 
   ArrowUpRight, 
   Clock, 
-  CheckCircle2
+  CheckCircle2,
+  Sparkles
 } from 'lucide-react';
 import StatCard from '../components/StatCard';
 import { formatCurrency, formatDate } from '../utils/formatters';
