@@ -9,10 +9,10 @@ import {
   Settings, 
   Sparkles,
   Layers,
-  ChevronRight
+  X
 } from 'lucide-react';
 
-export default function Sidebar({ activeTab, setActiveTab, counts = {} }) {
+export default function Sidebar({ activeTab, setActiveTab, counts = {}, isMobileOpen, setIsMobileOpen }) {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'customers', label: 'Kundenverwaltung', icon: Users, badge: counts.customers },
@@ -23,10 +23,15 @@ export default function Sidebar({ activeTab, setActiveTab, counts = {} }) {
     { id: 'settings', label: 'Einstellungen', icon: Settings },
   ];
 
-  return (
-    <aside className="w-64 bg-slate-900 text-slate-200 flex flex-col shrink-0 min-h-screen border-r border-slate-800 select-none">
+  const handleSelect = (id) => {
+    setActiveTab(id);
+    if (setIsMobileOpen) setIsMobileOpen(false);
+  };
+
+  const sidebarContent = (
+    <div className="flex flex-col h-full select-none bg-slate-900 text-slate-200">
       {/* Brand Header */}
-      <div className="p-5 border-b border-slate-800">
+      <div className="p-5 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
             <Layers className="w-6 h-6" />
@@ -39,6 +44,15 @@ export default function Sidebar({ activeTab, setActiveTab, counts = {} }) {
             <p className="text-xs text-slate-400 truncate">Papierkram → Digital</p>
           </div>
         </div>
+
+        {setIsMobileOpen && (
+          <button 
+            onClick={() => setIsMobileOpen(false)}
+            className="md:hidden p-1.5 text-slate-400 hover:text-white rounded-lg transition"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Navigation */}
@@ -54,7 +68,7 @@ export default function Sidebar({ activeTab, setActiveTab, counts = {} }) {
           return (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => handleSelect(item.id)}
               className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ${
                 isActive
                   ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
@@ -92,6 +106,28 @@ export default function Sidebar({ activeTab, setActiveTab, counts = {} }) {
           </p>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Persistent Sidebar */}
+      <aside className="hidden md:flex w-64 shrink-0 min-h-screen border-r border-slate-800">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Slide-over Drawer with Backdrop */}
+      {isMobileOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          <div 
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsMobileOpen(false)}
+          />
+          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-slate-900 shadow-2xl z-10 animate-fadeIn">
+            {sidebarContent}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

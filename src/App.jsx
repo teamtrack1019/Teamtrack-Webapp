@@ -19,12 +19,21 @@ import ExpenseModal from './components/ExpenseModal';
 import MileageModal from './components/MileageModal';
 import InvoiceViewModal from './components/InvoiceViewModal';
 
+import { 
+  LayoutDashboard, 
+  Users, 
+  FileText, 
+  Car, 
+  Landmark 
+} from 'lucide-react';
+
 import { api } from './api';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Global state with instant default fallback
   const [stats, setStats] = useState({
@@ -236,13 +245,15 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-slate-100 overflow-hidden">
-      {/* Sidebar Navigation */}
+      {/* Sidebar Navigation (Desktop & Mobile Drawer) */}
       <Sidebar 
         activeTab={activeTab === 'customer-detail' ? 'customers' : activeTab} 
         setActiveTab={(tab) => {
           setSelectedCustomerId(null);
           setActiveTab(tab);
         }}
+        isMobileOpen={isMobileMenuOpen}
+        setIsMobileOpen={setIsMobileMenuOpen}
         counts={{
           customers: customers.length,
           pendingInvoices: invoices.filter(i => i.status === 'sent').length,
@@ -266,10 +277,11 @@ export default function App() {
             setEditingExpense(null);
             setExpenseModalOpen(true);
           }}
+          onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         />
 
         {/* Page Views */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
           {activeTab === 'dashboard' && (
             <DashboardPage
               stats={stats}
@@ -371,6 +383,74 @@ export default function App() {
             <SettingsPage />
           )}
         </main>
+
+        {/* Mobile Bottom Quick Navigation Bar */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-slate-900 border-t border-slate-800 flex items-center justify-around z-40 text-slate-400">
+          <button
+            onClick={() => {
+              setSelectedCustomerId(null);
+              setActiveTab('dashboard');
+            }}
+            className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-medium transition ${
+              activeTab === 'dashboard' ? 'text-sky-400 font-bold' : 'hover:text-slate-200'
+            }`}
+          >
+            <LayoutDashboard className="w-5 h-5 mb-0.5" />
+            <span>Dashboard</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setSelectedCustomerId(null);
+              setActiveTab('customers');
+            }}
+            className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-medium transition ${
+              activeTab === 'customers' || activeTab === 'customer-detail' ? 'text-sky-400 font-bold' : 'hover:text-slate-200'
+            }`}
+          >
+            <Users className="w-5 h-5 mb-0.5" />
+            <span>Kunden</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setSelectedCustomerId(null);
+              setActiveTab('invoices');
+            }}
+            className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-medium transition ${
+              activeTab === 'invoices' ? 'text-sky-400 font-bold' : 'hover:text-slate-200'
+            }`}
+          >
+            <FileText className="w-5 h-5 mb-0.5" />
+            <span>Rechnung</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setSelectedCustomerId(null);
+              setActiveTab('mileage');
+            }}
+            className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-medium transition ${
+              activeTab === 'mileage' ? 'text-sky-400 font-bold' : 'hover:text-slate-200'
+            }`}
+          >
+            <Car className="w-5 h-5 mb-0.5" />
+            <span>KM Fahrten</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setSelectedCustomerId(null);
+              setActiveTab('tax-report');
+            }}
+            className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-medium transition ${
+              activeTab === 'tax-report' ? 'text-sky-400 font-bold' : 'hover:text-slate-200'
+            }`}
+          >
+            <Landmark className="w-5 h-5 mb-0.5" />
+            <span>Finanzamt</span>
+          </button>
+        </nav>
       </div>
 
       {/* GLOBAL MODALS */}
