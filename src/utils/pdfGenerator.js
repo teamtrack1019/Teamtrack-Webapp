@@ -269,95 +269,162 @@ export function printInvoicePdfDirectly(invoice, companySettings = {}) {
 }
 
 // -------------------------------------------------------------
-// FAHRTENBUCH / KM-TRACKING PDF GENERATOR (Finanzamt-konform)
+// FAHRTENBUCH / KM-TRACKING PDF GENERATOR (Finanzamt-konform DIN-A4)
 // -------------------------------------------------------------
 export function createMileageDoc(mileageList = [], companySettings = {}) {
   const doc = new jsPDF({
-    orientation: 'landscape', // Landscape for clean table columns
+    orientation: 'portrait',
     unit: 'mm',
     format: 'a4'
   });
 
-  const pageWidth = doc.internal.pageSize.getWidth(); // 297mm
-  const margin = 16;
+  const pageWidth = doc.internal.pageSize.getWidth(); // 210mm
+  const margin = 18;
 
   const totalKm = mileageList.reduce((s, m) => s + Number(m.kilometers || 0), 0);
   const totalDeduction = mileageList.reduce((s, m) => s + Number(m.totalDeduction || (m.kilometers * 0.3)), 0);
 
-  // Header Title Banner
+  // 1. TOP TITLE BANNER
   doc.setFillColor(15, 23, 42); // Dark slate
-  doc.roundedRect(margin, 14, pageWidth - (margin * 2), 20, 3, 3, 'F');
+  doc.roundedRect(margin, 16, pageWidth - (margin * 2), 22, 3, 3, 'F');
 
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(14);
+  doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
-  doc.text('Betriebliches Fahrtenbuch & KM-Nachweis (Finanzamt)', margin + 6, 23);
+  doc.text('Betriebliches Fahrtenbuch & KM-Nachweis', margin + 6, 25);
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(186, 230, 253);
-  doc.text(`Steuerlicher Nachweis nach § 9 Abs. 1 Nr. 4a EStG • ${companySettings.companyName || 'TeamTrack'} • Steuernummer: ${companySettings.taxNumber || '-'}`, margin + 6, 29);
+  doc.text(`Finanzamt-Nachweis gem. § 9 Abs. 1 Nr. 4a EStG • ${companySettings.companyName || 'TeamTrack Digital Solutions'}`, margin + 6, 32);
 
-  // Summary KPI Row
+  // 2. SUMMARY KPI 3-COLUMN CARDS
+  const cardY = 43;
+  const cardH = 18;
+  const cardW = (pageWidth - (margin * 2) - 8) / 3;
+
+  // Card 1: Fahrten & KM
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(226, 232, 240);
-  doc.roundedRect(margin, 38, pageWidth - (margin * 2), 16, 2, 2, 'FD');
-
-  doc.setFontSize(8.5);
+  doc.roundedRect(margin, cardY, cardW, cardH, 2, 2, 'FD');
+  doc.setFontSize(7.5);
   doc.setTextColor(100, 116, 139);
-  doc.text('Gesamte Dienstreisen:', margin + 6, 47);
-  doc.text('Gesamtfahrstrecke:', margin + 70, 47);
-  doc.text('Kilometerpauschale:', margin + 140, 47);
-  doc.text('Steuerlicher Abzug (Betriebsausgabe):', margin + 200, 47);
-
   doc.setFont('helvetica', 'bold');
+  doc.text('GEFAHRENE DISTANZ', margin + 4, cardY + 6);
+  doc.setFontSize(11);
   doc.setTextColor(15, 23, 42);
-  doc.text(`${mileageList.length} Fahrten`, margin + 40, 47);
-  doc.text(`${totalKm.toFixed(1)} km`, margin + 102, 47);
-  doc.text('0,30 € / km', margin + 172, 47);
-  doc.setTextColor(16, 185, 129);
-  doc.setFontSize(10);
-  doc.text(formatCurrency(totalDeduction), pageWidth - margin - 6, 47, { align: 'right' });
+  doc.text(`${totalKm.toFixed(1)} km`, margin + 4, cardY + 13);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  doc.text(`(${mileageList.length} Fahrten)`, margin + cardW - 4, cardY + 13, { align: 'right' });
 
-  // Table Data
+  // Card 2: Pauschale
+  const card2X = margin + cardW + 4;
+  doc.roundedRect(card2X, cardY, cardW, cardH, 2, 2, 'FD');
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.setFont('helvetica', 'bold');
+  doc.text('KILOMETERPAUSCHALE', card2X + 4, cardY + 6);
+  doc.setFontSize(11);
+  doc.setTextColor(15, 23, 42);
+  doc.text('0,30 € / km', card2X + 4, cardY + 13);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  doc.text('Finanzamtsatz', card2X + cardW - 4, cardY + 13, { align: 'right' });
+
+  // Card 3: Steuerabzug (Highlighted in Green)
+  const card3X = margin + (cardW * 2) + 8;
+  doc.setFillColor(236, 253, 245);
+  doc.setDrawColor(167, 243, 208);
+  doc.roundedRect(card3X, cardY, cardW, cardH, 2, 2, 'FD');
+  doc.setFontSize(7.5);
+  doc.setTextColor(6, 95, 70);
+  doc.setFont('helvetica', 'bold');
+  doc.text('STEUERLICHER ABZUG', card3X + 4, cardY + 6);
+  doc.setFontSize(11);
+  doc.setTextColor(5, 150, 105);
+  doc.text(formatCurrency(totalDeduction), card3X + 4, cardY + 13);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Betriebsausgabe', card3X + cardW - 4, cardY + 13, { align: 'right' });
+
+  // 3. TABLE OF TRIPS (Clean ASCII text with no unicode corruption)
   const tableData = mileageList.map((m, idx) => [
     idx + 1,
     formatDate(m.date),
-    m.customerName || 'Allgemeine Betriebsfahrt',
-    `${m.startLocation || 'Büro'} → ${m.destination || '-'}`,
-    m.purpose || 'Kundenbesuch / Vor-Ort Service',
+    m.customerName || 'Betriebliche Fahrt',
+    `${m.startLocation || 'Büro'} -> ${m.destination || '-'}`,
+    m.purpose || 'Kundenbesuch / Beratung',
     `${m.kilometers} km`,
     formatCurrency(m.totalDeduction || (m.kilometers * 0.3))
   ]);
 
   autoTable(doc, {
-    startY: 58,
+    startY: 66,
     margin: { left: margin, right: margin },
-    head: [['Pos.', 'Datum', 'Kunde / Geschäftspartner', 'Reiseweg (Start → Zielort)', 'Reisezweck / Anlass', 'Distanz', 'Pauschale (€)']],
+    head: [['Pos.', 'Datum', 'Kunde', 'Reiseweg (Start -> Ziel)', 'Reisezweck / Anlass', 'KM', 'Abzug']],
     body: tableData,
-    theme: 'grid',
+    theme: 'plain',
     headStyles: {
-      fillColor: [15, 23, 42],
-      textColor: [255, 255, 255],
+      fillColor: [241, 245, 249],
+      textColor: [15, 23, 42],
       fontSize: 8,
       fontStyle: 'bold',
-      cellPadding: 3
+      cellPadding: 3.5,
+      lineWidth: { top: 0.5, bottom: 0.5 },
+      lineColor: [15, 23, 42]
     },
     bodyStyles: {
       fontSize: 8,
       textColor: [30, 41, 59],
-      cellPadding: 3
+      cellPadding: 4,
+      lineWidth: { bottom: 0.2 },
+      lineColor: [226, 232, 240]
     },
     columnStyles: {
-      0: { halign: 'center', cellWidth: 12 },
-      1: { halign: 'center', cellWidth: 22 },
-      2: { halign: 'left', cellWidth: 50, fontStyle: 'bold' },
-      3: { halign: 'left', cellWidth: 65 },
+      0: { halign: 'center', cellWidth: 10 },
+      1: { halign: 'center', cellWidth: 20 },
+      2: { halign: 'left', cellWidth: 38, fontStyle: 'bold' },
+      3: { halign: 'left', cellWidth: 42 },
       4: { halign: 'left' },
-      5: { halign: 'center', cellWidth: 22, fontStyle: 'bold' },
-      6: { halign: 'right', cellWidth: 28, fontStyle: 'bold', textColor: [16, 185, 129] }
+      5: { halign: 'center', cellWidth: 16, fontStyle: 'bold' },
+      6: { halign: 'right', cellWidth: 20, fontStyle: 'bold', textColor: [5, 150, 105] }
     }
   });
+
+  const finalY = doc.lastAutoTable.finalY + 8;
+
+  // 4. SUMMARY ROW AT TABLE END
+  doc.setDrawColor(15, 23, 42);
+  doc.setLineWidth(0.5);
+  doc.line(margin, finalY, pageWidth - margin, finalY);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text('Gesamtsumme Steuerabzug Fahrtenbuch:', margin, finalY + 5.5);
+  doc.setTextColor(5, 150, 105);
+  doc.setFontSize(10);
+  doc.text(formatCurrency(totalDeduction), pageWidth - margin, finalY + 5.5, { align: 'right' });
+
+  // 5. LEGAL NOTICE & SIGNATURE
+  const signY = Math.max(finalY + 16, 252);
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(100, 116, 139);
+  doc.text('Ich versichere die Richtigkeit und Vollständigkeit der oben aufgeführten betrieblichen Fahrten.', margin, signY);
+
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.3);
+  doc.line(margin, signY + 14, margin + 65, signY + 14);
+  doc.line(pageWidth - margin - 65, signY + 14, pageWidth - margin, signY + 14);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.text('Ort, Datum', margin, signY + 18);
+  doc.text('Unterschrift Betriebsinhaber', pageWidth - margin - 65, signY + 18);
 
   return doc;
 }
