@@ -383,6 +383,7 @@ function mergeDatabases(localDb, cloudDb) {
 
 // Firebase Realtime Firestore Synchronization
 let hasStartedListener = false;
+let isPushingUpdate = false;
 
 function initFirebaseRealtimeSync() {
   if (hasStartedListener) return;
@@ -397,20 +398,11 @@ function initFirebaseRealtimeSync() {
     onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         const cloudData = docSnap.data()?.data;
-        if (cloudData) {
-          const localData = getLocalData();
-          const merged = mergeDatabases(localData, cloudData);
-          saveLocalData(merged);
-          
-          // If local data had unique entries not in cloud, sync back to cloud
-          if (merged.customers.length > (cloudData.customers || []).length ||
-              merged.invoices.length > (cloudData.invoices || []).length ||
-              merged.mileage.length > (cloudData.mileage || []).length) {
-            setDoc(docRef, { data: merged, updatedAt: new Date().toISOString() }).catch(() => {});
-          }
+        if (cloudData && !isPushingUpdate) {
+          saveLocalData(cloudData);
         }
       } else {
-        // Document does not exist in Firebase yet -> upload existing phone data!
+        // Document does not exist in Firebase yet -> upload local data
         const localData = getLocalData();
         setDoc(docRef, {
           data: localData,
@@ -436,10 +428,8 @@ async function syncWithFirebaseOnce() {
     if (docSnap.exists()) {
       const cloudData = docSnap.data()?.data;
       if (cloudData) {
-        const localData = getLocalData();
-        const merged = mergeDatabases(localData, cloudData);
-        saveLocalData(merged);
-        return merged;
+        saveLocalData(cloudData);
+        return cloudData;
       }
     } else {
       const localData = getLocalData();
@@ -459,6 +449,7 @@ function pushToFirebase(localDb) {
   const db = getFirebaseDb();
   if (!db) return;
 
+  isPushingUpdate = true;
   try {
     const docRef = doc(db, 'teamtrack_workspaces', 'main_workspace');
     setDoc(docRef, {
@@ -466,8 +457,12 @@ function pushToFirebase(localDb) {
       updatedAt: new Date().toISOString()
     }).catch((err) => {
       console.warn('Firebase push update error:', err);
+    }).finally(() => {
+      setTimeout(() => { isPushingUpdate = false; }, 300);
     });
-  } catch (e) {}
+  } catch (e) {
+    isPushingUpdate = false;
+  }
 }
 
 async function handleLocalRequest(endpoint, options = {}) {
@@ -873,25 +868,25 @@ export const api = {
   getCustomer: (id) => request(`/customers/${id}`),
   createCustomer: (data) => request('/customers', { method: 'POST', body: JSON.stringify(data) }),
   updateCustomer: (id, data) => request(`/customers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteCustomer: (id) => request(`/customers/${id}`),
+  deleteCustomer: (id) => request(`/customers/${id}`, { method: 'DELETE' }),
   sendDemoEmail: (id, data) => request(`/customers/${id}/send-demo-email`, { method: 'POST', body: JSON.stringify(data) }),
   getServices: (customerId) => request(`/services${customerId ? `?customerId=${customerId}` : ''}`),
   createService: (data) => request('/services', { method: 'POST', body: JSON.stringify(data) }),
   updateService: (id, data) => request(`/services/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteService: (id) => request(`/services/${id}`),
+  deleteService: (id) => request(`/services/${id}`, { method: 'DELETE' }),
   getInvoices: (customerId) => request(`/invoices${customerId ? `?customerId=${customerId}` : ''}`),
   getInvoice: (id) => request(`/invoices/${id}`),
   createInvoice: (data) => request('/invoices', { method: 'POST', body: JSON.stringify(data) }),
   updateInvoice: (id, data) => request(`/invoices/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteInvoice: (id) => request(`/invoices/${id}`),
+  deleteInvoice: (id) => request(`/invoices/${id}`, { method: 'DELETE' }),
   getExpenses: () => request('/expenses'),
   createExpense: (data) => request('/expenses', { method: 'POST', body: JSON.stringify(data) }),
   updateExpense: (id, data) => request(`/expenses/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteExpense: (id) => request(`/expenses/${id}`),
+  deleteExpense: (id) => request(`/expenses/${id}`, { method: 'DELETE' }),
   getMileage: (customerId) => request(`/mileage${customerId ? `?customerId=${customerId}` : ''}`),
   createMileage: (data) => request('/mileage', { method: 'POST', body: JSON.stringify(data) }),
   updateMileage: (id, data) => request(`/mileage/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteMileage: (id) => request(`/mileage/${id}`),
+  deleteMileage: (id) => request(`/mileage/${id}`, { method: 'DELETE' }),
   getTaxReport: (year) => request(`/reports/tax-year/${year}`),
   getSettings: () => request('/settings'),
   updateSettings: (data) => request('/settings', { method: 'PUT', body: JSON.stringify(data) }),
