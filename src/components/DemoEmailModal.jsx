@@ -21,11 +21,13 @@ Bei Interesse oder Fragen stehen wir Ihnen jederzeit gerne für einen unverbindl
 Wir freuen uns auf Ihre Kontaktaufnahme.
 
 Mit freundlichen Grüßen
+
 TeamTrack
+Hakan Ünalsoy
 
 Tel: 0172 4690446
 E-Mail: teamtrack.software@hotmail.com
-Balthasar-Neumann-Str.38
+Balthasar-Neumann-Str. 38
 97236 Randersacker`
   },
   demo_access: {
@@ -41,11 +43,13 @@ Test-Login: ${cust.email || 'demo@ihrefirma.de'}
 Probieren Sie gerne aus, wie schnell Aufträge, Stundenzettel und Mitarbeiterberichte erfasst werden können. Bei Fragen stehe ich Ihnen jederzeit persönlich zur Verfügung.
 
 Mit freundlichen Grüßen
+
 TeamTrack
+Hakan Ünalsoy
 
 Tel: 0172 4690446
 E-Mail: teamtrack.software@hotmail.com
-Balthasar-Neumann-Str.38
+Balthasar-Neumann-Str. 38
 97236 Randersacker`
   },
   follow_up: {
@@ -60,11 +64,13 @@ Wie besprochen können wir die Digitalisierung Ihrer Papierformulare und die Ein
 Ich freue mich auf Ihre Rückmeldung zur weiteren Vorgehensweise.
 
 Mit freundlichen Grüßen
+
 TeamTrack
+Hakan Ünalsoy
 
 Tel: 0172 4690446
 E-Mail: teamtrack.software@hotmail.com
-Balthasar-Neumann-Str.38
+Balthasar-Neumann-Str. 38
 97236 Randersacker`
   }
 };
@@ -216,7 +222,7 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
               </button>
             </div>
             <textarea
-              rows={12}
+              rows={13}
               required
               value={body}
               onChange={(e) => setBody(e.target.value)}
