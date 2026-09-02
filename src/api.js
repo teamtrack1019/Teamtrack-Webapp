@@ -529,8 +529,17 @@ async function handleLocalRequest(endpoint, options = {}) {
         const totalAboMonthly = activeAbos.reduce((sum, s) => sum + Number(s.price || 0), 0);
         const einmaligeServices = custServices.filter(s => s.type === 'einmalig');
         const totalRevenue = custInvoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + getInvTotal(i), 0);
+        
+        // Auto-upgrade from lead to active if customer has contract/services
+        let currentStatus = cust.status;
+        if (currentStatus === 'lead' && (activeAbos.length > 0 || einmaligeServices.length > 0 || custInvoices.length > 0)) {
+          currentStatus = 'active';
+          cust.status = 'active';
+        }
+
         return {
           ...cust,
+          status: currentStatus,
           activeAbosCount: activeAbos.length,
           totalAboMonthly,
           einmaligeCount: einmaligeServices.length,
@@ -542,6 +551,7 @@ async function handleLocalRequest(endpoint, options = {}) {
     if (method === 'POST') {
       const newCust = {
         id: `cust-${Date.now()}`,
+        status: body.status || 'active',
         ...body,
         demoEmailSent: false,
         demoEmailSentAt: null,
@@ -589,10 +599,15 @@ async function handleLocalRequest(endpoint, options = {}) {
     if (method === 'GET') {
       const customer = db.customers.find(c => c.id === custId);
       if (!customer) throw new Error('Kunde nicht gefunden');
+      const custServices = db.services.filter(s => s.customerId === custId);
+      const custInvoices = db.invoices.filter(i => i.customerId === custId);
+      if (customer.status === 'lead' && (custServices.length > 0 || custInvoices.length > 0)) {
+        customer.status = 'active';
+      }
       return {
         customer,
-        services: db.services.filter(s => s.customerId === custId),
-        invoices: db.invoices.filter(i => i.customerId === custId),
+        services: custServices,
+        invoices: custInvoices,
         mileage: db.mileage.filter(m => m.customerId === custId),
         emailLogs: (db.emailLogs || []).filter(e => e.customerId === custId)
       };
@@ -625,6 +640,13 @@ async function handleLocalRequest(endpoint, options = {}) {
     if (method === 'POST') {
       const newSrv = { id: `srv-${Date.now()}`, ...body, createdAt: new Date().toISOString() };
       db.services.push(newSrv);
+      // Auto-upgrade customer status to active
+      if (newSrv.customerId) {
+        const cIdx = db.customers.findIndex(c => c.id === newSrv.customerId);
+        if (cIdx !== -1 && db.customers[cIdx].status === 'lead') {
+          db.customers[cIdx].status = 'active';
+        }
+      }
       saveLocalData(db);
       pushToFirebase(db);
       return newSrv;
@@ -634,6 +656,12 @@ async function handleLocalRequest(endpoint, options = {}) {
       const idx = db.services.findIndex(s => s.id === id);
       if (idx !== -1) {
         db.services[idx] = { ...db.services[idx], ...body };
+        if (db.services[idx].customerId) {
+          const cIdx = db.customers.findIndex(c => c.id === db.services[idx].customerId);
+          if (cIdx !== -1 && db.customers[cIdx].status === 'lead') {
+            db.customers[cIdx].status = 'active';
+          }
+        }
         saveLocalData(db);
         pushToFirebase(db);
         return db.services[idx];

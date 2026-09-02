@@ -312,6 +312,13 @@ export default function App() {
                 setEditingCustomer(cust);
                 setCustomerModalOpen(true);
               }}
+              onUpdateCustomerStatus={async (id, newStatus) => {
+                const cust = customers.find(c => c.id === id);
+                if (cust) {
+                  await api.updateCustomer(id, { ...cust, status: newStatus });
+                  await loadAllData();
+                }
+              }}
               onDeleteCustomer={handleDeleteCustomer}
             />
           )}
