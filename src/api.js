@@ -1,3 +1,5 @@
+import { getSupabaseClient } from './supabase';
+
 // Initial default seed data for standalone/Vercel static mode
 const defaultSeed = {
   companySettings: {
@@ -98,30 +100,6 @@ const defaultSeed = {
       startDate: '2026-08-05',
       status: 'completed',
       createdAt: '2026-08-10T10:05:00.000Z'
-    },
-    {
-      id: 'srv-3',
-      customerId: 'cust-2',
-      type: 'abo',
-      title: 'Bäckerei Filial-Webapp & Support',
-      description: 'Monatlicher Support, Serverbetrieb und Filialanbindung',
-      price: 180.00,
-      billingInterval: 'monthly',
-      startDate: '2026-08-15',
-      status: 'active',
-      createdAt: '2026-08-20T11:30:00.000Z'
-    },
-    {
-      id: 'srv-4',
-      customerId: 'cust-2',
-      type: 'einmalig',
-      title: 'Bestellsystem Initial-Entwicklung',
-      description: 'Entwicklung der individuellen Web-Anwendung für Filialbestellungen',
-      price: 2400.00,
-      billingInterval: null,
-      startDate: '2026-08-20',
-      status: 'completed',
-      createdAt: '2026-08-20T11:35:00.000Z'
     }
   ],
   invoices: [
@@ -316,20 +294,10 @@ const defaultSeed = {
       createdAt: '2026-08-30T16:00:00.000Z'
     }
   ],
-  emailLogs: [
-    {
-      id: 'mail-1',
-      customerId: 'cust-1',
-      customerName: 'Schmidt & Partner Bau GmbH',
-      recipientEmail: 'klaus.schmidt@schmidt-bau.de',
-      subject: 'Ihre maßgeschneiderte WebApp & Papierkram-Digitalisierung',
-      templateType: 'demo_intro',
-      sentAt: '2026-08-15T10:30:00.000Z',
-      body: 'Sehr geehrter Herr Schmidt,\n\nvielen Dank für das angenehme Gespräch. Anbei sende ich Ihnen die Zusammenfassung...'
-    }
-  ]
+  emailLogs: []
 };
 
+// Local storage access
 function getLocalData() {
   try {
     const raw = localStorage.getItem('teamtrack_local_db');
@@ -338,21 +306,6 @@ function getLocalData() {
       if (parsed.companySettings) {
         parsed.companySettings.isKleinunternehmer = true;
         parsed.companySettings.kleinunternehmerText = 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).';
-      }
-      // Force clean any legacy cached VAT invoices in user's browser localStorage
-      if (parsed.invoices && Array.isArray(parsed.invoices)) {
-        parsed.invoices = parsed.invoices.map(inv => {
-          const itemSum = (inv.items || []).reduce((s, it) => s + ((Number(it.unitPrice) || 0) * (Number(it.quantity) || 1)), 0);
-          const validAmount = itemSum > 0 ? itemSum : (Number(inv.netAmount) || 1850);
-          return {
-            ...inv,
-            taxRate: 0,
-            taxAmount: 0,
-            netAmount: validAmount,
-            grossAmount: validAmount,
-            isKleinunternehmer: true
-          };
-        });
       }
       return parsed;
     }
@@ -367,7 +320,60 @@ function saveLocalData(data) {
   } catch (e) {}
 }
 
-function handleLocalRequest(endpoint, options = {}) {
+// Supabase Async Cloud Sync
+let hasSyncedOnce = false;
+
+async function syncWithSupabase() {
+  const supabase = getSupabaseClient();
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from('teamtrack_store')
+      .select('data')
+      .eq('id', 'main_workspace')
+      .single();
+
+    if (data && data.data) {
+      saveLocalData(data.data);
+      return data.data;
+    } else if (error && (error.code === 'PGRST116' || error.message?.includes('0 rows'))) {
+      // Record doesn't exist yet -> upload current local data
+      const localDb = getLocalData();
+      await supabase.from('teamtrack_store').upsert({
+        id: 'main_workspace',
+        data: localDb,
+        updated_at: new Date().toISOString()
+      });
+      return localDb;
+    }
+  } catch (err) {
+    console.warn('Supabase cloud sync background warning:', err);
+  }
+  return null;
+}
+
+function pushToSupabase(db) {
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+
+  // Background non-blocking push
+  supabase.from('teamtrack_store').upsert({
+    id: 'main_workspace',
+    data: db,
+    updated_at: new Date().toISOString()
+  }).then(({ error }) => {
+    if (error) console.warn('Supabase update error:', error);
+  }).catch(() => {});
+}
+
+async function handleLocalRequest(endpoint, options = {}) {
+  // Sync from Supabase on first request if connected
+  if (!hasSyncedOnce) {
+    hasSyncedOnce = true;
+    await syncWithSupabase();
+  }
+
   const db = getLocalData();
   const method = options.method || 'GET';
   const body = options.body ? JSON.parse(options.body) : {};
@@ -449,6 +455,7 @@ function handleLocalRequest(endpoint, options = {}) {
       };
       db.customers.push(newCust);
       saveLocalData(db);
+      pushToSupabase(db);
       return newCust;
     }
   }
@@ -479,6 +486,7 @@ function handleLocalRequest(endpoint, options = {}) {
         db.emailLogs = db.emailLogs || [];
         db.emailLogs.push(emailLog);
         saveLocalData(db);
+        pushToSupabase(db);
         return { success: true, customer, emailLog };
       }
     }
@@ -500,6 +508,7 @@ function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         db.customers[idx] = { ...db.customers[idx], ...body, updatedAt: new Date().toISOString() };
         saveLocalData(db);
+        pushToSupabase(db);
         return db.customers[idx];
       }
     }
@@ -509,6 +518,7 @@ function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         const deleted = db.customers.splice(idx, 1)[0];
         saveLocalData(db);
+        pushToSupabase(db);
         return deleted;
       }
     }
@@ -521,6 +531,7 @@ function handleLocalRequest(endpoint, options = {}) {
       const newSrv = { id: `srv-${Date.now()}`, ...body, createdAt: new Date().toISOString() };
       db.services.push(newSrv);
       saveLocalData(db);
+      pushToSupabase(db);
       return newSrv;
     }
     if (method === 'PUT') {
@@ -529,6 +540,7 @@ function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         db.services[idx] = { ...db.services[idx], ...body };
         saveLocalData(db);
+        pushToSupabase(db);
         return db.services[idx];
       }
     }
@@ -538,6 +550,7 @@ function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         const del = db.services.splice(idx, 1)[0];
         saveLocalData(db);
+        pushToSupabase(db);
         return del;
       }
     }
@@ -562,6 +575,7 @@ function handleLocalRequest(endpoint, options = {}) {
       };
       db.invoices.push(newInv);
       saveLocalData(db);
+      pushToSupabase(db);
       return newInv;
     }
     if (method === 'PUT') {
@@ -580,6 +594,7 @@ function handleLocalRequest(endpoint, options = {}) {
           isKleinunternehmer: true
         };
         saveLocalData(db);
+        pushToSupabase(db);
         return db.invoices[idx];
       }
     }
@@ -589,6 +604,7 @@ function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         const del = db.invoices.splice(idx, 1)[0];
         saveLocalData(db);
+        pushToSupabase(db);
         return del;
       }
     }
@@ -606,6 +622,7 @@ function handleLocalRequest(endpoint, options = {}) {
       };
       db.expenses.push(newExp);
       saveLocalData(db);
+      pushToSupabase(db);
       return newExp;
     }
     if (method === 'PUT') {
@@ -614,6 +631,7 @@ function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         db.expenses[idx] = { ...db.expenses[idx], ...body };
         saveLocalData(db);
+        pushToSupabase(db);
         return db.expenses[idx];
       }
     }
@@ -623,6 +641,7 @@ function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         const del = db.expenses.splice(idx, 1)[0];
         saveLocalData(db);
+        pushToSupabase(db);
         return del;
       }
     }
@@ -644,6 +663,7 @@ function handleLocalRequest(endpoint, options = {}) {
       };
       db.mileage.push(newMil);
       saveLocalData(db);
+      pushToSupabase(db);
       return newMil;
     }
     if (method === 'PUT') {
@@ -652,6 +672,7 @@ function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         db.mileage[idx] = { ...db.mileage[idx], ...body };
         saveLocalData(db);
+        pushToSupabase(db);
         return db.mileage[idx];
       }
     }
@@ -661,6 +682,7 @@ function handleLocalRequest(endpoint, options = {}) {
       if (idx !== -1) {
         const del = db.mileage.splice(idx, 1)[0];
         saveLocalData(db);
+        pushToSupabase(db);
         return del;
       }
     }
@@ -733,6 +755,7 @@ function handleLocalRequest(endpoint, options = {}) {
     if (method === 'PUT') {
       db.companySettings = { ...db.companySettings, ...body };
       saveLocalData(db);
+      pushToSupabase(db);
       return db.companySettings;
     }
   }
@@ -741,17 +764,7 @@ function handleLocalRequest(endpoint, options = {}) {
 }
 
 async function request(endpoint, options = {}) {
-  try {
-    const url = `/api${endpoint}`;
-    const res = await fetch(url, {
-      headers: { 'Content-Type': 'application/json' },
-      ...options
-    });
-    if (res.ok) {
-      return await res.json();
-    }
-  } catch (err) {}
-  return handleLocalRequest(endpoint, options);
+  return await handleLocalRequest(endpoint, options);
 }
 
 export const api = {
@@ -781,5 +794,13 @@ export const api = {
   deleteMileage: (id) => request(`/mileage/${id}`),
   getTaxReport: (year) => request(`/reports/tax-year/${year}`),
   getSettings: () => request('/settings'),
-  updateSettings: (data) => request('/settings', { method: 'PUT', body: JSON.stringify(data) })
+  updateSettings: (data) => request('/settings', { method: 'PUT', body: JSON.stringify(data) }),
+  
+  // Direct Cloud Sync Controls
+  syncCloudNow: () => syncWithSupabase(),
+  uploadLocalToCloud: () => {
+    const db = getLocalData();
+    pushToSupabase(db);
+    return true;
+  }
 };
