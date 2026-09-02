@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { FileText, Printer, Download, X, CheckCircle, Loader2 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import html2pdf from 'html2pdf.js';
@@ -7,10 +7,22 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
   const printRef = useRef(null);
   const [isDownloading, setIsDownloading] = useState(false);
 
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !invoice) return null;
 
-  // Direct 1-click PDF Download (Saves .pdf file directly to Downloads folder)
-  const handleDownloadPdf = async () => {
+  // Direct 1-click PDF Download (STRICTLY NO PRINT POPUP)
+  const handleDownloadPdf = async (e) => {
+    e.stopPropagation();
     if (!printRef.current) return;
     try {
       setIsDownloading(true);
@@ -18,25 +30,29 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
       const cleanFileName = `Rechnung_${invoice.invoiceNumber || 'TeamTrack'}.pdf`.replace(/\s+/g, '_');
       
       const opt = {
-        margin: [10, 10, 10, 10],
+        margin: [8, 8, 8, 8],
         filename: cleanFileName,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true, 
+          backgroundColor: '#ffffff'
+        },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
       await html2pdf().set(opt).from(element).save();
     } catch (err) {
       console.error('PDF generation error:', err);
-      // Fallback to print dialog if html2pdf fails
-      window.print();
+      alert('PDF oluşturulurken bir hata oluştu: ' + err.message);
     } finally {
       setIsDownloading(false);
     }
   };
 
-  // Separate Print Dialog Action
-  const handlePrint = () => {
+  // Separate Print Dialog Action (ONLY when user explicitly clicks Print)
+  const handlePrint = (e) => {
+    e.stopPropagation();
     window.print();
   };
 
@@ -45,8 +61,16 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
   const gross = Number(invoice.grossAmount || 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-slate-900/80 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-slate-100 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-700/50 flex flex-col max-h-[94vh]">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-slate-900/80 backdrop-blur-sm animate-fadeIn select-none"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div 
+        className="bg-slate-100 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden border border-slate-700/50 flex flex-col max-h-[94vh] select-text"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Modal Top Toolbar */}
         <div className="p-4 bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 no-print border-b border-slate-800">
           <div className="flex items-center space-x-3">
@@ -70,9 +94,10 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
           <div className="flex items-center space-x-2 self-end sm:self-auto">
             {/* Direct PDF Download Button */}
             <button
+              type="button"
               onClick={handleDownloadPdf}
               disabled={isDownloading}
-              className="flex items-center space-x-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/30 transition disabled:opacity-50"
+              className="flex items-center space-x-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/30 transition disabled:opacity-50 cursor-pointer"
               title="Rechnung direkt als PDF-Datei auf den PC herunterladen"
             >
               {isDownloading ? (
@@ -90,8 +115,9 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
 
             {/* Separate Print Button */}
             <button
+              type="button"
               onClick={handlePrint}
-              className="flex items-center space-x-1.5 px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/30 transition"
+              className="flex items-center space-x-1.5 px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/30 transition cursor-pointer"
               title="Druckdialog öffnen"
             >
               <Printer className="w-4 h-4" />
@@ -100,11 +126,16 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
 
             {/* Close Button */}
             <button
-              onClick={onClose}
-              className="flex items-center space-x-1 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="flex items-center space-x-1 px-3 py-2 bg-slate-800 hover:bg-rose-600 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition cursor-pointer"
+              title="Pencereyi Kapat"
             >
               <X className="w-4 h-4" />
-              <span className="hidden sm:inline">Schließen</span>
+              <span>Schließen</span>
             </button>
           </div>
         </div>
