@@ -1,0 +1,10 @@
+{
+  "name": "teamtrack-app",
+  "version": "1.0.0",
+  "description": "TeamTrack - All-in-One Kundenverwaltung, Rechnungswesen, KM-Tracking & Finanzamt-Tool",
+  "scripts": {
+    "start:backend": "cd backend && node src/server.js",
+    "start:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build"
+  }
+}
