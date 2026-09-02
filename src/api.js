@@ -321,6 +321,66 @@ function saveLocalData(data) {
   } catch (e) {}
 }
 
+// Smart merger so no local customer/invoice is ever lost
+function mergeDatabases(localDb, cloudDb) {
+  if (!cloudDb) return localDb;
+  if (!localDb) return cloudDb;
+
+  const merged = { ...cloudDb };
+
+  // Merge customers
+  const customerMap = new Map();
+  (cloudDb.customers || []).forEach(c => customerMap.set(c.id, c));
+  (localDb.customers || []).forEach(c => {
+    if (!customerMap.has(c.id)) {
+      customerMap.set(c.id, c);
+    }
+  });
+  merged.customers = Array.from(customerMap.values());
+
+  // Merge services
+  const serviceMap = new Map();
+  (cloudDb.services || []).forEach(s => serviceMap.set(s.id, s));
+  (localDb.services || []).forEach(s => {
+    if (!serviceMap.has(s.id)) {
+      serviceMap.set(s.id, s);
+    }
+  });
+  merged.services = Array.from(serviceMap.values());
+
+  // Merge invoices
+  const invoiceMap = new Map();
+  (cloudDb.invoices || []).forEach(i => invoiceMap.set(i.id, i));
+  (localDb.invoices || []).forEach(i => {
+    if (!invoiceMap.has(i.id)) {
+      invoiceMap.set(i.id, i);
+    }
+  });
+  merged.invoices = Array.from(invoiceMap.values());
+
+  // Merge expenses
+  const expenseMap = new Map();
+  (cloudDb.expenses || []).forEach(e => expenseMap.set(e.id, e));
+  (localDb.expenses || []).forEach(e => {
+    if (!expenseMap.has(e.id)) {
+      expenseMap.set(e.id, e);
+    }
+  });
+  merged.expenses = Array.from(expenseMap.values());
+
+  // Merge mileage
+  const mileageMap = new Map();
+  (cloudDb.mileage || []).forEach(m => mileageMap.set(m.id, m));
+  (localDb.mileage || []).forEach(m => {
+    if (!mileageMap.has(m.id)) {
+      mileageMap.set(m.id, m);
+    }
+  });
+  merged.mileage = Array.from(mileageMap.values());
+
+  return merged;
+}
+
 // Firebase Realtime Firestore Synchronization
 let hasStartedListener = false;
 
@@ -338,10 +398,19 @@ function initFirebaseRealtimeSync() {
       if (docSnap.exists()) {
         const cloudData = docSnap.data()?.data;
         if (cloudData) {
-          saveLocalData(cloudData);
+          const localData = getLocalData();
+          const merged = mergeDatabases(localData, cloudData);
+          saveLocalData(merged);
+          
+          // If local data had unique entries not in cloud, sync back to cloud
+          if (merged.customers.length > (cloudData.customers || []).length ||
+              merged.invoices.length > (cloudData.invoices || []).length ||
+              merged.mileage.length > (cloudData.mileage || []).length) {
+            setDoc(docRef, { data: merged, updatedAt: new Date().toISOString() }).catch(() => {});
+          }
         }
       } else {
-        // Document does not exist in Firebase yet -> upload initial data
+        // Document does not exist in Firebase yet -> upload existing phone data!
         const localData = getLocalData();
         setDoc(docRef, {
           data: localData,
@@ -367,8 +436,10 @@ async function syncWithFirebaseOnce() {
     if (docSnap.exists()) {
       const cloudData = docSnap.data()?.data;
       if (cloudData) {
-        saveLocalData(cloudData);
-        return cloudData;
+        const localData = getLocalData();
+        const merged = mergeDatabases(localData, cloudData);
+        saveLocalData(merged);
+        return merged;
       }
     } else {
       const localData = getLocalData();
