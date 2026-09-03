@@ -303,6 +303,11 @@ export default function App() {
             <DashboardPage
               stats={stats}
               onNavigate={(tab) => setActiveTab(tab)}
+              onOpenCustomerModal={() => {
+                setEditingCustomer(null);
+                setCustomerModalOpen(true);
+              }}
+              onOpenInvoiceModal={() => handleOpenInvoiceModal()}
               onSelectCustomer={(id) => {
                 setSelectedCustomerId(id);
                 setActiveTab('customer-detail');
