@@ -219,7 +219,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">Liefer-/Leistungsdatum:</span>
-                    <span className="font-medium text-slate-900">{formatDate(invoice.date)}</span>
+                    <span className="font-medium text-slate-900">{formatDate(invoice.serviceDate || invoice.performanceDate || invoice.deliveryDate || invoice.date)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">Zahlungsziel (Fällig bis):</span>

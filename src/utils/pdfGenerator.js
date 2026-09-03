@@ -138,8 +138,8 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
 
   const metaRows = [
     { label: 'Rechnungsnummer:', value: invoice.invoiceNumber, bold: true },
-    { label: 'Rechnungsdatum:', value: formatDate(invoice.date) },
-    { label: 'Liefer-/Leistungsdatum:', value: formatDate(invoice.date) },
+    { label: 'Rechnungsdatum:', value: formatDate(invoice.date || new Date().toISOString().split('T')[0]) },
+    { label: 'Liefer-/Leistungsdatum:', value: formatDate(invoice.serviceDate || invoice.performanceDate || invoice.deliveryDate || invoice.date) },
     { label: 'Zahlungsziel (Fällig bis):', value: formatDate(invoice.dueDate), bold: true },
     { label: 'Steuernummer:', value: companySettings.taxNumber || '-' }
   ];

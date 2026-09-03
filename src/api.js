@@ -334,6 +334,19 @@ function getLocalData() {
           parsed.companySettings.website = 'https://teamtrack-webapp.vercel.app';
         }
       }
+
+      // Auto-migrate invoices to ensure Rechnungsdatum is today and Liefer-/Leistungsdatum is service start date
+      const todayStr = new Date().toISOString().split('T')[0];
+      (parsed.invoices || []).forEach(inv => {
+        const matchedSrv = (parsed.services || []).find(s => s.customerId === inv.customerId);
+        if (!inv.serviceDate) {
+          inv.serviceDate = matchedSrv?.startDate || matchedSrv?.createdAt?.split('T')[0] || '2026-08-01';
+        }
+        if (inv.date && inv.date < '2026-09-01') {
+          inv.date = todayStr;
+        }
+      });
+
       return parsed;
     }
   } catch (e) {}
