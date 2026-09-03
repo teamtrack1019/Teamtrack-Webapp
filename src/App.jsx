@@ -302,6 +302,8 @@ export default function App() {
           {activeTab === 'dashboard' && (
             <DashboardPage
               stats={stats}
+              customers={customers}
+              invoices={invoices}
               onNavigate={(tab) => setActiveTab(tab)}
               onOpenCustomerModal={() => {
                 setEditingCustomer(null);

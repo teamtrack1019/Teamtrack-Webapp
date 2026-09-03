@@ -19,6 +19,8 @@ import { formatCurrency, formatDate } from '../utils/formatters';
 
 export default function DashboardPage({ 
   stats = {}, 
+  customers = [],
+  invoices = [],
   onNavigate, 
   onOpenCustomerModal, 
   onOpenInvoiceModal, 
@@ -26,6 +28,15 @@ export default function DashboardPage({
   onBulkGenerateAbos 
 }) {
   const safeStats = stats || {};
+  const recentInvoicesList = (safeStats.recentInvoices && safeStats.recentInvoices.length > 0)
+    ? safeStats.recentInvoices
+    : (invoices || []).slice(-10).reverse();
+
+  const recentCustomersList = (safeStats.recentCustomers && safeStats.recentCustomers.length > 0)
+    ? safeStats.recentCustomers
+    : (customers || []).slice(-10).reverse();
+
+  const totalCustomersCount = safeStats.totalCustomers || (customers ? customers.length : 0);
   const estimatedYearlyProfit = (safeStats.totalPaidRevenue || 0) - (safeStats.totalExpenses || 0) - (safeStats.totalKmDeduction || 0);
 
   const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
@@ -291,8 +302,8 @@ export default function DashboardPage({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {safeStats.recentInvoices && safeStats.recentInvoices.length > 0 ? (
-                    safeStats.recentInvoices.map((inv) => (
+                  {recentInvoicesList && recentInvoicesList.length > 0 ? (
+                    recentInvoicesList.map((inv) => (
                       <tr key={inv.id} className="hover:bg-slate-50 transition">
                         <td className="p-3.5 pl-5 font-mono font-bold text-slate-800">
                           {inv.invoiceNumber}
@@ -361,16 +372,18 @@ export default function DashboardPage({
               </div>
             </div>
 
-            <div className="flex justify-between items-baseline pt-1">
-              <span className="text-xs text-slate-300 font-medium">Reingewinn:</span>
-              <span className="text-xl font-black text-emerald-400 font-mono">
-                {formatCurrency(estimatedYearlyProfit)}
-              </span>
+            <div className="pt-1">
+              <div className="flex justify-between items-baseline mb-1">
+                <span className="text-xs text-slate-300">Reingewinn:</span>
+                <span className={`text-base font-black font-mono ${estimatedYearlyProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {formatCurrency(estimatedYearlyProfit)}
+                </span>
+              </div>
             </div>
 
             <button
               onClick={() => onNavigate('tax-report')}
-              className="w-full mt-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5"
+              className="mt-4 w-full py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-sky-600/30"
             >
               <span>Jahresbericht & Steuer-PDF</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -385,13 +398,13 @@ export default function DashboardPage({
                 onClick={() => onNavigate('customers')}
                 className="text-xs font-bold text-sky-600 hover:text-sky-700"
               >
-                Alle ({safeStats.totalCustomers || 0})
+                Alle ({totalCustomersCount})
               </button>
             </div>
 
             <div className="space-y-2">
-              {safeStats.recentCustomers && safeStats.recentCustomers.length > 0 ? (
-                safeStats.recentCustomers.map((c) => (
+              {recentCustomersList && recentCustomersList.length > 0 ? (
+                recentCustomersList.map((c) => (
                   <div
                     key={c.id}
                     onClick={() => onSelectCustomer(c.id)}
