@@ -22,16 +22,25 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
   }, 0);
   const totalAmount = calculatedItemsTotal > 0 ? calculatedItemsTotal : Number(invoice.netAmount || invoice.grossAmount || 0);
 
-  // 1. TOP HEADER (Spacious, Elegant with 30x30mm Official Logo)
+  // 1. TOP HEADER (Spacious, Elegant with 30x30mm Official Logo & Crisp Shadow Frame)
   const logoSize = 30; // 30mm x 30mm prominent square logo
   const logoY = 20;
-  const textStartX = margin + logoSize + 5; // margin (20) + 30 + 5 = 55mm
+  const textStartX = margin + logoSize + 6; // margin (20) + 30 + 6 = 56mm
+
+  // Drop shadow effect behind logo card
+  doc.setFillColor(226, 232, 240);
+  doc.roundedRect(margin + 0.8, logoY + 0.8, logoSize, logoSize, 3.5, 3.5, 'F');
+  
+  // White card background with crisp border
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(margin, logoY, logoSize, logoSize, 3, 3, 'FD');
 
   try {
-    doc.addImage(TEAMTRACK_LOGO_BASE64, 'JPEG', margin, logoY, logoSize, logoSize);
+    doc.addImage(TEAMTRACK_LOGO_BASE64, 'JPEG', margin + 1.5, logoY + 1.5, logoSize - 3, logoSize - 3);
   } catch (err) {
-    doc.setFillColor(2, 132, 199);
-    doc.roundedRect(margin, logoY, logoSize, logoSize, 3, 3, 'F');
+    doc.setFillColor(15, 23, 42);
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
@@ -49,16 +58,16 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
   // Company Name
   doc.text(companySettings.companyName || 'TeamTrack-Software', textStartX, 25.5);
 
-  // Tagline / Slogan
+  // Tagline / Slogan (High-contrast dark slate for crisp print)
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(2, 132, 199);
+  doc.setTextColor(30, 41, 59);
   doc.text(companySettings.tagline || 'Softwareentwicklung & IT-Beratung', textStartX, 30.5);
 
   // Address & Contact Information (Neatly aligned and spaced)
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 116, 139);
+  doc.setTextColor(71, 85, 105);
   
   const fullAddressLine = `${streetLine}, ${cityLine}`;
   doc.text(fullAddressLine, textStartX, 36.5);
@@ -69,7 +78,7 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
   const webUrl = companySettings.website || 'https://teamtrack-webapp.vercel.app';
   doc.text(`Web: ${webUrl}`, textStartX, 46.5);
 
-  // Header Right: RECHNUNG & Number
+  // Header Right: RECHNUNG & Number (High-contrast dark for crisp print)
   doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
@@ -77,7 +86,7 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
 
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(2, 132, 199);
+  doc.setTextColor(15, 23, 42);
   doc.text(invoice.invoiceNumber || 'RE-2026-0001', pageWidth - margin, 35, { align: 'right' });
 
   // Top dividing rule
@@ -131,7 +140,7 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
     { label: 'Rechnungsnummer:', value: invoice.invoiceNumber, bold: true },
     { label: 'Rechnungsdatum:', value: formatDate(invoice.date) },
     { label: 'Liefer-/Leistungsdatum:', value: formatDate(invoice.date) },
-    { label: 'Zahlungsziel (Fällig bis):', value: formatDate(invoice.dueDate), color: [2, 132, 199], bold: true },
+    { label: 'Zahlungsziel (Fällig bis):', value: formatDate(invoice.dueDate), bold: true },
     { label: 'Steuernummer:', value: companySettings.taxNumber || '-' }
   ];
 
@@ -203,11 +212,10 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
   doc.setLineWidth(0.6);
   doc.line(totalsX, finalY, pageWidth - margin, finalY);
 
-  doc.setFontSize(10.5);
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
   doc.text('Gesamtbetrag (Endbetrag):', totalsX, finalY + 7);
-  doc.setTextColor(2, 132, 199);
   doc.text(formatCurrency(totalAmount), pageWidth - margin, finalY + 7, { align: 'right' });
 
   // Official Kleinunternehmer Legal Notice

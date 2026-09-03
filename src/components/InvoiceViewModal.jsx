@@ -154,20 +154,22 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
               {/* Header Row: Company Sender & Meta */}
               <div className="flex justify-between items-start border-b border-slate-200 pb-5">
                   <div className="flex items-start gap-4">
-                    <img 
-                      src="/logo.jpg" 
-                      alt="TeamTrack Logo" 
-                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-contain border border-slate-200 shadow-sm shrink-0 bg-white p-1" 
-                    />
+                    <div className="p-1.5 bg-white rounded-2xl border border-slate-300 shadow-md ring-1 ring-slate-900/5 shrink-0">
+                      <img 
+                        src="/logo.jpg" 
+                        alt="TeamTrack Logo" 
+                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-contain" 
+                      />
+                    </div>
                     <div>
                       <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                         {companySettings.companyName || 'TeamTrack-Software'}
                       </div>
-                      <p className="text-xs text-sky-700 font-bold mt-0.5">
+                      <p className="text-xs text-slate-800 font-bold mt-0.5">
                         {companySettings.tagline || 'Softwareentwicklung & IT-Beratung'}
                       </p>
                       
-                      <div className="mt-2 text-xs text-slate-500 space-y-1">
+                      <div className="mt-2 text-xs text-slate-600 space-y-1">
                         <div>{streetLine}, {cityLine}</div>
                         <div>Tel: {companySettings.phone || '+49 172 4690446'} &bull; E-Mail: {companySettings.email || 'teamtrack.software@hotmail.com'}</div>
                         <div>Web: {companySettings.website || 'https://teamtrack-webapp.vercel.app'}</div>
@@ -178,7 +180,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
                 {/* Invoice Big Title & Number */}
                 <div className="text-right">
                   <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">RECHNUNG</div>
-                  <div className="text-sm font-mono font-bold text-sky-600 mt-1">
+                  <div className="text-sm font-mono font-bold text-slate-900 mt-1">
                     {invoice.invoiceNumber}
                   </div>
                 </div>
@@ -221,7 +223,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">Zahlungsziel (Fällig bis):</span>
-                    <span className="font-bold text-sky-700">{formatDate(invoice.dueDate)}</span>
+                    <span className="font-bold text-slate-900">{formatDate(invoice.dueDate)}</span>
                   </div>
                   {companySettings.taxNumber && (
                     <div className="flex justify-between pt-1 border-t border-slate-200">
@@ -269,7 +271,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
                 <div className="w-72 space-y-1.5 text-xs">
                   <div className="flex justify-between text-slate-900 text-sm font-black py-1.5 border-b-2 border-slate-900">
                     <span>Gesamtbetrag (Endbetrag):</span>
-                    <span className="font-mono text-sky-700 text-base">{formatCurrency(totalAmount)}</span>
+                    <span className="font-mono text-slate-900 text-base">{formatCurrency(totalAmount)}</span>
                   </div>
                   {/* Official § 19 UStG Kleinunternehmer Notice */}
                   <div className="text-[10.5px] text-slate-600 font-medium italic pt-0.5 leading-relaxed">
