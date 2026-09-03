@@ -167,11 +167,10 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
                         {companySettings.tagline || 'Papierkram zu digital & Moderne Web-Anwendungen'}
                       </p>
                       
-                      <div className="mt-2 text-xs text-slate-500 space-y-0.5">
-                        <div>{streetLine}</div>
-                        <div>{cityLine}</div>
-                        <div>Tel: {companySettings.phone} | E-Mail: {companySettings.email}</div>
-                        {companySettings.website && <div>Web: {companySettings.website}</div>}
+                      <div className="mt-2 text-xs text-slate-500 space-y-1">
+                        <div>{streetLine}, {cityLine}</div>
+                        <div>Tel: {companySettings.phone || '+49 172 4690446'} &bull; E-Mail: {companySettings.email || 'teamtrack.software@hotmail.com'}</div>
+                        <div>Web: {companySettings.website || 'https://teamtrack-webapp.vercel.app'}</div>
                       </div>
                     </div>
                   </div>

@@ -22,19 +22,20 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
   }, 0);
   const totalAmount = calculatedItemsTotal > 0 ? calculatedItemsTotal : Number(invoice.netAmount || invoice.grossAmount || 0);
 
-  // 1. TOP HEADER (Spacious & Clean with Large Official Logo)
-  const logoSize = 24; // 24mm x 24mm prominent square logo
-  const textStartX = margin + logoSize + 4; // margin + 28mm
+  // 1. TOP HEADER (Spacious, Elegant with 30x30mm Official Logo)
+  const logoSize = 30; // 30mm x 30mm prominent square logo
+  const logoY = 20;
+  const textStartX = margin + logoSize + 5; // margin (20) + 30 + 5 = 55mm
 
   try {
-    doc.addImage(TEAMTRACK_LOGO_BASE64, 'JPEG', margin, 17, logoSize, logoSize);
+    doc.addImage(TEAMTRACK_LOGO_BASE64, 'JPEG', margin, logoY, logoSize, logoSize);
   } catch (err) {
     doc.setFillColor(2, 132, 199);
-    doc.roundedRect(margin, 17, logoSize, logoSize, 3, 3, 'F');
+    doc.roundedRect(margin, logoY, logoSize, logoSize, 3, 3, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
+    doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('TT', margin + 7, 32);
+    doc.text('TT', margin + 9, logoY + 19);
   }
 
   doc.setTextColor(15, 23, 42);
@@ -45,66 +46,68 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
     ? `${companySettings.zipCode} ${companySettings.city}`
     : (companySettings.address?.split(',')[1]?.trim() || '97236 Randersacker');
 
-  doc.text(companySettings.companyName || 'TeamTrack-Software', textStartX, 22.5);
+  // Company Name
+  doc.text(companySettings.companyName || 'TeamTrack-Software', textStartX, 25.5);
 
+  // Tagline / Slogan
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(2, 132, 199);
-  doc.text(companySettings.tagline || 'Papierkram zu digital & Moderne Web-Anwendungen', textStartX, 27.5);
+  doc.text(companySettings.tagline || 'Papierkram zu digital & Moderne Web-Anwendungen', textStartX, 30.5);
 
+  // Address & Contact Information (Neatly aligned and spaced)
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 116, 139);
-  let contactY = 32.5;
-  doc.text(streetLine, textStartX, contactY);
-  contactY += 4;
-  doc.text(cityLine, textStartX, contactY);
-  contactY += 4;
-  const phoneEmail = `Tel: ${companySettings.phone || ''} | E-Mail: ${companySettings.email || ''}`;
-  doc.text(phoneEmail, textStartX, contactY);
-  if (companySettings.website) {
-    contactY += 4;
-    doc.text(`Web: ${companySettings.website}`, textStartX, contactY);
-  }
+  
+  const fullAddressLine = `${streetLine}, ${cityLine}`;
+  doc.text(fullAddressLine, textStartX, 36.5);
 
-  // Header Right: RECHNUNG & Number (Clean, No BEZAHLT stamp)
-  doc.setFontSize(20);
+  const phoneEmail = `Tel: ${companySettings.phone || '+49 172 4690446'}   |   E-Mail: ${companySettings.email || 'teamtrack.software@hotmail.com'}`;
+  doc.text(phoneEmail, textStartX, 41.5);
+
+  const webUrl = companySettings.website || 'https://teamtrack-webapp.vercel.app';
+  doc.text(`Web: ${webUrl}`, textStartX, 46.5);
+
+  // Header Right: RECHNUNG & Number
+  doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  doc.text('RECHNUNG', pageWidth - margin, 26, { align: 'right' });
+  doc.text('RECHNUNG', pageWidth - margin, 27.5, { align: 'right' });
 
-  doc.setFontSize(11);
+  doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(2, 132, 199);
-  doc.text(invoice.invoiceNumber || 'RE-2026-0001', pageWidth - margin, 32.5, { align: 'right' });
+  doc.text(invoice.invoiceNumber || 'RE-2026-0001', pageWidth - margin, 35, { align: 'right' });
 
-  doc.setDrawColor(241, 245, 249);
+  // Top dividing rule
+  doc.setDrawColor(226, 232, 240);
   doc.setLineWidth(0.4);
-  doc.line(margin, 52, pageWidth - margin, 52);
+  doc.line(margin, 56, pageWidth - margin, 56);
 
   // 2. DIN 5008 SENDER LINE
   doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(148, 163, 184);
-  const senderAddress = `${companySettings.companyName || 'TeamTrack'} • ${companySettings.address || 'Berlin'}`.toUpperCase();
-  doc.text(senderAddress, margin, 59);
+  const senderAddress = `${companySettings.companyName || 'TeamTrack-Software'} • ${streetLine} • ${cityLine}`.toUpperCase();
+  doc.text(senderAddress, margin, 63);
 
   // 3. RECIPIENT & METADATA GRID
   doc.setFontSize(8);
   doc.setTextColor(148, 163, 184);
   doc.setFont('helvetica', 'bold');
-  doc.text('Rechnungsempfänger:', margin, 66);
+  doc.text('Rechnungsempfänger:', margin, 71);
 
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  doc.text(invoice.customerName || 'Kunde', margin, 73);
+  doc.text(invoice.customerName || 'Kunde', margin, 78);
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(71, 85, 105);
   const recipientAddress = (invoice.customerAddress || '').split('\n');
-  let rY = 79;
+  let rY = 84;
   recipientAddress.forEach(line => {
     doc.text(line, margin, rY);
     rY += 5;
@@ -119,9 +122,10 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
   // Metadata Box (Right)
   const metaX = 118;
   const metaW = pageWidth - margin - metaX;
+  const metaY = 67;
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(226, 232, 240);
-  doc.roundedRect(metaX, 62, metaW, 36, 2.5, 2.5, 'FD');
+  doc.roundedRect(metaX, metaY, metaW, 36, 2.5, 2.5, 'FD');
 
   const metaRows = [
     { label: 'Rechnungsnummer:', value: invoice.invoiceNumber, bold: true },
@@ -131,7 +135,7 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
     { label: 'Steuernummer:', value: companySettings.taxNumber || '-' }
   ];
 
-  let mY = 68;
+  let mY = metaY + 6;
   doc.setFontSize(8);
   metaRows.forEach((row) => {
     doc.setFont('helvetica', 'normal');
@@ -158,7 +162,7 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
   ]);
 
   autoTable(doc, {
-    startY: 108,
+    startY: 112,
     margin: { left: margin, right: margin },
     head: [['Pos.', 'Beschreibung / Leistung', 'Menge', 'Einzelpreis', 'Gesamtpreis']],
     body: tableData,
