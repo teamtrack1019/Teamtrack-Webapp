@@ -53,7 +53,7 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(2, 132, 199);
-  doc.text(companySettings.tagline || 'Papierkram zu digital & Moderne Web-Anwendungen', textStartX, 30.5);
+  doc.text(companySettings.tagline || 'Softwareentwicklung & IT-Beratung', textStartX, 30.5);
 
   // Address & Contact Information (Neatly aligned and spaced)
   doc.setFontSize(8);

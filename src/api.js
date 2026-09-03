@@ -6,7 +6,7 @@ const defaultSeed = {
   companySettings: {
     companyName: 'TeamTrack-Software',
     ownerName: 'Huriye Ünalsoy',
-    tagline: 'Papierkram zu digital & Moderne Web-Anwendungen',
+    tagline: 'Softwareentwicklung & IT-Beratung',
     street: 'Balthasar-Neumann-Str. 38',
     zipCode: '97236',
     city: 'Randersacker',
