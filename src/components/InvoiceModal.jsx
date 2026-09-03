@@ -143,6 +143,18 @@ export default function InvoiceModal({
     }
   }, [invoice, customers, preselectedCustomerId, prefilledItem, isOpen]);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
   const handleCustomerChange = (customerId) => {
     const selected = customers.find(c => c.id === customerId);
     if (selected) {
@@ -248,8 +260,14 @@ export default function InvoiceModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden border border-slate-200 flex flex-col max-h-[92vh]">
+    <div 
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-fadeIn"
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden border border-slate-200 flex flex-col max-h-[92vh]"
+      >
         {/* Modal Header */}
         <div className="p-4 sm:p-5 bg-gradient-to-r from-sky-600 to-sky-700 text-white flex items-center justify-between">
           <div className="flex items-center space-x-3">
