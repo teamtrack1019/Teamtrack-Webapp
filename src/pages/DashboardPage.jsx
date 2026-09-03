@@ -114,50 +114,50 @@ export default function DashboardPage({
         />
       </div>
 
-      {/* SEPARATE NOTIFICATION PANELS: 1 FOR ABOS, 1 FOR EINMALIGE LEISTUNGEN */}
+      {/* 2 COMPLETELY SEPARATE NOTIFICATION PANELS: 1 FOR ABOS, 1 FOR EINMALIGE LEISTUNGEN */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* PANEL 1: MONATLICHE ABONNEMENTS */}
+        {/* NOTIFICATION PANEL 1: MONATLICHE ABONNEMENTS */}
         {(() => {
           const unbilledAbos = safeStats.unbilledAbosCount || 0;
           return (
-            <div className={`rounded-3xl p-5 border shadow-sm flex flex-col justify-between gap-4 transition-all ${
+            <div className={`rounded-3xl p-5 md:p-6 border-2 shadow-sm flex flex-col justify-between gap-5 transition-all ${
               unbilledAbos > 0
-                ? 'bg-gradient-to-br from-amber-50 via-sky-50/50 to-indigo-50 border-amber-300'
-                : 'bg-gradient-to-br from-slate-50 via-sky-50/30 to-emerald-50/30 border-slate-200'
+                ? 'bg-gradient-to-br from-amber-50 via-sky-50 to-indigo-50 border-sky-400 shadow-sky-500/10'
+                : 'bg-gradient-to-br from-slate-50 to-sky-50/30 border-slate-200'
             }`}>
               <div className="flex items-start space-x-3.5">
                 <div className={`p-3 rounded-2xl shrink-0 shadow-md ${
                   unbilledAbos > 0 
-                    ? 'bg-amber-500 text-white shadow-amber-500/30' 
-                    : 'bg-sky-600 text-white shadow-sky-600/20'
+                    ? 'bg-sky-600 text-white shadow-sky-600/30' 
+                    : 'bg-slate-700 text-white shadow-slate-700/20'
                 }`}>
                   {unbilledAbos > 0 ? (
-                    <Bell className="w-5 h-5 animate-bounce" />
+                    <Repeat className="w-6 h-6 animate-pulse" />
                   ) : (
-                    <Repeat className="w-5 h-5" />
+                    <CheckCircle2 className="w-6 h-6 text-emerald-400" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+                    <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
                       unbilledAbos > 0
-                        ? 'bg-amber-100 text-amber-800 border-amber-300'
-                        : 'bg-sky-100 text-sky-800 border-sky-300'
+                        ? 'bg-sky-100 text-sky-900 border-sky-300'
+                        : 'bg-slate-100 text-slate-700 border-slate-300'
                     }`}>
-                      {unbilledAbos > 0 ? '🔔 Abo-Abrechnung fällig' : '✓ Abos aktuell'}
+                      {unbilledAbos > 0 ? '🔔 1. MONATLICHE ABOS' : '✓ 1. ABOS AKTUELL'}
                     </span>
                     <span className="text-[11px] text-slate-500 font-semibold truncate">
                       {currentMonthName} {currentYear}
                     </span>
                   </div>
-                  <h4 className="font-black text-slate-900 text-base mt-1 leading-snug">
+                  <h4 className="font-black text-slate-900 text-base md:text-lg mt-1.5 leading-snug">
                     {unbilledAbos > 0
-                      ? `${unbilledAbos} aktive(s) Kunden-Abo(s) noch nicht abgerechnet`
-                      : `Alle aktiven Abos (${safeStats.activeAbosCount || 0}) für diesen Monat abgerechnet`}
+                      ? `${unbilledAbos} aktive(s) Kunden-Abo(s) fällig`
+                      : `Alle Abos (${safeStats.activeAbosCount || 0}) abgerechnet`}
                   </h4>
                   <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                     {unbilledAbos > 0
-                      ? 'Monatliche Abonnements laufen weiter. Sie können die fälligen Monatsrechnungen jetzt mit 1 Klick erstellen.'
+                      ? 'Laufende monatliche Betreuungsverträge für diesen Monat warten auf Rechnungsstellung.'
                       : 'Super! Für alle laufenden Verträge wurden in diesem Monat bereits die Rechnungen gestellt.'}
                   </p>
                 </div>
@@ -166,51 +166,51 @@ export default function DashboardPage({
               {unbilledAbos > 0 && onBulkGenerateAbos && (
                 <button
                   onClick={() => onBulkGenerateAbos('abo')}
-                  className="w-full sm:w-auto self-end px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-sky-600/20 flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full sm:w-auto self-end px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-sky-600/30 flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-sky-200" />
-                  <span>⚡ Fällige Abos abrechnen</span>
+                  <Sparkles className="w-4 h-4 text-sky-200" />
+                  <span>⚡ Nur fällige Abos abrechnen</span>
                 </button>
               )}
             </div>
           );
         })()}
 
-        {/* PANEL 2: EINMALIGE LEISTUNGEN */}
+        {/* NOTIFICATION PANEL 2: EINMALIGE LEISTUNGEN */}
         {(() => {
           const unbilledEinmalige = safeStats.unbilledEinmaligeCount || 0;
           return (
-            <div className={`rounded-3xl p-5 border shadow-sm flex flex-col justify-between gap-4 transition-all ${
+            <div className={`rounded-3xl p-5 md:p-6 border-2 shadow-sm flex flex-col justify-between gap-5 transition-all ${
               unbilledEinmalige > 0
-                ? 'bg-gradient-to-br from-emerald-50 via-teal-50/50 to-amber-50/50 border-emerald-300'
-                : 'bg-gradient-to-br from-slate-50 via-emerald-50/20 to-sky-50/20 border-slate-200'
+                ? 'bg-gradient-to-br from-emerald-50 via-teal-50 to-amber-50 border-emerald-500 shadow-emerald-500/10'
+                : 'bg-gradient-to-br from-slate-50 to-emerald-50/20 border-slate-200'
             }`}>
               <div className="flex items-start space-x-3.5">
                 <div className={`p-3 rounded-2xl shrink-0 shadow-md ${
                   unbilledEinmalige > 0 
                     ? 'bg-emerald-600 text-white shadow-emerald-600/30' 
-                    : 'bg-emerald-700 text-white shadow-emerald-700/20'
+                    : 'bg-slate-700 text-white shadow-slate-700/20'
                 }`}>
                   {unbilledEinmalige > 0 ? (
-                    <Zap className="w-5 h-5 text-yellow-300" />
+                    <Zap className="w-6 h-6 text-yellow-300 animate-bounce" />
                   ) : (
-                    <CheckCircle2 className="w-5 h-5" />
+                    <CheckCircle2 className="w-6 h-6 text-emerald-400" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+                    <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
                       unbilledEinmalige > 0
-                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                        ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
                         : 'bg-slate-100 text-slate-700 border-slate-300'
                     }`}>
-                      {unbilledEinmalige > 0 ? '🔔 Einmalleistungen fällig' : '✓ Leistungen aktuell'}
+                      {unbilledEinmalige > 0 ? '🔔 2. EINMALIGE LEISTUNGEN' : '✓ 2. LEISTUNGEN AKTUELL'}
                     </span>
                   </div>
-                  <h4 className="font-black text-slate-900 text-base mt-1 leading-snug">
+                  <h4 className="font-black text-slate-900 text-base md:text-lg mt-1.5 leading-snug">
                     {unbilledEinmalige > 0
-                      ? `${unbilledEinmalige} erledigte Einmalleistung(en) noch nicht abgerechnet`
-                      : 'Alle erledigten Einmalleistungen sind abgerechnet'}
+                      ? `${unbilledEinmalige} erledigte Einmalleistung(en) fällig`
+                      : 'Alle erledigten Einmalleistungen abgerechnet'}
                   </h4>
                   <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                     {unbilledEinmalige > 0
@@ -223,10 +223,10 @@ export default function DashboardPage({
               {unbilledEinmalige > 0 && onBulkGenerateAbos && (
                 <button
                   onClick={() => onBulkGenerateAbos('einmalig')}
-                  className="w-full sm:w-auto self-end px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full sm:w-auto self-end px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-600/30 flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
-                  <span>⚡ Einmalleistungen sofort abrechnen</span>
+                  <Sparkles className="w-4 h-4 text-emerald-200" />
+                  <span>⚡ Nur Einmalleistungen sofort abrechnen</span>
                 </button>
               )}
             </div>
