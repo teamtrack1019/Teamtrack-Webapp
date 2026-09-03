@@ -1,11 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Send, Sparkles, CheckCircle2, X, Copy, Check, ExternalLink, Globe } from 'lucide-react';
 
+function getGreeting(contactPerson, isFormal = true) {
+  if (!contactPerson || contactPerson.trim() === '') {
+    return isFormal ? 'Sehr geehrte Damen und Herren,' : 'Guten Tag,';
+  }
+  const trimmed = contactPerson.trim();
+  if (/^frau\b/i.test(trimmed)) {
+    return isFormal ? `Sehr geehrte ${trimmed},` : `Hallo ${trimmed},`;
+  }
+  if (/^herr\b/i.test(trimmed)) {
+    return isFormal ? `Sehr geehrter ${trimmed},` : `Hallo ${trimmed},`;
+  }
+  return isFormal ? `Sehr geehrte(r) Frau/Herr ${trimmed},` : `Hallo Frau/Herr ${trimmed},`;
+}
+
 const EMAIL_TEMPLATES = {
   digitalisierung_intro: {
     name: '1. Papierlose Prozesse & Digitalisierung',
     subject: 'Digitale Prozessoptimierung & smarte Web-Lösungen für Ihr Unternehmen – TeamTrack',
-    body: (cust) => `Sehr geehrte Damen und Herren, 
+    body: (cust) => `${getGreeting(cust.contactPerson, true)}
 
 viele Unternehmen verlieren täglich wertvolle Arbeitszeit durch manuelle Papierprozesse, unübersichtliche Zeiterfassungen und aufwendige Rechnungsstellungen.
 Wir bei TeamTrack unterstützen Unternehmen dabei, ihre täglichen Arbeitsabläufe durch smarte digitale Lösungen zu vereinfachen, Bürokratie abzubauen und Kosten zu senken.
@@ -33,7 +47,7 @@ Balthasar-Neumann-Str. 38
   demo_access: {
     name: '2. Live-Demo & Testzugang Einladung',
     subject: 'Ihr persönlicher Demo-Zugang: Digitale WebApp & Zeiterfassung – TeamTrack',
-    body: (cust) => `Hallo Frau/Herr ${cust.contactPerson || cust.companyName},
+    body: (cust) => `${getGreeting(cust.contactPerson, false)}
 
 wie besprochen habe ich für ${cust.companyName} eine Vorschau-Umgebung vorbereitet, damit Sie und Ihr Team die Vorteile direkt live testen können.
 
@@ -55,7 +69,7 @@ Balthasar-Neumann-Str. 38
   follow_up: {
     name: '3. Follow-Up nach Erstgespräch',
     subject: 'Zusammenfassung unseres Gesprächs & Nächste Schritte – TeamTrack',
-    body: (cust) => `Guten Tag Frau/Herr ${cust.contactPerson || cust.companyName},
+    body: (cust) => `${getGreeting(cust.contactPerson, true)}
 
 vielen Dank für das aufschlussreiche Gespräch heute.
 
