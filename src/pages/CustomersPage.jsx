@@ -55,7 +55,7 @@ export default function CustomersPage({
             <span>Kundenverwaltung (CRM)</span>
           </h2>
           <p className="text-slate-500 text-sm mt-0.5">
-            Müşteri takibi, aylık Abolar, tek seferlik optimizasyonlar ve tanıtım e-postaları
+            Kundenübersicht, monatliche Abos, Einmalleistungen und Vorstellungs-E-Mails
           </p>
         </div>
 
@@ -112,7 +112,7 @@ export default function CustomersPage({
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
-            Interessenten / Leads ({customers.filter(c => c.status === 'lead').length})
+            Interessenten ({customers.filter(c => c.status === 'lead').length})
           </button>
         </div>
       </div>
@@ -191,23 +191,23 @@ export default function CustomersPage({
                   )}
                 </div>
 
-                {/* DEMO / TANITIM EMAIL TRACKING BADGE & OUTLOOK BUTTON */}
+                {/* DEMO / EMAIL TRACKING BADGE & OUTLOOK BUTTON */}
                 <div className="pt-2 border-t border-slate-100 space-y-1.5">
                   <button
                     onClick={() => onOpenDemoEmailModal(customer)}
                     className="w-full bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-800 rounded-xl p-2.5 flex items-center justify-center space-x-2 text-xs font-bold transition shadow-xs cursor-pointer"
                   >
                     <Mail className="w-3.5 h-3.5 text-sky-600" />
-                    <span>E-Mail Senden (Outlook / Demo)</span>
+                    <span>E-Mail senden (Outlook / Vorlage)</span>
                   </button>
 
                   {customer.demoEmailSent && (
                     <div className="bg-emerald-50 border border-emerald-200/80 rounded-lg px-2.5 py-1 flex items-center justify-between text-[11px] text-emerald-800 font-medium">
                       <span className="flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                        <span>Gönderildi: {formatDateTime(customer.demoEmailSentAt)}</span>
+                        <span>Gesendet: {formatDateTime(customer.demoEmailSentAt)}</span>
                       </span>
-                      <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-100/80 px-1.5 py-0.2 rounded">Kayıtlı</span>
+                      <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-100/80 px-1.5 py-0.2 rounded">Erfasst</span>
                     </div>
                   )}
                 </div>

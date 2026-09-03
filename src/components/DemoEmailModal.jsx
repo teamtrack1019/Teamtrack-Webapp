@@ -139,9 +139,9 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
               <Mail className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-bold">Outlook / E-Mail Gönder</h3>
+              <h3 className="text-lg font-bold">Vorstellungs-E-Mail senden</h3>
               <p className="text-xs text-sky-100">
-                Resmi tanıtım şablonunu tek tıkla doğrudan Outlook hesabınızdan gönderin
+                Offizielle E-Mail-Vorlage direkt über Ihr Outlook-Konto versenden
               </p>
             </div>
           </div>
@@ -169,7 +169,7 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
           {/* Template Selector */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              E-Mail Şablonu Seç
+              E-Mail-Vorlage wählen
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {Object.entries(EMAIL_TEMPLATES).map(([key, tpl]) => (
@@ -195,7 +195,7 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
           {/* Subject */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Betreff (Konu)
+              Betreff
             </label>
             <input
               type="text"
@@ -210,7 +210,7 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block text-xs font-semibold text-slate-700">
-                E-Mail İçeriği (Vorschau / Bearbeiten)
+                E-Mail-Inhalt (Vorschau / Bearbeiten)
               </label>
               <button
                 type="button"
@@ -218,7 +218,7 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
                 className="text-xs text-sky-600 hover:text-sky-700 font-semibold flex items-center gap-1 cursor-pointer"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? 'Kopyalandı!' : 'Metni Kopyala'}</span>
+                <span>{copied ? 'Kopiert!' : 'Text kopieren'}</span>
               </button>
             </div>
             <textarea
@@ -234,7 +234,7 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
           <div className="bg-sky-50 border border-sky-200 rounded-xl p-3 text-xs text-sky-900 flex items-start gap-2">
             <CheckCircle2 className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
             <div>
-              Aşağıdaki butonlardan birine bastığınızda Outlook açılacak ve bu müşterinin durumu otomatik olarak <span className="font-bold">"Gönderildi"</span> olarak kaydedilecektir.
+              Beim Klick auf eine der Schaltflächen öffnet sich Outlook und der Status dieses Kunden wird automatisch als <span className="font-bold">"Gesendet"</span> erfasst.
             </div>
           </div>
         </div>
@@ -247,7 +247,7 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
             className="w-full sm:w-auto px-4 py-2.5 border border-slate-300 text-slate-700 hover:bg-slate-100 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
           >
             {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-            <span>{copied ? 'Metin Kopyalandı!' : 'Metni Kopyala'}</span>
+            <span>{copied ? 'Text kopiert!' : 'Text kopieren'}</span>
           </button>
 
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
@@ -256,10 +256,10 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
               onClick={handleOpenOutlookWeb}
               disabled={loading}
               className="px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-700/20 flex items-center justify-center space-x-1.5 transition disabled:opacity-50 cursor-pointer"
-              title="Tarayıcıda Outlook / Hotmail Web'de Aç"
+              title="In Outlook / Hotmail Web öffnen"
             >
               <Globe className="w-3.5 h-3.5" />
-              <span>Outlook Web (Hotmail) ile Gönder</span>
+              <span>Über Outlook Web (Hotmail) senden</span>
             </button>
 
             <button
@@ -267,10 +267,10 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
               onClick={handleSendViaOutlookApp}
               disabled={loading}
               className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 flex items-center justify-center space-x-2 transition disabled:opacity-50 cursor-pointer"
-              title="Bilgisayarınızdaki veya Telefonunuzdaki Outlook Uygulamasında Aç"
+              title="In der Outlook App auf Ihrem Computer oder Tablet öffnen"
             >
               <Send className="w-4 h-4" />
-              <span>{loading ? 'Açılıyor...' : 'Outlook Uygulaması ile Gönder'}</span>
+              <span>{loading ? 'Wird geöffnet...' : 'Über Outlook App senden'}</span>
             </button>
           </div>
         </div>

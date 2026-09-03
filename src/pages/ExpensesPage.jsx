@@ -49,7 +49,7 @@ export default function ExpensesPage({
             <span>Eingehende Belege & Ausgaben</span>
           </h2>
           <p className="text-slate-500 text-sm mt-0.5">
-            Giderler, sunucu, yazılım, donanım faturaları ve Vorsteuer (İndirilecek KDV) takibi
+            Betriebsausgaben, Server, Software, Hardware und Belegerfassung
           </p>
         </div>
 

@@ -70,7 +70,7 @@ export default function MileagePage({
             <span>KM-Tracking & Finanzamt Fahrtenbuch</span>
           </h2>
           <p className="text-slate-500 text-sm mt-0.5">
-            Müşteri ziyaretleri için kilometre kaydı (0,30 €/km Finanzamt Pauschale)
+            Fahrtenbuch für Kundenbesuche (0,30 €/km Finanzamt-Pauschale)
           </p>
         </div>
 

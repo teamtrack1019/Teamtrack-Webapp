@@ -189,12 +189,12 @@ export default function CustomerDetailPage({
 
           {/* Right: Actions & Marketing / Demo Email Badge */}
           <div className="flex flex-col space-y-3 lg:w-80 shrink-0">
-            {/* DEMO / TANITIM EMAIL TRACKER BOX */}
+            {/* DEMO / EMAIL TRACKER BOX */}
             <div className={`p-4 rounded-2xl border ${customer.demoEmailSent ? 'bg-emerald-50/80 border-emerald-200' : 'bg-sky-50/80 border-sky-200'}`}>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                   <Mail className="w-4 h-4 text-sky-600" />
-                  Tanıtım / Demo Takibi
+                  Vorstellungs-E-Mail Status
                 </span>
               </div>
 
@@ -203,9 +203,9 @@ export default function CustomerDetailPage({
                   <div className="flex items-start space-x-2 text-xs text-emerald-900 font-semibold">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
-                      <div>Tanıtım E-Postası Gönderildi</div>
+                      <div>Vorstellungs-E-Mail gesendet</div>
                       <div className="text-[11px] text-emerald-700 font-normal">
-                        Tarih: {formatDateTime(customer.demoEmailSentAt)}
+                        Datum: {formatDateTime(customer.demoEmailSentAt)}
                       </div>
                     </div>
                   </div>
@@ -213,20 +213,20 @@ export default function CustomerDetailPage({
                     onClick={() => onOpenDemoEmailModal(customer)}
                     className="w-full mt-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition cursor-pointer"
                   >
-                    Weitere E-Mail senden / loggen
+                    Weitere E-Mail senden / erfassen
                   </button>
                 </div>
               ) : (
                 <div className="space-y-2">
                   <p className="text-xs text-slate-600">
-                    Henüz tanıtım/demo maili gönderilmedi.
+                    Noch keine Vorstellungs-E-Mail versendet.
                   </p>
                   <button
                     onClick={() => onOpenDemoEmailModal(customer)}
                     className="w-full py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Mail className="w-3.5 h-3.5" />
-                    <span>Tanıtım E-Postası Gönder</span>
+                    <span>Vorstellungs-E-Mail senden</span>
                   </button>
                 </div>
               )}

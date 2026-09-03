@@ -43,7 +43,7 @@ export function getStatusBadge(status) {
     case 'active':
       return { label: 'Aktiv', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' };
     case 'lead':
-      return { label: 'Interessent (Lead)', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' };
+      return { label: 'Interessent', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' };
     case 'archived':
       return { label: 'Archiviert', bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200' };
     case 'paid':

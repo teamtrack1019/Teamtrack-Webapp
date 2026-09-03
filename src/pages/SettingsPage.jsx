@@ -197,16 +197,16 @@ export default function SettingsPage() {
                 </h3>
                 {isCloudConnected ? (
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
-                    🟢 Firebase Canlı Bağlı
+                    🟢 Firebase Live verbunden
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-slate-800 text-slate-400 px-2.5 py-0.5 rounded-full border border-slate-700">
-                    ⚪ Yerel Hafıza (Lokal)
+                    ⚪ Lokaler Speicher
                   </span>
                 )}
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
-                Telefonda girdiğiniz müşteri, fatura ve seyahat verilerinin bilgisayarınızda anında görünmesini sağlar.
+                Ermöglicht den sofortigen automatischen Datenabgleich zwischen Smartphone, Tablet und PC.
               </p>
             </div>
           </div>
@@ -226,12 +226,12 @@ export default function SettingsPage() {
         <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60 text-xs text-slate-300 space-y-2">
           <div className="font-bold text-white flex items-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-amber-400" />
-            <span>Firebase Bilgilerini Nasıl Alacaksınız? (MitHerz gibi)</span>
+            <span>Firebase Zugangsdaten einrichten</span>
           </div>
           <ol className="list-decimal list-inside space-y-1 text-slate-300 leading-relaxed">
-            <li><a href="https://console.firebase.google.com" target="_blank" rel="noreferrer" className="text-amber-400 underline font-semibold">Firebase Console</a>'a gidin ve projenizi seçin (veya yeni proje açın).</li>
-            <li>Sol üstteki <strong>Proje Ayarları (Project Settings ⚙️)</strong> bölümüne inin.</li>
-            <li><strong>SDK setup and configuration (Web / Config)</strong> kısmındaki nesneyi (örnek: <code>&#123; "apiKey": "...", "projectId": "..." &#125;</code>) kopyalayıp aşağıdaki kutuya yapıştırın ve <strong>"Bağlantıyı Test Et & Kaydet"</strong>e basın.</li>
+            <li>Gehen Sie zur <a href="https://console.firebase.google.com" target="_blank" rel="noreferrer" className="text-amber-400 underline font-semibold">Firebase Console</a> und wählen Sie Ihr Projekt aus.</li>
+            <li>Öffnen Sie oben links die <strong>Projekteinstellungen (Project Settings ⚙️)</strong>.</li>
+            <li>Kopieren Sie unter <strong>SDK setup and configuration (Web / Config)</strong> das Konfigurationsobjekt (z.B. <code>&#123; "apiKey": "...", "projectId": "..." &#125;</code>) in das Textfeld unten und klicken Sie auf <strong>"Verbindung testen & speichern"</strong>.</li>
           </ol>
         </div>
 
@@ -239,7 +239,7 @@ export default function SettingsPage() {
         <div>
           <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
             <Key className="w-3.5 h-3.5 text-amber-400" />
-            <span>Firebase Config (JSON veya Obje)</span>
+            <span>Firebase Konfiguration (JSON oder Objekt)</span>
           </label>
           <textarea
             rows={5}
@@ -273,7 +273,7 @@ export default function SettingsPage() {
             className="flex items-center space-x-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold shadow-md shadow-amber-600/30 transition disabled:opacity-50 cursor-pointer"
           >
             <Database className="w-3.5 h-3.5" />
-            <span>{testingCloud ? 'Test Ediliyor...' : 'Firebase Bağlantısını Test Et & Kaydet'}</span>
+            <span>{testingCloud ? 'Wird getestet...' : 'Firebase-Verbindung testen & speichern'}</span>
           </button>
 
           {isCloudConnected && (
@@ -282,10 +282,10 @@ export default function SettingsPage() {
                 type="button"
                 onClick={handleManualCloudUpload}
                 className="flex items-center space-x-1 px-3 py-2 bg-sky-600/30 hover:bg-sky-600 text-sky-200 hover:text-white rounded-xl text-xs font-semibold border border-sky-500/40 transition cursor-pointer"
-                title="Bu cihazdaki tüm verileri Firebase'e yükle"
+                title="Alle Daten auf diesem Gerät in Firebase hochladen"
               >
                 <UploadCloud className="w-3.5 h-3.5" />
-                <span>Buluta Yükle</span>
+                <span>In Cloud hochladen</span>
               </button>
 
               <button
@@ -293,10 +293,10 @@ export default function SettingsPage() {
                 onClick={handleManualCloudSync}
                 disabled={syncingCloud}
                 className="flex items-center space-x-1 px-3 py-2 bg-emerald-600/30 hover:bg-emerald-600 text-emerald-200 hover:text-white rounded-xl text-xs font-semibold border border-emerald-500/40 transition cursor-pointer"
-                title="Firebase buluttaki güncel verileri bu cihaza çek"
+                title="Aktuelle Daten aus der Cloud auf dieses Gerät laden"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${syncingCloud ? 'animate-spin' : ''}`} />
-                <span>Buluttan Çek</span>
+                <span>Aus Cloud laden</span>
               </button>
             </div>
           )}

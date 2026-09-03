@@ -58,7 +58,7 @@ export default function InvoicesPage({
             </span>
           </div>
           <p className="text-slate-500 text-sm mt-0.5">
-            Müşteri faturaları, Kleinunternehmerregelung ve resmi DIN-A4 PDF çıktıları
+            Kundenrechnungen, § 19 UStG Kleinunternehmerregelung und DIN-A4 PDF-Druck
           </p>
         </div>
 
