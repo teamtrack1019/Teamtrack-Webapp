@@ -56,6 +56,7 @@ export default function App() {
     recentMileage: []
   });
   const [customers, setCustomers] = useState([]);
+  const [services, setServices] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [mileage, setMileage] = useState([]);
@@ -92,9 +93,10 @@ export default function App() {
   // Load all core data
   const loadAllData = useCallback(async () => {
     try {
-      const [statsData, custData, invData, expData, milData, settingsData] = await Promise.all([
+      const [statsData, custData, srvData, invData, expData, milData, settingsData] = await Promise.all([
         api.getDashboardStats().catch(() => null),
         api.getCustomers().catch(() => []),
+        api.getServices().catch(() => []),
         api.getInvoices().catch(() => []),
         api.getExpenses().catch(() => []),
         api.getMileage().catch(() => []),
@@ -103,6 +105,7 @@ export default function App() {
 
       if (statsData) setStats(statsData);
       if (custData && custData.length >= 0) setCustomers(custData);
+      if (srvData && srvData.length >= 0) setServices(srvData);
       if (invData && invData.length >= 0) setInvoices(invData);
       if (expData && expData.length >= 0) setExpenses(expData);
       if (milData && milData.length >= 0) setMileage(milData);
@@ -303,6 +306,7 @@ export default function App() {
             <DashboardPage
               stats={stats}
               customers={customers}
+              services={services}
               invoices={invoices}
               onNavigate={(tab) => setActiveTab(tab)}
               onOpenCustomerModal={() => {

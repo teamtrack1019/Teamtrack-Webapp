@@ -20,6 +20,7 @@ import { formatCurrency, formatDate } from '../utils/formatters';
 export default function DashboardPage({ 
   stats = {}, 
   customers = [],
+  services = [],
   invoices = [],
   onNavigate, 
   onOpenCustomerModal, 
@@ -28,16 +29,55 @@ export default function DashboardPage({
   onBulkGenerateAbos 
 }) {
   const safeStats = stats || {};
-  const recentInvoicesList = (safeStats.recentInvoices && safeStats.recentInvoices.length > 0)
-    ? safeStats.recentInvoices
-    : (invoices || []).slice(-10).reverse();
 
-  const recentCustomersList = (safeStats.recentCustomers && safeStats.recentCustomers.length > 0)
-    ? safeStats.recentCustomers
-    : (customers || []).slice(-10).reverse();
+  const getInvTotal = (inv) => {
+    const itemSum = (inv.items || []).reduce((s, it) => s + ((Number(it.unitPrice) || 0) * (Number(it.quantity) || 1)), 0);
+    return itemSum > 0 ? itemSum : Number(inv.netAmount || inv.grossAmount || 0);
+  };
 
-  const totalCustomersCount = safeStats.totalCustomers || (customers ? customers.length : 0);
-  const estimatedYearlyProfit = (safeStats.totalPaidRevenue || 0) - (safeStats.totalExpenses || 0) - (safeStats.totalKmDeduction || 0);
+  const allInvoices = (invoices && invoices.length > 0) ? invoices : (safeStats.recentInvoices || []);
+  const paidInvoices = allInvoices.filter(i => i.status === 'paid');
+  const liveTotalPaidRevenue = paidInvoices.length > 0
+    ? paidInvoices.reduce((sum, i) => sum + getInvTotal(i), 0)
+    : (safeStats.totalPaidRevenue || 0);
+
+  const liveTotalGrossRevenue = liveTotalPaidRevenue;
+
+  const pendingInvoices = allInvoices.filter(i => i.status === 'sent' || i.status === 'draft');
+  const liveTotalPendingAmount = pendingInvoices.reduce((sum, i) => sum + getInvTotal(i), 0);
+  const livePendingCount = pendingInvoices.length > 0 ? pendingInvoices.length : (safeStats.pendingInvoicesCount || 0);
+
+  const allServices = (services && services.length > 0) ? services : [];
+  const activeAbos = allServices.filter(s => s.type === 'abo' && s.status === 'active');
+  const liveMrr = activeAbos.length > 0
+    ? activeAbos.reduce((sum, s) => {
+        let monthly = Number(s.price || 0);
+        if (s.billingInterval === 'yearly') monthly = monthly / 12;
+        if (s.billingInterval === 'quarterly') monthly = monthly / 3;
+        return sum + monthly;
+      }, 0)
+    : (safeStats.mrr || 0);
+  const liveActiveAbosCount = activeAbos.length > 0 ? activeAbos.length : (safeStats.activeAbosCount || 0);
+
+  const einmaligeServices = allServices.filter(s => s.type === 'einmalig');
+  const einmaligeInvoicesCount = allInvoices.filter(i => 
+    (i.items || []).some(it => it.description?.toLowerCase().includes('einmalig'))
+  ).length;
+
+  const liveCompletedEinmaligeCount = Math.max(
+    einmaligeServices.length,
+    einmaligeInvoicesCount,
+    safeStats.completedEinmaligeCount || 0,
+    safeStats.totalEinmaligeCount || 0
+  );
+
+  const recentInvoicesList = allInvoices.slice(-10).reverse();
+  const recentCustomersList = (customers && customers.length > 0) ? customers.slice(-10).reverse() : (safeStats.recentCustomers || []);
+  const totalCustomersCount = (customers && customers.length > 0) ? customers.length : (safeStats.totalCustomers || 0);
+
+  const totalExpenses = safeStats.totalExpenses || 0;
+  const totalKmDeduction = safeStats.totalKmDeduction || 0;
+  const estimatedYearlyProfit = liveTotalPaidRevenue - totalExpenses - totalKmDeduction;
 
   const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
   const currentMonthName = monthNames[new Date().getMonth()];
@@ -82,8 +122,8 @@ export default function DashboardPage({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard
           title="Monatliche Abos (MRR)"
-          value={formatCurrency(safeStats.mrr || 0)}
-          subtitle={`${safeStats.activeAbosCount || 0} aktive Verträge`}
+          value={formatCurrency(liveMrr)}
+          subtitle={`${liveActiveAbosCount} aktive Verträge`}
           icon={Repeat}
           color="sky"
           badge="Wiederkehrend"
@@ -93,8 +133,8 @@ export default function DashboardPage({
 
         <StatCard
           title="Einnahmen (Netto)"
-          value={formatCurrency(safeStats.totalPaidRevenue || 0)}
-          subtitle={`Brutto: ${formatCurrency(safeStats.totalGrossRevenue || 0)}`}
+          value={formatCurrency(liveTotalPaidRevenue)}
+          subtitle={`Brutto: ${formatCurrency(liveTotalGrossRevenue)}`}
           icon={TrendingUp}
           color="emerald"
           badge="Umsatz"
@@ -104,8 +144,8 @@ export default function DashboardPage({
 
         <StatCard
           title="Ausgaben (Netto)"
-          value={formatCurrency(safeStats.totalExpenses || 0)}
-          subtitle={`Brutto: ${formatCurrency(safeStats.totalExpensesGross || 0)}`}
+          value={formatCurrency(totalExpenses)}
+          subtitle={`Brutto: ${formatCurrency(safeStats.totalExpensesGross || totalExpenses)}`}
           icon={Receipt}
           color="amber"
           badge="Ausgaben"
@@ -115,7 +155,7 @@ export default function DashboardPage({
 
         <StatCard
           title="Finanzamt KM-Abzug"
-          value={formatCurrency(safeStats.totalKmDeduction || 0)}
+          value={formatCurrency(totalKmDeduction)}
           subtitle={`${safeStats.totalKm ? Number(safeStats.totalKm).toFixed(1) : '0.0'} km (0,30 €/km)`}
           icon={Car}
           color="purple"
@@ -221,7 +261,7 @@ export default function DashboardPage({
                   <h4 className="font-black text-slate-900 text-base md:text-lg mt-1.5 leading-snug">
                     {unbilledEinmalige > 0
                       ? `${unbilledEinmalige} erledigte Einmalleistung(en) fällig`
-                      : `Alle erledigten Einmalleistungen (${safeStats.completedEinmaligeCount || safeStats.totalEinmaligeCount || 0}) abgerechnet`}
+                      : `Alle erledigten Einmalleistungen (${liveCompletedEinmaligeCount}) abgerechnet`}
                   </h4>
                   <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                     {unbilledEinmalige > 0
@@ -250,7 +290,7 @@ export default function DashboardPage({
         {/* Left Column (2 Columns Width) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Pending Invoices Banner */}
-          {safeStats.pendingInvoicesCount > 0 && (
+          {livePendingCount > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-amber-500 text-white rounded-xl shrink-0">
@@ -258,10 +298,10 @@ export default function DashboardPage({
                 </div>
                 <div>
                   <h4 className="font-bold text-amber-900 text-sm">
-                    {safeStats.pendingInvoicesCount} offene Rechnung(en) ausstehend
+                    {livePendingCount} offene Rechnung(en) ausstehend
                   </h4>
                   <p className="text-xs text-amber-700">
-                    Offener Gesamtbetrag: <strong className="font-bold">{formatCurrency(safeStats.totalPendingAmount)}</strong>
+                    Offener Gesamtbetrag: <strong className="font-bold">{formatCurrency(liveTotalPendingAmount)}</strong>
                   </p>
                 </div>
               </div>
@@ -360,7 +400,7 @@ export default function DashboardPage({
             <div className="space-y-2 text-xs border-y border-white/10 py-3 my-3">
               <div className="flex justify-between text-slate-300">
                 <span>Einnahmen (Netto):</span>
-                <span className="font-semibold text-white font-mono">{formatCurrency(safeStats.totalPaidRevenue || 0)}</span>
+                <span className="font-semibold text-white font-mono">{formatCurrency(liveTotalPaidRevenue)}</span>
               </div>
               <div className="flex justify-between text-slate-300">
                 <span>Ausgaben (Netto):</span>
