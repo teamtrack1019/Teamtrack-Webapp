@@ -359,6 +359,7 @@ export default function App() {
                 setEditingCustomer(cust);
                 setCustomerModalOpen(true);
               }}
+              onReloadAllData={loadAllData}
             />
           )}
 

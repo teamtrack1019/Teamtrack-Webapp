@@ -37,7 +37,8 @@ export default function CustomerDetailPage({
   onOpenInvoiceModal,
   onOpenMileageModal,
   onViewInvoice,
-  onEditCustomer
+  onEditCustomer,
+  onReloadAllData
 }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -71,7 +72,6 @@ export default function CustomerDetailPage({
   }
 
   const { customer, services, invoices, mileage, emailLogs } = data;
-  const statusBadge = getStatusBadge(customer.status);
 
   // Separate services into Abos vs. Einmalig
   const abos = services.filter(s => s.type === 'abo');
@@ -79,11 +79,19 @@ export default function CustomerDetailPage({
   const totalMonthlyMRR = abos.filter(s => s.status === 'active').reduce((sum, s) => sum + Number(s.price || 0), 0);
   const totalOneTimeRevenue = einmalige.filter(s => s.status !== 'cancelled').reduce((sum, s) => sum + Number(s.price || 0), 0);
 
+  // Dynamic automatic status: Has services/invoices -> Active, 0 services/invoices -> Lead
+  const hasJobs = (abos.length > 0 || einmalige.length > 0 || (invoices && invoices.length > 0));
+  const effectiveStatus = hasJobs ? 'active' : 'lead';
+  const statusBadge = getStatusBadge(effectiveStatus);
+
   const handleDeleteService = async (serviceId) => {
     try {
       await api.deleteService(serviceId);
       setDeletingServiceId(null);
       await loadData();
+      if (onReloadAllData) {
+        await onReloadAllData();
+      }
     } catch (err) {
       alert('Fehler beim Löschen: ' + err.message);
     }
@@ -93,6 +101,9 @@ export default function CustomerDetailPage({
     try {
       await api.updateService(service.id, { ...service, status: newStatus });
       await loadData();
+      if (onReloadAllData) {
+        await onReloadAllData();
+      }
     } catch (err) {
       alert('Fehler beim Ändern des Status: ' + err.message);
     }

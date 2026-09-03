@@ -645,15 +645,18 @@ async function handleLocalRequest(endpoint, options = {}) {
       if (!customer) throw new Error('Kunde nicht gefunden');
       const custServices = db.services.filter(s => s.customerId === custId);
       const custInvoices = db.invoices.filter(i => i.customerId === custId);
-      if ((custServices.length > 0 || custInvoices.length > 0) && customer.status !== 'active') {
-        customer.status = 'active';
+      const hasJobs = custServices.length > 0 || custInvoices.length > 0;
+      const targetStatus = hasJobs ? 'active' : 'lead';
+      
+      if (customer.status !== targetStatus) {
+        customer.status = targetStatus;
         saveLocalData(db);
         pushToFirebase(db);
       }
       return {
         customer: {
           ...customer,
-          status: (custServices.length > 0 || custInvoices.length > 0) ? 'active' : customer.status
+          status: targetStatus
         },
         services: custServices,
         invoices: custInvoices,
@@ -676,6 +679,10 @@ async function handleLocalRequest(endpoint, options = {}) {
       const idx = db.customers.findIndex(c => c.id === custId);
       if (idx !== -1) {
         const deleted = db.customers.splice(idx, 1)[0];
+        // Also clean up services and invoices belonging to this customer
+        db.services = db.services.filter(s => s.customerId !== custId);
+        db.invoices = db.invoices.filter(i => i.customerId !== custId);
+        db.mileage = db.mileage.filter(m => m.customerId !== custId);
         saveLocalData(db);
         pushToFirebase(db);
         return deleted;
@@ -700,7 +707,7 @@ async function handleLocalRequest(endpoint, options = {}) {
       // Auto-upgrade customer status to active
       if (newSrv.customerId) {
         const cIdx = db.customers.findIndex(c => c.id === newSrv.customerId);
-        if (cIdx !== -1 && db.customers[cIdx].status === 'lead') {
+        if (cIdx !== -1) {
           db.customers[cIdx].status = 'active';
         }
       }
@@ -715,7 +722,7 @@ async function handleLocalRequest(endpoint, options = {}) {
         db.services[idx] = { ...db.services[idx], ...body };
         if (db.services[idx].customerId) {
           const cIdx = db.customers.findIndex(c => c.id === db.services[idx].customerId);
-          if (cIdx !== -1 && db.customers[cIdx].status === 'lead') {
+          if (cIdx !== -1) {
             db.customers[cIdx].status = 'active';
           }
         }
@@ -729,6 +736,16 @@ async function handleLocalRequest(endpoint, options = {}) {
       const idx = db.services.findIndex(s => s.id === id);
       if (idx !== -1) {
         const del = db.services.splice(idx, 1)[0];
+        // Re-evaluate customer status after service deletion
+        if (del && del.customerId) {
+          const remainingServices = db.services.filter(s => s.customerId === del.customerId);
+          const remainingInvoices = db.invoices.filter(i => i.customerId === del.customerId);
+          const cIdx = db.customers.findIndex(c => c.id === del.customerId);
+          if (cIdx !== -1) {
+            const hasRemainingJobs = remainingServices.length > 0 || remainingInvoices.length > 0;
+            db.customers[cIdx].status = hasRemainingJobs ? 'active' : 'lead';
+          }
+        }
         saveLocalData(db);
         pushToFirebase(db);
         return del;
