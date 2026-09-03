@@ -47,6 +47,19 @@ export default function DashboardPage({
   const liveTotalPendingAmount = pendingInvoices.reduce((sum, i) => sum + getInvTotal(i), 0);
   const livePendingCount = pendingInvoices.length > 0 ? pendingInvoices.length : (safeStats.pendingInvoicesCount || 0);
 
+  const getInvoiceType = (inv) => {
+    if (inv.serviceType) return inv.serviceType;
+    if (inv.type === 'abo' || inv.type === 'einmalig') return inv.type;
+    const desc = (inv.items || []).map(i => (i.description || '').toLowerCase()).join(' ');
+    if (desc.includes('abo') || desc.includes('monatlich') || desc.includes('cloud-service') || desc.includes('betreuung')) {
+      return 'abo';
+    }
+    return 'einmalig';
+  };
+
+  const totalAboInvoicesCount = allInvoices.filter(i => getInvoiceType(i) === 'abo').length;
+  const totalEinmaligeInvoicesCount = allInvoices.filter(i => getInvoiceType(i) === 'einmalig').length;
+
   const allServices = (services && services.length > 0) ? services : [];
   const activeAbos = allServices.filter(s => s.type === 'abo' && s.status === 'active');
   const liveMrr = activeAbos.length > 0
@@ -58,18 +71,6 @@ export default function DashboardPage({
       }, 0)
     : (safeStats.mrr || 0);
   const liveActiveAbosCount = activeAbos.length > 0 ? activeAbos.length : (safeStats.activeAbosCount || 0);
-
-  const einmaligeServices = allServices.filter(s => s.type === 'einmalig');
-  const einmaligeInvoicesCount = allInvoices.filter(i => 
-    (i.items || []).some(it => it.description?.toLowerCase().includes('einmalig'))
-  ).length;
-
-  const liveCompletedEinmaligeCount = Math.max(
-    einmaligeServices.length,
-    einmaligeInvoicesCount,
-    safeStats.completedEinmaligeCount || 0,
-    safeStats.totalEinmaligeCount || 0
-  );
 
   const recentInvoicesList = allInvoices.slice(-10).reverse();
   const recentCustomersList = (customers && customers.length > 0) ? customers.slice(-10).reverse() : (safeStats.recentCustomers || []);
@@ -204,7 +205,7 @@ export default function DashboardPage({
                   <h4 className="font-black text-slate-900 text-base md:text-lg mt-1.5 leading-snug">
                     {unbilledAbos > 0
                       ? `${unbilledAbos} aktive(s) Kunden-Abo(s) fällig`
-                      : `Alle Abos (${safeStats.activeAbosCount || 0}) abgerechnet`}
+                      : `Alle Abos (${totalAboInvoicesCount}) abgerechnet`}
                   </h4>
                   <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                     {unbilledAbos > 0
@@ -261,7 +262,7 @@ export default function DashboardPage({
                   <h4 className="font-black text-slate-900 text-base md:text-lg mt-1.5 leading-snug">
                     {unbilledEinmalige > 0
                       ? `${unbilledEinmalige} erledigte Einmalleistung(en) fällig`
-                      : `Alle erledigten Einmalleistungen (${liveCompletedEinmaligeCount}) abgerechnet`}
+                      : `Alle erledigten Einmalleistungen (${totalEinmaligeInvoicesCount}) abgerechnet`}
                   </h4>
                   <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                     {unbilledEinmalige > 0
@@ -334,11 +335,12 @@ export default function DashboardPage({
               <table className="w-full text-left text-xs border-collapse">
                 <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100">
                   <tr>
-                    <th className="p-3.5 pl-5 w-32">Rechnungs-Nr.</th>
+                    <th className="p-3.5 pl-5 w-28">Rechnungs-Nr.</th>
                     <th className="p-3.5">Kunde</th>
-                    <th className="p-3.5 w-28">Datum</th>
-                    <th className="p-3.5 text-right w-28">Betrag</th>
-                    <th className="p-3.5 text-center pr-5 w-24">Status</th>
+                    <th className="p-3.5 w-24">Datum</th>
+                    <th className="p-3.5 text-center w-24">Art</th>
+                    <th className="p-3.5 text-right w-24">Betrag</th>
+                    <th className="p-3.5 text-center pr-5 w-20">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -353,6 +355,19 @@ export default function DashboardPage({
                         </td>
                         <td className="p-3.5 text-slate-500">
                           {formatDate(inv.date)}
+                        </td>
+                        <td className="p-3.5 text-center">
+                          {getInvoiceType(inv) === 'abo' ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                              <Repeat className="w-2.5 h-2.5 text-sky-500" />
+                              Abo
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <Zap className="w-2.5 h-2.5 text-emerald-500" />
+                              Einmalig
+                            </span>
+                          )}
                         </td>
                         <td className="p-3.5 text-right font-extrabold text-slate-900">
                           {formatCurrency(inv.grossAmount)}
@@ -372,7 +387,7 @@ export default function DashboardPage({
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="p-8 text-center text-slate-400">
+                      <td colSpan={6} className="p-8 text-center text-slate-400">
                         Noch keine Rechnungen vorhanden.
                       </td>
                     </tr>

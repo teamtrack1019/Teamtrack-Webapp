@@ -10,9 +10,21 @@ import {
   Trash2,
   Building2,
   Calendar,
-  Download
+  Download,
+  Repeat,
+  Zap
 } from 'lucide-react';
 import { formatCurrency, formatDate, getStatusBadge } from '../utils/formatters';
+
+export const getInvoiceType = (inv) => {
+  if (inv.serviceType) return inv.serviceType;
+  if (inv.type === 'abo' || inv.type === 'einmalig') return inv.type;
+  const desc = (inv.items || []).map(i => (i.description || '').toLowerCase()).join(' ');
+  if (desc.includes('abo') || desc.includes('monatlich') || desc.includes('cloud-service') || desc.includes('betreuung')) {
+    return 'abo';
+  }
+  return 'einmalig';
+};
 
 export default function InvoicesPage({ 
   invoices, 
@@ -25,6 +37,7 @@ export default function InvoicesPage({
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterType, setFilterType] = useState('all');
 
   const getInvoiceAmount = (inv) => {
     const itemSum = (inv.items || []).reduce((s, it) => s + ((Number(it.unitPrice) || 0) * (Number(it.quantity) || 1)), 0);
@@ -36,12 +49,17 @@ export default function InvoicesPage({
       inv.invoiceNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       inv.customerName?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    if (filterStatus === 'all') return matchesSearch;
-    return matchesSearch && inv.status === filterStatus;
+    const invType = getInvoiceType(inv);
+    const matchesType = filterType === 'all' ? true : invType === filterType;
+    const matchesStatus = filterStatus === 'all' ? true : inv.status === filterStatus;
+
+    return matchesSearch && matchesType && matchesStatus;
   });
 
   const totalPaid = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + getInvoiceAmount(i), 0);
   const totalOpen = invoices.filter(i => i.status === 'sent' || i.status === 'draft').reduce((s, i) => s + getInvoiceAmount(i), 0);
+  const totalAbos = invoices.filter(i => getInvoiceType(i) === 'abo').length;
+  const totalEinmalig = invoices.filter(i => getInvoiceType(i) === 'einmalig').length;
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 animate-fadeIn">
@@ -58,33 +76,33 @@ export default function InvoicesPage({
             </span>
           </div>
           <p className="text-slate-500 text-sm mt-0.5">
-            Kundenrechnungen, § 19 UStG Kleinunternehmerregelung und DIN-A4 PDF-Druck
+            Automatische Rechnungsstellung für Abos & erledigte Einmalleistungen
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+        <div className="flex items-center gap-3">
           {onBulkGenerateAbos && (
             <button
               onClick={onBulkGenerateAbos}
-              className="flex items-center space-x-1.5 px-3.5 py-2.5 bg-sky-50 hover:bg-sky-100 text-sky-700 rounded-xl text-xs font-bold border border-sky-200 transition shadow-xs cursor-pointer"
-              title="Alle fälligen Kunden-Abos für diesen Monat auf einmal abrechnen"
+              className="flex items-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-sky-600/20 cursor-pointer"
             >
-              <span>⚡ Monatsabos abrechnen</span>
+              <Repeat className="w-4 h-4" />
+              <span>⚡ Fällige Abrechnungen generieren</span>
             </button>
           )}
 
           <button
-            onClick={() => onOpenInvoiceModal()}
-            className="flex items-center space-x-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-md shadow-sky-600/20 transition cursor-pointer"
+            onClick={onOpenInvoiceModal}
+            className="flex items-center space-x-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-md"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Neue Rechnung</span>
+            <span>Neue Rechnung</span>
           </button>
         </div>
       </div>
 
-      {/* Summary Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Top Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
           <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
             <CheckCircle className="w-6 h-6" />
@@ -109,12 +127,23 @@ export default function InvoicesPage({
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
           <div className="p-3 rounded-xl bg-sky-50 text-sky-600 border border-sky-100">
-            <FileText className="w-6 h-6" />
+            <Repeat className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-400 uppercase">Rechnungen Gesamt</div>
-            <div className="text-xl font-extrabold text-slate-900 mt-0.5">{invoices.length}</div>
-            <div className="text-[11px] text-slate-500">Im aktuellen Geschäftsjahr</div>
+            <div className="text-xs font-bold text-slate-400 uppercase">Abo-Rechnungen</div>
+            <div className="text-xl font-extrabold text-sky-700 mt-0.5">{totalAbos}</div>
+            <div className="text-[11px] text-sky-600 font-semibold">Monatliche Betreuung</div>
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+          <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+            <Zap className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-slate-400 uppercase">Einmalleistungen</div>
+            <div className="text-xl font-extrabold text-emerald-700 mt-0.5">{totalEinmalig}</div>
+            <div className="text-[11px] text-emerald-600 font-semibold">Projekt-Abrechnungen</div>
           </div>
         </div>
       </div>
@@ -132,38 +161,49 @@ export default function InvoicesPage({
           />
         </div>
 
-        <div className="flex items-center space-x-1.5 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+        <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto overflow-x-auto">
+          {/* Status Filters */}
           <button
-            onClick={() => setFilterStatus('all')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
-              filterStatus === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            onClick={() => { setFilterStatus('all'); setFilterType('all'); }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+              filterStatus === 'all' && filterType === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
             Alle ({invoices.length})
           </button>
           <button
-            onClick={() => setFilterStatus('sent')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
-              filterStatus === 'sent' ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            onClick={() => setFilterType(filterType === 'abo' ? 'all' : 'abo')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1 ${
+              filterType === 'abo' ? 'bg-sky-600 text-white' : 'bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200'
+            }`}
+          >
+            <Repeat className="w-3 h-3" />
+            <span>Abos ({totalAbos})</span>
+          </button>
+          <button
+            onClick={() => setFilterType(filterType === 'einmalig' ? 'all' : 'einmalig')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1 ${
+              filterType === 'einmalig' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+            }`}
+          >
+            <Zap className="w-3 h-3" />
+            <span>Einmalig ({totalEinmalig})</span>
+          </button>
+          <button
+            onClick={() => setFilterStatus(filterStatus === 'sent' ? 'all' : 'sent')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+              filterStatus === 'sent' ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
             Offen ({invoices.filter(i => i.status === 'sent').length})
           </button>
           <button
-            onClick={() => setFilterStatus('paid')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+            onClick={() => setFilterStatus(filterStatus === 'paid' ? 'all' : 'paid')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
               filterStatus === 'paid' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
             Bezahlt ({invoices.filter(i => i.status === 'paid').length})
-          </button>
-          <button
-            onClick={() => setFilterStatus('draft')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
-              filterStatus === 'draft' ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            Entwurf ({invoices.filter(i => i.status === 'draft').length})
           </button>
         </div>
       </div>
@@ -177,6 +217,7 @@ export default function InvoicesPage({
                 <th className="p-3.5 pl-5">Rechnungs-Nr.</th>
                 <th className="p-3.5">Kunde</th>
                 <th className="p-3.5">Datum / Fällig</th>
+                <th className="p-3.5 text-center">Art</th>
                 <th className="p-3.5 text-right">USt.</th>
                 <th className="p-3.5 text-right">Rechnungsbetrag</th>
                 <th className="p-3.5 text-center">Status</th>
@@ -187,6 +228,7 @@ export default function InvoicesPage({
               {filtered.map((inv) => {
                 const statusBadge = getStatusBadge(inv.status);
                 const exactAmount = getInvoiceAmount(inv);
+                const invType = getInvoiceType(inv);
 
                 return (
                   <tr key={inv.id} className="hover:bg-slate-50 transition">
@@ -198,8 +240,21 @@ export default function InvoicesPage({
                       <div className="text-[11px] text-slate-400 truncate max-w-xs">{inv.customerAddress}</div>
                     </td>
                     <td className="p-3.5 text-slate-600">
-                      <div>{formatDate(inv.date)}</div>
+                      <div className="font-medium text-slate-800">{formatDate(inv.date)}</div>
                       <div className="text-[11px] text-slate-400">Fällig: {formatDate(inv.dueDate)}</div>
+                    </td>
+                    <td className="p-3.5 text-center">
+                      {invType === 'abo' ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-50 text-sky-700 border border-sky-200 shadow-2xs">
+                          <Repeat className="w-3 h-3 text-sky-500" />
+                          <span>Abo</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                          <Zap className="w-3 h-3 text-emerald-500" />
+                          <span>Einmalig</span>
+                        </span>
+                      )}
                     </td>
                     <td className="p-3.5 text-right text-slate-500 font-medium">
                       0,00 € <span className="text-[10px] text-emerald-600 font-bold">(§ 19 UStG)</span>
