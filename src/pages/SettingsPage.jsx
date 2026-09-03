@@ -194,7 +194,7 @@ export default function SettingsPage() {
           <span>Unternehmensdaten & Einstellungen</span>
         </h2>
         <p className="text-slate-500 text-sm mt-0.5">
-          Rechnungsbriefkopf, Steuernummern, Bankverbindung ve Canlı Firebase Senkronizasyonu
+          Rechnungsbriefkopf, Steuernummern, Bankverbindung und Firebase Cloud-Echtzeitsynchronisation
         </p>
       </div>
 
@@ -215,7 +215,7 @@ export default function SettingsPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-white">
-                  🔥 Firebase Canlı Senkronizasyon (Telefon ↔ PC ↔ Tablet)
+                  🔥 Firebase Cloud-Echtzeitsynchronisation (Smartphone ↔ PC ↔ Tablet)
                 </h3>
                 {isCloudConnected ? (
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
