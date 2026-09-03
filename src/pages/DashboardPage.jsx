@@ -290,30 +290,50 @@ export default function DashboardPage({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column (2 Columns Width) */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Pending Invoices Banner */}
-          {livePendingCount > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-amber-500 text-white rounded-xl shrink-0">
+          {/* Invoices Status Banner: Yellow if open invoices, Green if 0 open invoices */}
+          <div className={`rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm border transition-all ${
+            livePendingCount > 0
+              ? 'bg-amber-50 border-amber-200'
+              : 'bg-emerald-50/80 border-emerald-200'
+          }`}>
+            <div className="flex items-center space-x-3">
+              <div className={`p-2 rounded-xl shrink-0 text-white ${
+                livePendingCount > 0 ? 'bg-amber-500' : 'bg-emerald-600'
+              }`}>
+                {livePendingCount > 0 ? (
                   <Clock className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-amber-900 text-sm">
-                    {livePendingCount} offene Rechnung(en) ausstehend
-                  </h4>
-                  <p className="text-xs text-amber-700">
-                    Offener Gesamtbetrag: <strong className="font-bold">{formatCurrency(liveTotalPendingAmount)}</strong>
-                  </p>
-                </div>
+                ) : (
+                  <CheckCircle2 className="w-5 h-5" />
+                )}
               </div>
-              <button
-                onClick={() => onNavigate('invoices')}
-                className="px-3.5 py-1.5 bg-white border border-amber-300 hover:bg-amber-100 text-amber-900 rounded-xl text-xs font-bold transition self-start sm:self-auto shadow-sm"
-              >
-                Rechnungen →
-              </button>
+              <div>
+                <h4 className={`font-bold text-sm ${
+                  livePendingCount > 0 ? 'text-amber-900' : 'text-emerald-900'
+                }`}>
+                  {livePendingCount > 0
+                    ? `${livePendingCount} offene Rechnung(en) ausstehend`
+                    : '✓ Keine offenen Rechnungen'}
+                </h4>
+                <p className={`text-xs ${
+                  livePendingCount > 0 ? 'text-amber-700' : 'text-emerald-700'
+                }`}>
+                  {livePendingCount > 0
+                    ? <>Offener Gesamtbetrag: <strong className="font-bold">{formatCurrency(liveTotalPendingAmount)}</strong></>
+                    : 'Perfekt! Alle Kundenrechnungen wurden vollständig bezahlt.'}
+                </p>
+              </div>
             </div>
-          )}
+            <button
+              onClick={() => onNavigate('invoices')}
+              className={`px-3.5 py-1.5 bg-white rounded-xl text-xs font-bold transition self-start sm:self-auto shadow-sm border cursor-pointer ${
+                livePendingCount > 0
+                  ? 'border-amber-300 hover:bg-amber-100 text-amber-900'
+                  : 'border-emerald-300 hover:bg-emerald-100 text-emerald-900'
+              }`}
+            >
+              Rechnungen →
+            </button>
+          </div>
 
           {/* Recent Invoices Card */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
