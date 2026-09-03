@@ -218,14 +218,15 @@ export default function App() {
     setActiveTab('customer-detail');
   };
 
-  const handleBulkGenerateAbos = async () => {
+  const handleBulkGenerateAbos = async (targetType = 'all') => {
     try {
-      const res = await api.generateMonthlyAboInvoices();
+      const res = await api.generateMonthlyAboInvoices(targetType);
       await loadAllData();
       if (res.createdCount > 0) {
-        alert(`Erfolg: ${res.createdCount} Monatsrechnung(en) für diesen Monat wurden automatisch erstellt!`);
+        const typeLabel = targetType === 'abo' ? 'Abo-Rechnung(en)' : targetType === 'einmalig' ? 'Einmalleistungs-Rechnung(en)' : 'Rechnung(en)';
+        alert(`Erfolg: ${res.createdCount} ${typeLabel} wurden automatisch erstellt!`);
       } else {
-        alert('Alle aktiven Kunden-Abos für diesen Monat wurden bereits abgerechnet.');
+        alert('Alle ausgewählten Positionen wurden bereits abgerechnet.');
       }
     } catch (err) {
       alert('Fehler bei der automatischen Abrechnung: ' + err.message);

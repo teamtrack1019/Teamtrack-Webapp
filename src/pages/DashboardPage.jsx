@@ -114,69 +114,125 @@ export default function DashboardPage({
         />
       </div>
 
-      {/* MONTHLY ABO & EINMALIGE LEISTUNGEN BILLING PANEL & BELL NOTIFICATION */}
-      {(() => {
-        const unbilledAbos = safeStats.unbilledAbosCount || 0;
-        const unbilledEinmalige = safeStats.unbilledEinmaligeCount || 0;
-        const hasUnbilled = unbilledAbos > 0 || unbilledEinmalige > 0;
-        const totalUnbilled = unbilledAbos + unbilledEinmalige;
-
-        return (
-          <div className={`rounded-3xl p-5 md:p-6 border shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-5 transition-all ${
-            hasUnbilled
-              ? 'bg-gradient-to-r from-amber-50 via-sky-50 to-indigo-50 border-amber-300/80'
-              : 'bg-gradient-to-r from-emerald-50/70 via-sky-50/50 to-slate-50 border-emerald-200/80'
-          }`}>
-            <div className="flex items-start space-x-3.5">
-              <div className={`p-3 rounded-2xl shrink-0 shadow-md ${
-                hasUnbilled 
-                  ? 'bg-amber-500 text-white shadow-amber-500/30' 
-                  : 'bg-emerald-600 text-white shadow-emerald-600/20'
-              }`}>
-                {hasUnbilled ? (
-                  <Bell className="w-6 h-6 animate-bounce" />
-                ) : (
-                  <CheckCircle2 className="w-6 h-6" />
-                )}
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
-                    hasUnbilled
-                      ? 'bg-amber-100 text-amber-800 border-amber-300'
-                      : 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                  }`}>
-                    {hasUnbilled ? '🔔 Abrechnung Fällig' : '✓ Abrechnungen Aktuell'}
-                  </span>
-                  <span className="text-xs text-slate-500 font-semibold">
-                    {currentMonthName} {currentYear}
-                  </span>
+      {/* SEPARATE NOTIFICATION PANELS: 1 FOR ABOS, 1 FOR EINMALIGE LEISTUNGEN */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* PANEL 1: MONATLICHE ABONNEMENTS */}
+        {(() => {
+          const unbilledAbos = safeStats.unbilledAbosCount || 0;
+          return (
+            <div className={`rounded-3xl p-5 border shadow-sm flex flex-col justify-between gap-4 transition-all ${
+              unbilledAbos > 0
+                ? 'bg-gradient-to-br from-amber-50 via-sky-50/50 to-indigo-50 border-amber-300'
+                : 'bg-gradient-to-br from-slate-50 via-sky-50/30 to-emerald-50/30 border-slate-200'
+            }`}>
+              <div className="flex items-start space-x-3.5">
+                <div className={`p-3 rounded-2xl shrink-0 shadow-md ${
+                  unbilledAbos > 0 
+                    ? 'bg-amber-500 text-white shadow-amber-500/30' 
+                    : 'bg-sky-600 text-white shadow-sky-600/20'
+                }`}>
+                  {unbilledAbos > 0 ? (
+                    <Bell className="w-5 h-5 animate-bounce" />
+                  ) : (
+                    <Repeat className="w-5 h-5" />
+                  )}
                 </div>
-                <h4 className="font-black text-slate-900 text-base md:text-lg mt-1">
-                  {hasUnbilled
-                    ? `${totalUnbilled} offene Leistung(en) / Abo(s) noch nicht abgerechnet`
-                    : `Alle aktiven Abos & erledigten Leistungen sind vollständig abgerechnet`}
-                </h4>
-                <p className="text-xs text-slate-600 mt-0.5 leading-relaxed max-w-2xl">
-                  {hasUnbilled
-                    ? `${unbilledAbos} Abo(s) und ${unbilledEinmalige} Einmalleistung(en) warten auf Rechnungsstellung. Sie können jetzt mit 1 Klick automatisch abgerechnet werden.`
-                    : 'Super! Für alle laufenden Verträge und erledigten Einmalleistungen wurden bereits die Rechnungen gestellt.'}
-                </p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+                      unbilledAbos > 0
+                        ? 'bg-amber-100 text-amber-800 border-amber-300'
+                        : 'bg-sky-100 text-sky-800 border-sky-300'
+                    }`}>
+                      {unbilledAbos > 0 ? '🔔 Abo-Abrechnung fällig' : '✓ Abos aktuell'}
+                    </span>
+                    <span className="text-[11px] text-slate-500 font-semibold truncate">
+                      {currentMonthName} {currentYear}
+                    </span>
+                  </div>
+                  <h4 className="font-black text-slate-900 text-base mt-1 leading-snug">
+                    {unbilledAbos > 0
+                      ? `${unbilledAbos} aktive(s) Kunden-Abo(s) noch nicht abgerechnet`
+                      : `Alle aktiven Abos (${safeStats.activeAbosCount || 0}) für diesen Monat abgerechnet`}
+                  </h4>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    {unbilledAbos > 0
+                      ? 'Monatliche Abonnements laufen weiter. Sie können die fälligen Monatsrechnungen jetzt mit 1 Klick erstellen.'
+                      : 'Super! Für alle laufenden Verträge wurden in diesem Monat bereits die Rechnungen gestellt.'}
+                  </p>
+                </div>
               </div>
-            </div>
 
-            {hasUnbilled && onBulkGenerateAbos && (
-              <button
-                onClick={onBulkGenerateAbos}
-                className="px-5 py-3 bg-sky-600 hover:bg-sky-700 text-white rounded-2xl text-xs font-bold transition shadow-md shadow-sky-600/20 flex items-center justify-center gap-2 shrink-0 cursor-pointer self-start lg:self-auto"
-              >
-                <Sparkles className="w-4 h-4 text-sky-200" />
-                <span>⚡ Fällige Leistungen & Abos automatisch abrechnen</span>
-              </button>
-            )}
-          </div>
-        );
-      })()}
+              {unbilledAbos > 0 && onBulkGenerateAbos && (
+                <button
+                  onClick={() => onBulkGenerateAbos('abo')}
+                  className="w-full sm:w-auto self-end px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-sky-600/20 flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-sky-200" />
+                  <span>⚡ Fällige Abos abrechnen</span>
+                </button>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* PANEL 2: EINMALIGE LEISTUNGEN */}
+        {(() => {
+          const unbilledEinmalige = safeStats.unbilledEinmaligeCount || 0;
+          return (
+            <div className={`rounded-3xl p-5 border shadow-sm flex flex-col justify-between gap-4 transition-all ${
+              unbilledEinmalige > 0
+                ? 'bg-gradient-to-br from-emerald-50 via-teal-50/50 to-amber-50/50 border-emerald-300'
+                : 'bg-gradient-to-br from-slate-50 via-emerald-50/20 to-sky-50/20 border-slate-200'
+            }`}>
+              <div className="flex items-start space-x-3.5">
+                <div className={`p-3 rounded-2xl shrink-0 shadow-md ${
+                  unbilledEinmalige > 0 
+                    ? 'bg-emerald-600 text-white shadow-emerald-600/30' 
+                    : 'bg-emerald-700 text-white shadow-emerald-700/20'
+                }`}>
+                  {unbilledEinmalige > 0 ? (
+                    <Zap className="w-5 h-5 text-yellow-300" />
+                  ) : (
+                    <CheckCircle2 className="w-5 h-5" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+                      unbilledEinmalige > 0
+                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                        : 'bg-slate-100 text-slate-700 border-slate-300'
+                    }`}>
+                      {unbilledEinmalige > 0 ? '🔔 Einmalleistungen fällig' : '✓ Leistungen aktuell'}
+                    </span>
+                  </div>
+                  <h4 className="font-black text-slate-900 text-base mt-1 leading-snug">
+                    {unbilledEinmalige > 0
+                      ? `${unbilledEinmalige} erledigte Einmalleistung(en) noch nicht abgerechnet`
+                      : 'Alle erledigten Einmalleistungen sind abgerechnet'}
+                  </h4>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    {unbilledEinmalige > 0
+                      ? 'Abgeschlossene Digitalisierungs- & Setup-Projekte warten auf Rechnungsstellung.'
+                      : 'Klasse! Es gibt derzeit keine offenen Einmalleistungen ohne gestellte Rechnung.'}
+                  </p>
+                </div>
+              </div>
+
+              {unbilledEinmalige > 0 && onBulkGenerateAbos && (
+                <button
+                  onClick={() => onBulkGenerateAbos('einmalig')}
+                  className="w-full sm:w-auto self-end px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
+                  <span>⚡ Einmalleistungen sofort abrechnen</span>
+                </button>
+              )}
+            </div>
+          );
+        })()}
+      </div>
 
       {/* Main Grid: Left Side (Invoices) vs Right Side (Finanzamt & Customers) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

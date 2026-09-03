@@ -847,8 +847,9 @@ async function handleLocalRequest(endpoint, options = {}) {
     }
   }
 
-  // BULK GENERATE MONTHLY ABO INVOICES
+  // BULK GENERATE INVOICES (FOR ABOS, EINMALIGE, OR ALL)
   if (endpoint === '/invoices/generate-monthly-abos' && method === 'POST') {
+    const targetType = body?.type || 'all';
     const currentMonthPrefix = new Date().toISOString().slice(0, 7);
     const dateStr = new Date().toISOString().split('T')[0];
     const dueDateStr = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -857,7 +858,9 @@ async function handleLocalRequest(endpoint, options = {}) {
     const currentYear = new Date().getFullYear();
 
     const createdInvoices = [];
-    const activeAbos = (db.services || []).filter(s => s.type === 'abo' && s.status === 'active');
+    const activeAbos = targetType !== 'einmalig' 
+      ? (db.services || []).filter(s => s.type === 'abo' && s.status === 'active')
+      : [];
 
     let maxNum = 0;
     (db.invoices || []).forEach(inv => {
@@ -923,7 +926,9 @@ async function handleLocalRequest(endpoint, options = {}) {
     });
 
     // Also generate invoices for completed unbilled once-services
-    const completedEinmalige = (db.services || []).filter(s => s.type === 'einmalig' && (s.status === 'completed' || s.status === 'erledigt' || s.status === 'active'));
+    const completedEinmalige = targetType !== 'abo'
+      ? (db.services || []).filter(s => s.type === 'einmalig' && (s.status === 'completed' || s.status === 'erledigt' || s.status === 'active'))
+      : [];
     completedEinmalige.forEach(srv => {
       const customer = db.customers.find(c => c.id === srv.customerId);
       if (!customer) return;
@@ -1303,7 +1308,7 @@ export const api = {
   createInvoice: (data) => request('/invoices', { method: 'POST', body: JSON.stringify(data) }),
   updateInvoice: (id, data) => request(`/invoices/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteInvoice: (id) => request(`/invoices/${id}`, { method: 'DELETE' }),
-  generateMonthlyAboInvoices: () => request('/invoices/generate-monthly-abos', { method: 'POST' }),
+  generateMonthlyAboInvoices: (type = 'all') => request('/invoices/generate-monthly-abos', { method: 'POST', body: JSON.stringify({ type }) }),
   getExpenses: () => request('/expenses'),
   createExpense: (data) => request('/expenses', { method: 'POST', body: JSON.stringify(data) }),
   updateExpense: (id, data) => request(`/expenses/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
