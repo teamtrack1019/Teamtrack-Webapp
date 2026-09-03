@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatCurrency, formatDate } from './formatters';
+import { TEAMTRACK_LOGO_BASE64 } from '../assets/logoBase64';
 
 export function createInvoiceDoc(invoice, companySettings = {}) {
   const doc = new jsPDF({
@@ -21,13 +22,17 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
   }, 0);
   const totalAmount = calculatedItemsTotal > 0 ? calculatedItemsTotal : Number(invoice.netAmount || invoice.grossAmount || 0);
 
-  // 1. TOP HEADER (Spacious & Clean)
-  doc.setFillColor(2, 132, 199);
-  doc.roundedRect(margin, 20, 11, 11, 2.5, 2.5, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('TT', margin + 2.7, 27.5);
+  // 1. TOP HEADER (Spacious & Clean with Official Logo)
+  try {
+    doc.addImage(TEAMTRACK_LOGO_BASE64, 'JPEG', margin, 19, 13, 13);
+  } catch (err) {
+    doc.setFillColor(2, 132, 199);
+    doc.roundedRect(margin, 19, 13, 13, 2.5, 2.5, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TT', margin + 3.5, 27);
+  }
 
   doc.setTextColor(15, 23, 42);
   doc.setFontSize(16);
@@ -37,12 +42,12 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
     ? `${companySettings.zipCode} ${companySettings.city}`
     : (companySettings.address?.split(',')[1]?.trim() || '97236 Randersacker');
 
-  doc.text(companySettings.companyName || 'TeamTrack-Software', margin + 14, 26);
+  doc.text(companySettings.companyName || 'TeamTrack-Software', margin + 16, 25.5);
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(2, 132, 199);
-  doc.text(companySettings.tagline || 'Papierkram zu digital & Moderne Web-Anwendungen', margin + 14, 31.5);
+  doc.text(companySettings.tagline || 'Papierkram zu digital & Moderne Web-Anwendungen', margin + 16, 31);
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');

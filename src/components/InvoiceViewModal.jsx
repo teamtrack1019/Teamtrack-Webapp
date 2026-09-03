@@ -155,9 +155,13 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
               <div className="flex justify-between items-start border-b border-slate-200 pb-5">
                 <div>
                   {/* Logo / Company Name */}
-                  <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                    <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-sky-600 text-white flex items-center justify-center text-xs sm:text-sm font-black">TT</span>
-                    {companySettings.companyName || 'TeamTrack Digital Solutions'}
+                  <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                    <img 
+                      src="/logo.jpg" 
+                      alt="Logo" 
+                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg object-cover border border-slate-200 shadow-sm shrink-0" 
+                    />
+                    <span>{companySettings.companyName || 'TeamTrack-Software'}</span>
                   </div>
                   <p className="text-xs text-sky-700 font-bold mt-1">
                     {companySettings.tagline || 'Papierkram zu digital & Moderne Web-Anwendungen'}
