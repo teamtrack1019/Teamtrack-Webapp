@@ -32,7 +32,12 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
   doc.setTextColor(15, 23, 42);
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text(companySettings.companyName || 'TeamTrack Digital Solutions', margin + 14, 26);
+  const streetLine = companySettings.street || companySettings.address?.split(',')[0] || 'Balthasar-Neumann-Str. 38';
+  const cityLine = (companySettings.zipCode && companySettings.city)
+    ? `${companySettings.zipCode} ${companySettings.city}`
+    : (companySettings.address?.split(',')[1]?.trim() || '97236 Randersacker');
+
+  doc.text(companySettings.companyName || 'TeamTrack-Software', margin + 14, 26);
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
@@ -43,10 +48,10 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 116, 139);
   let contactY = 38;
-  if (companySettings.address) {
-    doc.text(companySettings.address, margin, contactY);
-    contactY += 4.5;
-  }
+  doc.text(streetLine, margin, contactY);
+  contactY += 4.5;
+  doc.text(cityLine, margin, contactY);
+  contactY += 4.5;
   const phoneEmail = `Tel: ${companySettings.phone || ''} | E-Mail: ${companySettings.email || ''}`;
   doc.text(phoneEmail, margin, contactY);
   contactY += 4.5;
@@ -229,10 +234,11 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
 
   // Column 1: Company Info
   doc.setFont('helvetica', 'bold');
-  doc.text(companySettings.companyName || 'TeamTrack', margin, footerY);
+  doc.text(companySettings.companyName || 'TeamTrack-Software', margin, footerY);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Inhaber: ${companySettings.ownerName || 'Geschäftsinhaber'}`, margin, footerY + 3.8);
-  doc.text(companySettings.address || '', margin, footerY + 7.6);
+  doc.text(`Inhaber: ${companySettings.ownerName || 'Huriye Ünalsoy'}`, margin, footerY + 3.8);
+  doc.text(streetLine, margin, footerY + 7.6);
+  doc.text(cityLine, margin, footerY + 11.4);
 
   // Column 2: Bank Info
   const col2X = 85;

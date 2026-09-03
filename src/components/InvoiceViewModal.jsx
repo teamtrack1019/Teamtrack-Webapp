@@ -48,6 +48,11 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
   const isKleinunternehmer = companySettings.isKleinunternehmer !== false;
   const kleinunternehmerText = companySettings.kleinunternehmerText || 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).';
 
+  const streetLine = companySettings.street || companySettings.address?.split(',')[0] || 'Balthasar-Neumann-Str. 38';
+  const cityLine = (companySettings.zipCode && companySettings.city)
+    ? `${companySettings.zipCode} ${companySettings.city}`
+    : (companySettings.address?.split(',')[1]?.trim() || '97236 Randersacker');
+
   // Calculate items sum strictly
   const calculatedItemsTotal = (invoice.items || []).reduce((sum, item) => {
     return sum + ((Number(item.unitPrice) || 0) * (Number(item.quantity) || 1));
