@@ -259,9 +259,17 @@ export default function InvoiceModal({
     }
   };
 
+  const handleClose = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    onClose();
+  };
+
   return (
     <div 
-      onClick={onClose}
+      onClick={handleClose}
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-fadeIn"
     >
       <div 
@@ -284,8 +292,9 @@ export default function InvoiceModal({
             </div>
           </div>
           <button
-            onClick={onClose}
-            className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10 transition"
+            type="button"
+            onClick={handleClose}
+            className="p-2 text-white hover:text-white rounded-xl bg-white/10 hover:bg-white/20 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -600,7 +609,7 @@ export default function InvoiceModal({
           <div className="pt-3 border-t border-slate-200 flex items-center justify-end space-x-3">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 py-2 text-xs sm:text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl font-medium transition cursor-pointer"
             >
               Abbrechen
