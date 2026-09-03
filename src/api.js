@@ -586,7 +586,11 @@ async function handleLocalRequest(endpoint, options = {}) {
       const customer = db.customers.find(c => c.id === abo.customerId);
       const alreadyInvoiced = db.invoices.some(inv => 
         inv.customerId === abo.customerId &&
-        inv.date && inv.date.startsWith(currentMonthPrefix)
+        inv.date && inv.date.startsWith(currentMonthPrefix) &&
+        (inv.items || []).some(item => 
+          item.description?.toLowerCase().includes(abo.title?.toLowerCase()) ||
+          abo.title?.toLowerCase().includes(item.description?.toLowerCase())
+        )
       );
       if (!alreadyInvoiced && customer) {
         unbilledAbos.push({
@@ -596,11 +600,37 @@ async function handleLocalRequest(endpoint, options = {}) {
       }
     });
 
+    // Check completed one-time services that have not been invoiced yet
+    const unbilledEinmalige = [];
+    const completedEinmalige = (db.services || []).filter(s => s.type === 'einmalig' && (s.status === 'completed' || s.status === 'erledigt' || s.status === 'active'));
+    completedEinmalige.forEach(srv => {
+      const customer = db.customers.find(c => c.id === srv.customerId);
+      const alreadyInvoiced = db.invoices.some(inv => 
+        inv.customerId === srv.customerId &&
+        (inv.items || []).some(item => 
+          item.description?.toLowerCase().includes(srv.title?.toLowerCase()) ||
+          srv.title?.toLowerCase().includes(item.description?.toLowerCase()) ||
+          Number(item.unitPrice) === Number(srv.price)
+        )
+      );
+      if (!alreadyInvoiced && customer) {
+        unbilledEinmalige.push({
+          service: srv,
+          customer
+        });
+      }
+    });
+
+    const totalUnbilledJobsCount = unbilledAbos.length + unbilledEinmalige.length;
+
     return {
       mrr,
       activeAbosCount: activeAbos.length,
       unbilledAbosCount: unbilledAbos.length,
       unbilledAbos,
+      unbilledEinmaligeCount: unbilledEinmalige.length,
+      unbilledEinmalige,
+      totalUnbilledJobsCount,
       totalPaidRevenue,
       totalGrossRevenue,
       totalPendingAmount,
@@ -864,6 +894,7 @@ async function handleLocalRequest(endpoint, options = {}) {
           customerTaxId: customer.taxNumber || '',
           customerEmail: customer.email || '',
           date: dateStr,
+          serviceDate: abo.startDate?.split('T')[0] || dateStr,
           dueDate: dueDateStr,
           taxRate: 0,
           isKleinunternehmer: true,
@@ -875,6 +906,64 @@ async function handleLocalRequest(endpoint, options = {}) {
             {
               id: String(Date.now()),
               description: `${abo.title} - Monatliche Betreuung & Cloud-Service (${currentMonthName} ${currentYear})`,
+              quantity: 1,
+              unitPrice: price,
+              taxRate: 0
+            }
+          ],
+          netAmount: price,
+          taxAmount: 0,
+          grossAmount: price,
+          createdAt: new Date().toISOString()
+        };
+
+        db.invoices.push(newInv);
+        createdInvoices.push(newInv);
+      }
+    });
+
+    // Also generate invoices for completed unbilled once-services
+    const completedEinmalige = (db.services || []).filter(s => s.type === 'einmalig' && (s.status === 'completed' || s.status === 'erledigt' || s.status === 'active'));
+    completedEinmalige.forEach(srv => {
+      const customer = db.customers.find(c => c.id === srv.customerId);
+      if (!customer) return;
+
+      const alreadyInvoiced = db.invoices.some(inv => 
+        inv.customerId === srv.customerId &&
+        (inv.items || []).some(item => 
+          item.description?.toLowerCase().includes(srv.title?.toLowerCase()) ||
+          srv.title?.toLowerCase().includes(item.description?.toLowerCase()) ||
+          Number(item.unitPrice) === Number(srv.price)
+        )
+      );
+
+      if (!alreadyInvoiced) {
+        maxNum += 1;
+        const invNum = `RE-${currentYear}-${String(maxNum).padStart(4, '0')}`;
+        const price = Number(srv.price || 0);
+        const srvDate = srv.startDate?.split('T')[0] || srv.createdAt?.split('T')[0] || dateStr;
+
+        const newInv = {
+          id: `inv-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+          invoiceNumber: invNum,
+          customerId: customer.id,
+          customerName: customer.companyName,
+          customerAddress: customer.address || '',
+          customerTaxId: customer.taxNumber || '',
+          customerEmail: customer.email || '',
+          date: dateStr,
+          serviceDate: srvDate,
+          dueDate: dueDateStr,
+          taxRate: 0,
+          isKleinunternehmer: true,
+          status: 'sent',
+          paidAt: '',
+          notes: 'Vielen Dank für Ihren Auftrag. Wir freuen uns auf die weitere Zusammenarbeit!',
+          paymentTerms: 'Zahlbar innerhalb von 14 Tagen ohne Abzug.',
+          items: [
+            {
+              id: String(Date.now()),
+              description: `${srv.title} (Einmalig)`,
               quantity: 1,
               unitPrice: price,
               taxRate: 0
