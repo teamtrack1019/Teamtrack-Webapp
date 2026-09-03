@@ -310,6 +310,29 @@ function getLocalData() {
       if (parsed.companySettings) {
         parsed.companySettings.isKleinunternehmer = true;
         parsed.companySettings.kleinunternehmerText = 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).';
+        
+        // Auto-upgrade corporate identity if still on old tagline/owner
+        if (!parsed.companySettings.tagline || parsed.companySettings.tagline.includes('Papierkram')) {
+          parsed.companySettings.tagline = 'Softwareentwicklung & IT-Beratung';
+        }
+        if (!parsed.companySettings.ownerName || parsed.companySettings.ownerName === 'Geschäftsinhaber' || parsed.companySettings.ownerName.includes('Hakan')) {
+          parsed.companySettings.ownerName = 'Huriye Ünalsoy';
+        }
+        if (!parsed.companySettings.companyName || parsed.companySettings.companyName === 'TeamTrack Digital Solutions') {
+          parsed.companySettings.companyName = 'TeamTrack-Software';
+        }
+        if (!parsed.companySettings.street) {
+          parsed.companySettings.street = 'Balthasar-Neumann-Str. 38';
+        }
+        if (!parsed.companySettings.zipCode) {
+          parsed.companySettings.zipCode = '97236';
+        }
+        if (!parsed.companySettings.city) {
+          parsed.companySettings.city = 'Randersacker';
+        }
+        if (!parsed.companySettings.website || parsed.companySettings.website.includes('teamtrack-digital.de')) {
+          parsed.companySettings.website = 'https://teamtrack-webapp.vercel.app';
+        }
       }
       return parsed;
     }
