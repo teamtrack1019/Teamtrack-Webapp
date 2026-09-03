@@ -335,15 +335,42 @@ function getLocalData() {
         }
       }
 
-      // Auto-migrate invoices to ensure Rechnungsdatum is today and Liefer-/Leistungsdatum is service start date
-      const todayStr = new Date().toISOString().split('T')[0];
+      // Auto-migrate invoices: align exact Liefer-/Leistungsdatum with corresponding service and keep dueDate in sync
       (parsed.invoices || []).forEach(inv => {
-        const matchedSrv = (parsed.services || []).find(s => s.customerId === inv.customerId);
-        if (!inv.serviceDate) {
-          inv.serviceDate = matchedSrv?.startDate || matchedSrv?.createdAt?.split('T')[0] || '2026-08-01';
+        const itemDesc = (inv.items?.[0]?.description || '').toLowerCase();
+        const matchedSrv = (parsed.services || []).find(s => {
+          if (s.customerId !== inv.customerId) return false;
+          const sTitle = (s.title || '').toLowerCase();
+          return itemDesc.includes(sTitle) || sTitle.includes(itemDesc.split(' ')[0]);
+        }) || (parsed.services || []).find(s => s.customerId === inv.customerId);
+
+        if (matchedSrv) {
+          inv.serviceDate = matchedSrv.startDate?.split('T')[0] || matchedSrv.createdAt?.split('T')[0] || inv.serviceDate || inv.date;
+        } else if (!inv.serviceDate) {
+          inv.serviceDate = inv.date;
         }
-        if (inv.date && inv.date < '2026-09-01') {
-          inv.date = todayStr;
+
+        // Restore exact historic dates for sample seed invoices
+        if (inv.id === 'inv-1' || inv.invoiceNumber === 'RE-2026-0001') {
+          inv.date = '2026-08-05';
+          inv.serviceDate = '2026-08-05';
+          inv.dueDate = '2026-08-19';
+          inv.paidAt = '2026-08-14';
+        } else if (inv.id === 'inv-2' || inv.invoiceNumber === 'RE-2026-0002') {
+          inv.date = '2026-08-31';
+          inv.serviceDate = '2026-08-01';
+          inv.dueDate = '2026-09-14';
+        } else if (inv.id === 'inv-3' || inv.invoiceNumber === 'RE-2026-0003') {
+          inv.date = '2026-08-25';
+          inv.serviceDate = '2026-08-15';
+          inv.dueDate = '2026-09-08';
+        }
+
+        // Keep dueDate strictly valid (+14 days from invoice date if missing or before invoice date)
+        if (inv.date && (!inv.dueDate || inv.dueDate < inv.date)) {
+          const d = new Date(inv.date);
+          d.setDate(d.getDate() + 14);
+          inv.dueDate = d.toISOString().split('T')[0];
         }
       });
 
@@ -935,10 +962,31 @@ async function handleLocalRequest(endpoint, options = {}) {
         ? generatedNumber 
         : body.invoiceNumber;
 
+      const invDate = body.date || new Date().toISOString().split('T')[0];
+      let invServiceDate = body.serviceDate;
+      if (!invServiceDate) {
+        const itemDesc = (body.items?.[0]?.description || '').toLowerCase();
+        const matchedSrv = (db.services || []).find(s => {
+          if (s.customerId !== body.customerId) return false;
+          const sTitle = (s.title || '').toLowerCase();
+          return itemDesc.includes(sTitle) || sTitle.includes(itemDesc.split(' ')[0]);
+        }) || (db.services || []).find(s => s.customerId === body.customerId);
+        invServiceDate = matchedSrv?.startDate?.split('T')[0] || matchedSrv?.createdAt?.split('T')[0] || invDate;
+      }
+      let invDueDate = body.dueDate;
+      if (!invDueDate || invDueDate < invDate) {
+        const d = new Date(invDate);
+        d.setDate(d.getDate() + 14);
+        invDueDate = d.toISOString().split('T')[0];
+      }
+
       const newInv = {
         ...body,
         id: `inv-${Date.now()}`,
         invoiceNumber: finalInvNumber,
+        date: invDate,
+        serviceDate: invServiceDate,
+        dueDate: invDueDate,
         isKleinunternehmer: true,
         taxRate: 0,
         taxAmount: 0,

@@ -143,19 +143,33 @@ export default function InvoiceModal({
     }
   }, [invoice, customers, preselectedCustomerId, prefilledItem, isOpen]);
 
-  if (!isOpen) return null;
-
   const handleCustomerChange = (customerId) => {
     const selected = customers.find(c => c.id === customerId);
     if (selected) {
-      setFormData({
-        ...formData,
+      setFormData(prev => ({
+        ...prev,
         customerId: selected.id,
         customerName: selected.companyName,
         customerAddress: selected.address,
         customerTaxId: selected.taxNumber,
         customerEmail: selected.email
-      });
+      }));
+    }
+  };
+
+  const handleDateChange = (newDate) => {
+    if (!newDate) return;
+    try {
+      const d = new Date(newDate);
+      d.setDate(d.getDate() + 14);
+      const newDueDate = d.toISOString().split('T')[0];
+      setFormData(prev => ({
+        ...prev,
+        date: newDate,
+        dueDate: newDueDate
+      }));
+    } catch (e) {
+      setFormData(prev => ({ ...prev, date: newDate }));
     }
   };
 
@@ -292,7 +306,7 @@ export default function InvoiceModal({
                 type="date"
                 required
                 value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                onChange={(e) => handleDateChange(e.target.value)}
                 className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"
               />
             </div>
