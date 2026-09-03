@@ -445,23 +445,21 @@ async function syncWithFirebaseOnce() {
   return null;
 }
 
-function pushToFirebase(localDb) {
+async function pushToFirebase(localDb) {
   const db = getFirebaseDb();
   if (!db) return;
 
   isPushingUpdate = true;
   try {
     const docRef = doc(db, 'teamtrack_workspaces', 'main_workspace');
-    setDoc(docRef, {
+    await setDoc(docRef, {
       data: localDb,
       updatedAt: new Date().toISOString()
-    }).catch((err) => {
-      console.warn('Firebase push update error:', err);
-    }).finally(() => {
-      setTimeout(() => { isPushingUpdate = false; }, 300);
     });
-  } catch (e) {
-    isPushingUpdate = false;
+  } catch (err) {
+    console.warn('Firebase push update error:', err);
+  } finally {
+    setTimeout(() => { isPushingUpdate = false; }, 800);
   }
 }
 

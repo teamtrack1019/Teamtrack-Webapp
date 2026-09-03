@@ -159,7 +159,8 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
                   </p>
                   
                   <div className="mt-2 text-xs text-slate-500 space-y-0.5">
-                    <div>{companySettings.address}</div>
+                    <div>{streetLine}</div>
+                    <div>{cityLine}</div>
                     <div>Tel: {companySettings.phone} | E-Mail: {companySettings.email}</div>
                     {companySettings.website && <div>Web: {companySettings.website}</div>}
                   </div>
@@ -176,7 +177,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
 
               {/* Sender line for window envelope (DIN 5008) */}
               <div className="pt-3 pb-2 text-[10px] text-slate-400 border-b border-slate-100 uppercase tracking-wider font-semibold">
-                {companySettings.companyName} • {companySettings.address}
+                {companySettings.companyName} • {streetLine} • {cityLine}
               </div>
 
               {/* Customer Address & Invoice Meta Grid */}
@@ -283,7 +284,8 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
               <div>
                 <div className="font-bold text-slate-700">{companySettings.companyName}</div>
                 <div>Inhaber: {companySettings.ownerName}</div>
-                <div>{companySettings.address}</div>
+                <div>{streetLine}</div>
+                <div>{cityLine}</div>
               </div>
 
               <div>

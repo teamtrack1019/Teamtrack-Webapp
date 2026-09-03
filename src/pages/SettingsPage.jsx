@@ -63,7 +63,27 @@ export default function SettingsPage() {
     async function load() {
       try {
         const data = await api.getSettings();
-        setSettings(data);
+        let street = data.street || '';
+        let zipCode = data.zipCode || '';
+        let city = data.city || '';
+        if (!street && data.address) {
+          const parts = data.address.split(',');
+          street = parts[0]?.trim() || '';
+          const secondPart = parts[1]?.trim() || '';
+          const zipMatch = secondPart.match(/^(\d{5})\s*(.*)$/);
+          if (zipMatch) {
+            zipCode = zipMatch[1];
+            city = zipMatch[2];
+          } else {
+            city = secondPart;
+          }
+        }
+        setSettings({
+          ...data,
+          street: street || 'Balthasar-Neumann-Str. 38',
+          zipCode: zipCode || '97236',
+          city: city || 'Randersacker'
+        });
 
         // Load Firebase Config
         const cfg = getFirebaseConfig();
@@ -83,8 +103,10 @@ export default function SettingsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const fullAddress = `${settings.street || ''}, ${settings.zipCode || ''} ${settings.city || ''}`.replace(/^,\s*|,\s*$/g, '').trim();
       await api.updateSettings({
         ...settings,
+        address: fullAddress,
         kmRate: parseFloat(settings.kmRate) || 0.30,
         defaultTaxRate: parseFloat(settings.defaultTaxRate) || 19,
         paymentTermsDays: parseInt(settings.paymentTermsDays, 10) || 14
@@ -351,16 +373,45 @@ export default function SettingsPage() {
               />
             </div>
 
-            <div className="md:col-span-2">
+            {/* Address fields separated */}
+            <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Geschäftsanschrift (Straße, PLZ, Ort)
+                Straße & Hausnummer *
               </label>
               <input
                 type="text"
-                value={settings.address}
-                onChange={(e) => setSettings({ ...settings, address: e.target.value })}
+                placeholder="z.B. Balthasar-Neumann-Str. 38"
+                value={settings.street || ''}
+                onChange={(e) => setSettings({ ...settings, street: e.target.value })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"
               />
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  PLZ *
+                </label>
+                <input
+                  type="text"
+                  placeholder="97236"
+                  value={settings.zipCode || ''}
+                  onChange={(e) => setSettings({ ...settings, zipCode: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Ort / Stadt *
+                </label>
+                <input
+                  type="text"
+                  placeholder="Randersacker"
+                  value={settings.city || ''}
+                  onChange={(e) => setSettings({ ...settings, city: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                />
+              </div>
             </div>
 
             <div>
