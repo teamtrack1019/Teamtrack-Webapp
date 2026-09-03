@@ -22,16 +22,19 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
   }, 0);
   const totalAmount = calculatedItemsTotal > 0 ? calculatedItemsTotal : Number(invoice.netAmount || invoice.grossAmount || 0);
 
-  // 1. TOP HEADER (Spacious & Clean with Official Logo)
+  // 1. TOP HEADER (Spacious & Clean with Large Official Logo)
+  const logoSize = 24; // 24mm x 24mm prominent square logo
+  const textStartX = margin + logoSize + 4; // margin + 28mm
+
   try {
-    doc.addImage(TEAMTRACK_LOGO_BASE64, 'JPEG', margin, 19, 13, 13);
+    doc.addImage(TEAMTRACK_LOGO_BASE64, 'JPEG', margin, 17, logoSize, logoSize);
   } catch (err) {
     doc.setFillColor(2, 132, 199);
-    doc.roundedRect(margin, 19, 13, 13, 2.5, 2.5, 'F');
+    doc.roundedRect(margin, 17, logoSize, logoSize, 3, 3, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(11);
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('TT', margin + 3.5, 27);
+    doc.text('TT', margin + 7, 32);
   }
 
   doc.setTextColor(15, 23, 42);
@@ -42,26 +45,26 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
     ? `${companySettings.zipCode} ${companySettings.city}`
     : (companySettings.address?.split(',')[1]?.trim() || '97236 Randersacker');
 
-  doc.text(companySettings.companyName || 'TeamTrack-Software', margin + 16, 25.5);
+  doc.text(companySettings.companyName || 'TeamTrack-Software', textStartX, 22.5);
 
-  doc.setFontSize(9);
+  doc.setFontSize(8.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(2, 132, 199);
-  doc.text(companySettings.tagline || 'Papierkram zu digital & Moderne Web-Anwendungen', margin + 16, 31);
+  doc.text(companySettings.tagline || 'Papierkram zu digital & Moderne Web-Anwendungen', textStartX, 27.5);
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 116, 139);
-  let contactY = 38;
-  doc.text(streetLine, margin, contactY);
-  contactY += 4.5;
-  doc.text(cityLine, margin, contactY);
-  contactY += 4.5;
+  let contactY = 32.5;
+  doc.text(streetLine, textStartX, contactY);
+  contactY += 4;
+  doc.text(cityLine, textStartX, contactY);
+  contactY += 4;
   const phoneEmail = `Tel: ${companySettings.phone || ''} | E-Mail: ${companySettings.email || ''}`;
-  doc.text(phoneEmail, margin, contactY);
-  contactY += 4.5;
+  doc.text(phoneEmail, textStartX, contactY);
   if (companySettings.website) {
-    doc.text(`Web: ${companySettings.website}`, margin, contactY);
+    contactY += 4;
+    doc.text(`Web: ${companySettings.website}`, textStartX, contactY);
   }
 
   // Header Right: RECHNUNG & Number (Clean, No BEZAHLT stamp)

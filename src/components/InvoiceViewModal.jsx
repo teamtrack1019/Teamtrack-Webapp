@@ -153,27 +153,28 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
             <div>
               {/* Header Row: Company Sender & Meta */}
               <div className="flex justify-between items-start border-b border-slate-200 pb-5">
-                <div>
-                  {/* Logo / Company Name */}
-                  <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                  <div className="flex items-start gap-4">
                     <img 
                       src="/logo.jpg" 
-                      alt="Logo" 
-                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg object-cover border border-slate-200 shadow-sm shrink-0" 
+                      alt="TeamTrack Logo" 
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-contain border border-slate-200 shadow-sm shrink-0 bg-white p-1" 
                     />
-                    <span>{companySettings.companyName || 'TeamTrack-Software'}</span>
+                    <div>
+                      <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                        {companySettings.companyName || 'TeamTrack-Software'}
+                      </div>
+                      <p className="text-xs text-sky-700 font-bold mt-0.5">
+                        {companySettings.tagline || 'Papierkram zu digital & Moderne Web-Anwendungen'}
+                      </p>
+                      
+                      <div className="mt-2 text-xs text-slate-500 space-y-0.5">
+                        <div>{streetLine}</div>
+                        <div>{cityLine}</div>
+                        <div>Tel: {companySettings.phone} | E-Mail: {companySettings.email}</div>
+                        {companySettings.website && <div>Web: {companySettings.website}</div>}
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-xs text-sky-700 font-bold mt-1">
-                    {companySettings.tagline || 'Papierkram zu digital & Moderne Web-Anwendungen'}
-                  </p>
-                  
-                  <div className="mt-2 text-xs text-slate-500 space-y-0.5">
-                    <div>{streetLine}</div>
-                    <div>{cityLine}</div>
-                    <div>Tel: {companySettings.phone} | E-Mail: {companySettings.email}</div>
-                    {companySettings.website && <div>Web: {companySettings.website}</div>}
-                  </div>
-                </div>
 
                 {/* Invoice Big Title & Number */}
                 <div className="text-right">
