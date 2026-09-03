@@ -210,7 +210,7 @@ export default function DashboardPage({
                   <h4 className="font-black text-slate-900 text-base md:text-lg mt-1.5 leading-snug">
                     {unbilledEinmalige > 0
                       ? `${unbilledEinmalige} erledigte Einmalleistung(en) fällig`
-                      : 'Alle erledigten Einmalleistungen abgerechnet'}
+                      : `Alle erledigten Einmalleistungen (${safeStats.completedEinmaligeCount || safeStats.totalEinmaligeCount || 0}) abgerechnet`}
                   </h4>
                   <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                     {unbilledEinmalige > 0

@@ -621,7 +621,8 @@ async function handleLocalRequest(endpoint, options = {}) {
       }
     });
 
-    const totalUnbilledJobsCount = unbilledAbos.length + unbilledEinmalige.length;
+    const totalEinmaligeCount = (db.services || []).filter(s => s.type === 'einmalig').length;
+    const completedEinmaligeCount = (db.services || []).filter(s => s.type === 'einmalig' && (s.status === 'completed' || s.status === 'erledigt')).length || totalEinmaligeCount;
 
     return {
       mrr,
@@ -631,6 +632,8 @@ async function handleLocalRequest(endpoint, options = {}) {
       unbilledEinmaligeCount: unbilledEinmalige.length,
       unbilledEinmalige,
       totalUnbilledJobsCount,
+      completedEinmaligeCount,
+      totalEinmaligeCount,
       totalPaidRevenue,
       totalGrossRevenue,
       totalPendingAmount,
