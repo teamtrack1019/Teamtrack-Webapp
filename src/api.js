@@ -1150,9 +1150,15 @@ export const api = {
     return true;
   },
 
-  // Full Database Backup & Restore
+  // Full Database Backup & Restore (100% Comprehensive System Snapshot)
   exportBackup: () => {
     const db = getLocalData();
+    let cloudConfig = null;
+    try {
+      const stored = localStorage.getItem('teamtrack_firebase_config');
+      if (stored) cloudConfig = JSON.parse(stored);
+    } catch {}
+
     return {
       version: '1.0',
       appName: 'TeamTrack',
@@ -1164,6 +1170,7 @@ export const api = {
         expenses: (db.expenses || []).length,
         mileage: (db.mileage || []).length
       },
+      cloudConfig,
       data: db
     };
   },
@@ -1184,6 +1191,11 @@ export const api = {
       emailLogs: rawData.emailLogs || [],
       companySettings: rawData.companySettings || defaultData.companySettings
     };
+    if (backupObj.cloudConfig) {
+      try {
+        localStorage.setItem('teamtrack_firebase_config', JSON.stringify(backupObj.cloudConfig));
+      } catch {}
+    }
     saveLocalData(db);
     pushToFirebase(db);
     return {
