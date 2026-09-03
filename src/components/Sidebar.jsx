@@ -9,7 +9,8 @@ import {
   Settings, 
   Sparkles, 
   Layers, 
-  X 
+  X,
+  ShieldCheck 
 } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab, counts = {}, isMobileOpen, setIsMobileOpen }) {
@@ -20,6 +21,7 @@ export default function Sidebar({ activeTab, setActiveTab, counts = {}, isMobile
     { id: 'expenses', label: 'Eingehende Belege (Ausgaben)', icon: Receipt, badge: counts.expenses },
     { id: 'mileage', label: 'KM-Tracking / Fahrtenbuch', icon: Car },
     { id: 'tax-report', label: 'Finanzamt & Jahresbericht', icon: Landmark, highlight: true },
+    { id: 'backup', label: 'Backup & Sicherung', icon: ShieldCheck },
     { id: 'settings', label: 'Einstellungen', icon: Settings },
   ];
 

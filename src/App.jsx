@@ -8,6 +8,7 @@ import InvoicesPage from './pages/InvoicesPage';
 import ExpensesPage from './pages/ExpensesPage';
 import MileagePage from './pages/MileagePage';
 import TaxReportPage from './pages/TaxReportPage';
+import BackupPage from './pages/BackupPage';
 import SettingsPage from './pages/SettingsPage';
 
 // Modals
@@ -401,6 +402,16 @@ export default function App() {
 
           {activeTab === 'tax-report' && (
             <TaxReportPage />
+          )}
+
+          {activeTab === 'backup' && (
+            <BackupPage 
+              customers={customers}
+              invoices={invoices}
+              expenses={expenses}
+              mileage={mileage}
+              onReloadAllData={loadAllData}
+            />
           )}
 
           {activeTab === 'settings' && (

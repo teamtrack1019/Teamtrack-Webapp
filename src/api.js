@@ -1148,5 +1148,53 @@ export const api = {
     const db = getLocalData();
     pushToFirebase(db);
     return true;
+  },
+
+  // Full Database Backup & Restore
+  exportBackup: () => {
+    const db = getLocalData();
+    return {
+      version: '1.0',
+      appName: 'TeamTrack',
+      exportedAt: new Date().toISOString(),
+      counts: {
+        customers: (db.customers || []).length,
+        services: (db.services || []).length,
+        invoices: (db.invoices || []).length,
+        expenses: (db.expenses || []).length,
+        mileage: (db.mileage || []).length
+      },
+      data: db
+    };
+  },
+  importBackup: (backupObj) => {
+    if (!backupObj || typeof backupObj !== 'object') {
+      throw new Error('Ungültige Backup-Datei.');
+    }
+    const rawData = backupObj.data || backupObj;
+    if (!rawData.customers && !rawData.invoices && !rawData.companySettings) {
+      throw new Error('Die Datei enthält keine gültigen TeamTrack-Daten.');
+    }
+    const db = {
+      customers: rawData.customers || [],
+      services: rawData.services || [],
+      invoices: rawData.invoices || [],
+      expenses: rawData.expenses || [],
+      mileage: rawData.mileage || [],
+      emailLogs: rawData.emailLogs || [],
+      companySettings: rawData.companySettings || defaultData.companySettings
+    };
+    saveLocalData(db);
+    pushToFirebase(db);
+    return {
+      success: true,
+      counts: {
+        customers: db.customers.length,
+        services: db.services.length,
+        invoices: db.invoices.length,
+        expenses: db.expenses.length,
+        mileage: db.mileage.length
+      }
+    };
   }
 };
