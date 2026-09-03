@@ -43,9 +43,9 @@ export default function DashboardPage({
 
   const liveTotalGrossRevenue = liveTotalPaidRevenue;
 
-  const pendingInvoices = allInvoices.filter(i => i.status === 'sent' || i.status === 'draft');
+  const pendingInvoices = allInvoices.filter(i => i.status === 'sent');
   const liveTotalPendingAmount = pendingInvoices.reduce((sum, i) => sum + getInvTotal(i), 0);
-  const livePendingCount = pendingInvoices.length > 0 ? pendingInvoices.length : (safeStats.pendingInvoicesCount || 0);
+  const livePendingCount = pendingInvoices.length;
 
   const getInvoiceType = (inv) => {
     if (inv.serviceType) return inv.serviceType;

@@ -556,7 +556,7 @@ async function handleLocalRequest(endpoint, options = {}) {
     const paidInvoices = db.invoices.filter(i => i.status === 'paid');
     const totalPaidRevenue = paidInvoices.reduce((sum, i) => sum + getInvTotal(i), 0);
     const totalGrossRevenue = totalPaidRevenue;
-    const pendingInvoices = db.invoices.filter(i => i.status === 'sent' || i.status === 'draft');
+    const pendingInvoices = db.invoices.filter(i => i.status === 'sent');
     const totalPendingAmount = pendingInvoices.reduce((sum, i) => sum + getInvTotal(i), 0);
     const totalExpenses = db.expenses.reduce((sum, e) => sum + Number(e.grossAmount || e.netAmount || 0), 0);
     const totalExpensesGross = totalExpenses;
