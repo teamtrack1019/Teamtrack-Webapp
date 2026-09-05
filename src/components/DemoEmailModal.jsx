@@ -15,14 +15,27 @@ function getGreeting(contactPerson, isFormal = true) {
   return isFormal ? `Sehr geehrte(r) Frau/Herr ${trimmed},` : `Hallo Frau/Herr ${trimmed},`;
 }
 
+const COMPANY_SIGNATURE = `Mit freundlichen Grüßen
+
+TeamTrack-Software
+Softwareentwicklung & IT-Beratung
+
+Inhaberin: Huriye Ünalsoy
+Balthasar-Neumann-Str. 38
+97236 Randersacker
+
+Tel: +49 172 4690446
+E-Mail: kontakt@team-track.de
+Web: https://team-track.de`;
+
 const EMAIL_TEMPLATES = {
   digitalisierung_intro: {
     name: '1. Papierlose Prozesse & Digitalisierung',
-    subject: 'Digitale Prozessoptimierung & smarte Web-Lösungen für Ihr Unternehmen – TeamTrack',
+    subject: 'Digitale Prozessoptimierung & smarte Web-Lösungen für Ihr Unternehmen – TeamTrack-Software',
     body: (cust) => `${getGreeting(cust.contactPerson, true)}
 
 viele Unternehmen verlieren täglich wertvolle Arbeitszeit durch manuelle Papierprozesse, unübersichtliche Zeiterfassungen und aufwendige Rechnungsstellungen.
-Wir bei TeamTrack unterstützen Unternehmen dabei, ihre täglichen Arbeitsabläufe durch smarte digitale Lösungen zu vereinfachen, Bürokratie abzubauen und Kosten zu senken.
+Wir bei TeamTrack-Software unterstützen Unternehmen dabei, ihre täglichen Arbeitsabläufe durch smarte digitale Lösungen zu vereinfachen, Bürokratie abzubauen und Kosten zu senken.
 
 Unsere Kernbereiche im Überblick:
 • Papierlose Prozesse & Digitalisierung: Schluss mit Zettelwirtschaft – alle Dokumente und Abläufe zentral und digital.
@@ -34,20 +47,11 @@ Unsere Kernbereiche im Überblick:
 Bei Interesse oder Fragen stehen wir Ihnen jederzeit gerne für einen unverbindlichen Austausch zur Verfügung. Sie erreichen uns einfach per E-Mail oder telefonisch.
 Wir freuen uns auf Ihre Kontaktaufnahme.
 
-Mit freundlichen Grüßen
-
-TeamTrack
-Huriye Ünalsoy
-
-Tel: 0172 4690446
-E-Mail: kontakt@team-track.de
-Web: https://team-track.de
-Balthasar-Neumann-Str. 38
-97236 Randersacker`
+${COMPANY_SIGNATURE}`
   },
   demo_access: {
     name: '2. Live-Demo & Testzugang Einladung',
-    subject: 'Ihr persönlicher Demo-Zugang: Digitale WebApp & Zeiterfassung – TeamTrack',
+    subject: 'Ihr persönlicher Demo-Zugang: Digitale WebApp & Zeiterfassung – TeamTrack-Software',
     body: (cust) => `${getGreeting(cust.contactPerson, false)}
 
 wie besprochen habe ich für ${cust.companyName} eine Vorschau-Umgebung vorbereitet, damit Sie und Ihr Team die Vorteile direkt live testen können.
@@ -57,20 +61,11 @@ Test-Login: ${cust.email || 'demo@ihrefirma.de'}
 
 Probieren Sie gerne aus, wie schnell Aufträge, Stundenzettel und Mitarbeiterberichte erfasst werden können. Bei Fragen stehe ich Ihnen jederzeit persönlich zur Verfügung.
 
-Mit freundlichen Grüßen
-
-TeamTrack
-Huriye Ünalsoy
-
-Tel: 0172 4690446
-E-Mail: kontakt@team-track.de
-Web: https://team-track.de
-Balthasar-Neumann-Str. 38
-97236 Randersacker`
+${COMPANY_SIGNATURE}`
   },
   follow_up: {
     name: '3. Follow-Up nach Erstgespräch',
-    subject: 'Zusammenfassung unseres Gesprächs & Nächste Schritte – TeamTrack',
+    subject: 'Zusammenfassung unseres Gesprächs & Nächste Schritte – TeamTrack-Software',
     body: (cust) => `${getGreeting(cust.contactPerson, true)}
 
 vielen Dank für das aufschlussreiche Gespräch heute.
@@ -79,16 +74,7 @@ Wie besprochen können wir die Digitalisierung Ihrer Papierformulare und die Ein
 
 Ich freue mich auf Ihre Rückmeldung zur weiteren Vorgehensweise.
 
-Mit freundlichen Grüßen
-
-TeamTrack
-Huriye Ünalsoy
-
-Tel: 0172 4690446
-E-Mail: kontakt@team-track.de
-Web: https://team-track.de
-Balthasar-Neumann-Str. 38
-97236 Randersacker`
+${COMPANY_SIGNATURE}`
   }
 };
 
@@ -150,15 +136,20 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="p-5 bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600 text-white flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2.5 bg-white/10 rounded-xl backdrop-blur-md">
-              <Mail className="w-6 h-6 text-white" />
+        <div className="p-5 bg-gradient-to-r from-slate-900 via-slate-800 to-sky-950 text-white flex items-center justify-between border-b border-slate-700">
+          <div className="flex items-center space-x-3.5">
+            <div className="w-12 h-12 bg-white rounded-2xl shadow-md border border-slate-200 p-1 flex items-center justify-center shrink-0">
+              <img src="/logo.jpg" alt="TeamTrack-Software Logo" className="w-full h-full object-contain rounded-xl" />
             </div>
             <div>
-              <h3 className="text-lg font-bold">Vorstellungs-E-Mail senden</h3>
-              <p className="text-xs text-sky-100">
-                Offizielle E-Mail-Vorlage direkt über Ihr Outlook-Konto versenden
+              <div className="flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-black tracking-tight text-white">TeamTrack-Software</h3>
+                <span className="text-[10px] font-bold bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded-full border border-sky-500/30">
+                  Offizielle E-Mail
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-0.5">
+                Absenderin: <strong className="text-white">Huriye Ünalsoy</strong> • Softwareentwicklung & IT-Beratung
               </p>
             </div>
           </div>
@@ -273,10 +264,10 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
               onClick={handleOpenOutlookWeb}
               disabled={loading}
               className="px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-700/20 flex items-center justify-center space-x-1.5 transition disabled:opacity-50 cursor-pointer"
-              title="In Outlook / Hotmail Web öffnen"
+              title="Direkt im Browser über Outlook Web öffnen"
             >
               <Globe className="w-3.5 h-3.5" />
-              <span>Über Outlook Web (Hotmail) senden</span>
+              <span>Über Outlook Web senden</span>
             </button>
 
             <button
@@ -284,10 +275,10 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
               onClick={handleSendViaOutlookApp}
               disabled={loading}
               className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 flex items-center justify-center space-x-2 transition disabled:opacity-50 cursor-pointer"
-              title="In der Outlook App auf Ihrem Computer oder Tablet öffnen"
+              title="In der installierten Outlook / Mail-App öffnen"
             >
               <Send className="w-4 h-4" />
-              <span>{loading ? 'Wird geöffnet...' : 'Über Outlook App senden'}</span>
+              <span>{loading ? 'Wird geöffnet...' : 'Über Outlook / Mail-App senden'}</span>
             </button>
           </div>
         </div>
