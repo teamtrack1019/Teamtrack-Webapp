@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Send, Sparkles, CheckCircle2, X, Copy, Check, ExternalLink, Globe } from 'lucide-react';
+import { TEAMTRACK_LOGO_BASE64 } from '../assets/logoBase64';
 
 function getGreeting(contactPerson, isFormal = true) {
   if (!contactPerson || contactPerson.trim() === '') {
@@ -128,24 +129,31 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
     const fullText = `Betreff: ${subject}\n\n${body}`;
     try {
       if (navigator.clipboard && window.ClipboardItem) {
+        const formattedBodyHtml = body
+          .split('\n\n')
+          .map(para => `<p style="margin: 0 0 14px 0; line-height: 1.6;">${para.replace(/\n/g, '<br/>')}</p>`)
+          .join('');
+
         const htmlBody = `
-          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #0f172a; max-width: 650px;">
-            <table style="width: 100%; border-bottom: 2px solid #0284c7; padding-bottom: 14px; margin-bottom: 20px;">
+          <div style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.6; color: #1e293b; max-width: 650px;">
+            <table style="width: 100%; border-bottom: 2px solid #0284c7; padding-bottom: 14px; margin-bottom: 20px; font-family: Arial, Helvetica, sans-serif;">
               <tr>
                 <td style="width: 60px; vertical-align: middle;">
-                  <img src="https://team-track.de/logo.jpg" alt="TeamTrack Logo" width="52" height="52" style="border-radius: 12px; display: block;" />
+                  <img src="${TEAMTRACK_LOGO_BASE64}" alt="TeamTrack Logo" width="54" height="54" style="border-radius: 12px; display: block; border: 1px solid #e2e8f0;" />
                 </td>
                 <td style="vertical-align: middle; padding-left: 14px;">
-                  <div style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px;">
+                  <div style="font-size: 24px; font-weight: bold; letter-spacing: -0.5px; line-height: 1.1;">
                     <span style="color: #0f172a;">Team</span><span style="color: #0284c7;">Track</span>
                   </div>
-                  <div style="font-size: 11px; font-weight: 800; color: #64748b; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px;">
+                  <div style="font-size: 11px; font-weight: bold; color: #64748b; letter-spacing: 1px; text-transform: uppercase; margin-top: 4px;">
                     SOFTWAREENTWICKLUNG &amp; IT-BERATUNG
                   </div>
                 </td>
               </tr>
             </table>
-            <div style="white-space: pre-wrap; font-size: 14px; color: #1e293b;">${body}</div>
+            <div style="font-size: 14px; color: #1e293b; font-family: Arial, Helvetica, sans-serif;">
+              ${formattedBodyHtml}
+            </div>
           </div>
         `;
         const blobText = new Blob([fullText], { type: 'text/plain' });
