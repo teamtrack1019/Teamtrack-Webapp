@@ -163,13 +163,17 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
         {/* Content / Form */}
         <div className="p-6 space-y-4 overflow-y-auto flex-1">
           {/* Customer Info Card */}
-          <div className="bg-sky-50 border border-sky-100 rounded-xl p-3 flex items-center justify-between text-xs">
+          <div className="bg-sky-50 border border-sky-100 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
             <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-sky-600 mb-0.5">Kunde (Empfänger / Alıcı):</div>
               <span className="font-bold text-sky-950 text-sm">{customer.companyName}</span>
               <span className="text-sky-700 ml-2">({customer.contactPerson || 'Kein Ansprechpartner'})</span>
             </div>
-            <div className="text-sky-900 font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-sky-200">
-              {customer.email || '⚠️ Keine E-Mail hinterlegt'}
+            <div className="flex items-center gap-1.5 self-start sm:self-auto">
+              <span className="text-[11px] text-slate-500 font-bold">An (Kime):</span>
+              <div className="text-sky-900 font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-sky-200 shadow-2xs">
+                {customer.email || '⚠️ Keine E-Mail hinterlegt'}
+              </div>
             </div>
           </div>
 
