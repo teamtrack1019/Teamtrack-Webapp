@@ -136,16 +136,16 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
 
         const htmlBody = `
           <div style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; line-height: 1.6; color: #1e293b; max-width: 650px;">
-            <table style="width: 100%; border-bottom: 2px solid #0284c7; padding-bottom: 14px; margin-bottom: 20px; font-family: Arial, Helvetica, sans-serif;">
+            <table style="width: 100%; border-bottom: 2px solid #0082cb; padding-bottom: 16px; margin-bottom: 22px; font-family: Arial, Helvetica, sans-serif; border-collapse: collapse;">
               <tr>
-                <td style="width: 60px; vertical-align: middle;">
-                  <img src="${TEAMTRACK_LOGO_BASE64}" alt="TeamTrack Logo" width="54" height="54" style="border-radius: 12px; display: block; border: 1px solid #e2e8f0;" />
+                <td style="width: 64px; vertical-align: middle;">
+                  <img src="${TEAMTRACK_LOGO_BASE64}" alt="TeamTrack Logo" width="56" height="56" style="border-radius: 12px; display: block; border: 1px solid #e2e8f0;" />
                 </td>
                 <td style="vertical-align: middle; padding-left: 14px;">
-                  <div style="font-size: 24px; font-weight: bold; letter-spacing: -0.5px; line-height: 1.1;">
-                    <span style="color: #0f172a;">Team</span><span style="color: #0284c7;">Track</span>
+                  <div style="font-size: 26px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.1;">
+                    <span style="color: #000a1f; font-weight: 900;">Team</span><span style="color: #0082cb; font-weight: 900;">Track</span>
                   </div>
-                  <div style="font-size: 11px; font-weight: bold; color: #64748b; letter-spacing: 1px; text-transform: uppercase; margin-top: 4px;">
+                  <div style="font-size: 10.5px; font-weight: 800; color: #64748b; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 5px; line-height: 1;">
                     SOFTWAREENTWICKLUNG &amp; IT-BERATUNG
                   </div>
                 </td>
@@ -277,16 +277,16 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
             </div>
 
             {/* Visual Corporate Logo Header Banner (Exact match to screenshot) */}
-            <div className="bg-gradient-to-r from-slate-50 to-sky-50/50 border border-slate-200 rounded-2xl p-3.5 flex items-center gap-4 shadow-2xs">
-              <div className="w-14 h-14 bg-white rounded-2xl shadow-sm border border-slate-200 p-1 flex items-center justify-center shrink-0">
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+              <div className="w-14 h-14 bg-white rounded-2xl shadow-xs border border-slate-200 p-1 flex items-center justify-center shrink-0">
                 <img src="/logo.jpg" alt="TeamTrack Logo" className="w-full h-full object-contain rounded-xl" />
               </div>
-              <div>
-                <div className="text-2xl font-black tracking-tight flex items-baseline">
-                  <span className="text-slate-950 font-black">Team</span>
-                  <span className="text-sky-600 font-black">Track</span>
+              <div className="flex flex-col justify-center">
+                <div className="text-3xl font-black tracking-tight leading-none">
+                  <span className="text-[#000a1f]">Team</span>
+                  <span className="text-[#0082cb]">Track</span>
                 </div>
-                <div className="text-[11px] font-black uppercase tracking-wider text-slate-500 mt-0.5">
+                <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.14em] text-[#64748b] mt-1.5 leading-none">
                   SOFTWAREENTWICKLUNG &amp; IT-BERATUNG
                 </div>
               </div>
