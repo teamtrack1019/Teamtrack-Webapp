@@ -109,23 +109,7 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
     }
   };
 
-  // 2. Open directly in IONOS Webmail (kontakt@team-track.de)
-  const handleOpenIonosWebmail = async () => {
-    setLoading(true);
-    try {
-      await onEmailSent(customer.id, { subject, body, templateType: templateKey });
-      const fullText = `Betreff: ${subject}\n\n${body}`;
-      navigator.clipboard.writeText(fullText);
-      window.open('https://mail.ionos.de/', '_blank');
-      onClose();
-    } catch (err) {
-      alert('Fehler: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 3. Open directly in Outlook Web
+  // 2. Open directly in Outlook Web
   const handleOpenOutlookWeb = async () => {
     setLoading(true);
     try {
@@ -280,24 +264,24 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
             <button
               type="button"
-              onClick={handleOpenIonosWebmail}
+              onClick={handleOpenOutlookWeb}
               disabled={loading}
-              className="px-4 py-2.5 bg-blue-900 hover:bg-blue-950 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-900/20 flex items-center justify-center space-x-1.5 transition disabled:opacity-50 cursor-pointer border border-blue-800"
-              title="Direkt im Browser über IONOS Webmail (kontakt@team-track.de) öffnen"
+              className="px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-700/20 flex items-center justify-center space-x-1.5 transition disabled:opacity-50 cursor-pointer"
+              title="Direkt im Browser über Outlook Web öffnen"
             >
-              <Globe className="w-3.5 h-3.5 text-sky-300" />
-              <span>IONOS Webmail öffnen</span>
+              <Globe className="w-3.5 h-3.5" />
+              <span>Über Outlook Web senden</span>
             </button>
 
             <button
               type="button"
               onClick={handleSendViaOutlookApp}
               disabled={loading}
-              className="px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 flex items-center justify-center space-x-2 transition disabled:opacity-50 cursor-pointer"
+              className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 flex items-center justify-center space-x-2 transition disabled:opacity-50 cursor-pointer"
               title="In der installierten Outlook / Mail-App öffnen"
             >
               <Send className="w-4 h-4" />
-              <span>{loading ? 'Wird geöffnet...' : 'Outlook / Mail-App'}</span>
+              <span>{loading ? 'Wird geöffnet...' : 'Über Outlook / Mail-App senden'}</span>
             </button>
           </div>
         </div>
