@@ -20,7 +20,6 @@ const COMPANY_SIGNATURE = `Mit freundlichen Grüßen
 TeamTrack-Software
 Softwareentwicklung & IT-Beratung
 
-Inhaberin: Huriye Ünalsoy
 Balthasar-Neumann-Str. 38
 97236 Randersacker
 
@@ -149,7 +148,7 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
                 </span>
               </div>
               <p className="text-xs text-slate-300 mt-0.5">
-                Absenderin: <strong className="text-white">Huriye Ünalsoy</strong> • Softwareentwicklung & IT-Beratung
+                Softwareentwicklung & IT-Beratung • Vorstellungs- & Demo-E-Mail
               </p>
             </div>
           </div>
