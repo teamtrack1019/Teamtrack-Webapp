@@ -15,6 +15,11 @@ function getGreeting(contactPerson, isFormal = true) {
   return isFormal ? `Sehr geehrte(r) Frau/Herr ${trimmed},` : `Hallo Frau/Herr ${trimmed},`;
 }
 
+const COMPANY_HEADER = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TEAMTRACK-SOFTWARE | Softwareentwicklung & IT-Beratung
+Web: https://team-track.de  •  E-Mail: kontakt@team-track.de
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
 const COMPANY_SIGNATURE = `Mit freundlichen Grüßen
 
 TeamTrack-Software
@@ -31,7 +36,9 @@ const EMAIL_TEMPLATES = {
   digitalisierung_intro: {
     name: '1. Papierlose Prozesse & Digitalisierung',
     subject: 'Digitale Prozessoptimierung & smarte Web-Lösungen für Ihr Unternehmen – TeamTrack-Software',
-    body: (cust) => `${getGreeting(cust.contactPerson, true)}
+    body: (cust) => `${COMPANY_HEADER}
+
+${getGreeting(cust.contactPerson, true)}
 
 viele Unternehmen verlieren täglich wertvolle Arbeitszeit durch manuelle Papierprozesse, unübersichtliche Zeiterfassungen und aufwendige Rechnungsstellungen.
 Wir bei TeamTrack-Software unterstützen Unternehmen dabei, ihre täglichen Arbeitsabläufe durch smarte digitale Lösungen zu vereinfachen, Bürokratie abzubauen und Kosten zu senken.
@@ -51,7 +58,9 @@ ${COMPANY_SIGNATURE}`
   demo_access: {
     name: '2. Live-Demo & Testzugang Einladung',
     subject: 'Ihr persönlicher Demo-Zugang: Digitale WebApp & Zeiterfassung – TeamTrack-Software',
-    body: (cust) => `${getGreeting(cust.contactPerson, false)}
+    body: (cust) => `${COMPANY_HEADER}
+
+${getGreeting(cust.contactPerson, false)}
 
 wie besprochen habe ich für ${cust.companyName} eine Vorschau-Umgebung vorbereitet, damit Sie und Ihr Team die Vorteile direkt live testen können.
 
@@ -65,7 +74,9 @@ ${COMPANY_SIGNATURE}`
   follow_up: {
     name: '3. Follow-Up nach Erstgespräch',
     subject: 'Zusammenfassung unseres Gesprächs & Nächste Schritte – TeamTrack-Software',
-    body: (cust) => `${getGreeting(cust.contactPerson, true)}
+    body: (cust) => `${COMPANY_HEADER}
+
+${getGreeting(cust.contactPerson, true)}
 
 vielen Dank für das aufschlussreiche Gespräch heute.
 
