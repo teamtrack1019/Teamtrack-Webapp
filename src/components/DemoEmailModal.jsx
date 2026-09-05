@@ -15,11 +15,6 @@ function getGreeting(contactPerson, isFormal = true) {
   return isFormal ? `Sehr geehrte(r) Frau/Herr ${trimmed},` : `Hallo Frau/Herr ${trimmed},`;
 }
 
-const COMPANY_HEADER = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TEAMTRACK-SOFTWARE | Softwareentwicklung & IT-Beratung
-Web: https://team-track.de  •  E-Mail: kontakt@team-track.de
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
-
 const COMPANY_SIGNATURE = `Mit freundlichen Grüßen
 
 TeamTrack-Software
@@ -35,13 +30,11 @@ Web: https://team-track.de`;
 const EMAIL_TEMPLATES = {
   digitalisierung_intro: {
     name: '1. Papierlose Prozesse & Digitalisierung',
-    subject: 'Digitale Prozessoptimierung & smarte Web-Lösungen für Ihr Unternehmen – TeamTrack-Software',
-    body: (cust) => `${COMPANY_HEADER}
-
-${getGreeting(cust.contactPerson, true)}
+    subject: 'Digitale Prozessoptimierung & smarte Web-Lösungen für Ihr Unternehmen – TeamTrack',
+    body: (cust) => `${getGreeting(cust.contactPerson, true)}
 
 viele Unternehmen verlieren täglich wertvolle Arbeitszeit durch manuelle Papierprozesse, unübersichtliche Zeiterfassungen und aufwendige Rechnungsstellungen.
-Wir bei TeamTrack-Software unterstützen Unternehmen dabei, ihre täglichen Arbeitsabläufe durch smarte digitale Lösungen zu vereinfachen, Bürokratie abzubauen und Kosten zu senken.
+Wir bei TeamTrack unterstützen Unternehmen dabei, ihre täglichen Arbeitsabläufe durch smarte digitale Lösungen zu vereinfachen, Bürokratie abzubauen und Kosten zu senken.
 
 Unsere Kernbereiche im Überblick:
 • Papierlose Prozesse & Digitalisierung: Schluss mit Zettelwirtschaft – alle Dokumente und Abläufe zentral und digital.
@@ -57,10 +50,8 @@ ${COMPANY_SIGNATURE}`
   },
   demo_access: {
     name: '2. Live-Demo & Testzugang Einladung',
-    subject: 'Ihr persönlicher Demo-Zugang: Digitale WebApp & Zeiterfassung – TeamTrack-Software',
-    body: (cust) => `${COMPANY_HEADER}
-
-${getGreeting(cust.contactPerson, false)}
+    subject: 'Ihr persönlicher Demo-Zugang: Digitale WebApp & Zeiterfassung – TeamTrack',
+    body: (cust) => `${getGreeting(cust.contactPerson, false)}
 
 wie besprochen habe ich für ${cust.companyName} eine Vorschau-Umgebung vorbereitet, damit Sie und Ihr Team die Vorteile direkt live testen können.
 
@@ -73,10 +64,8 @@ ${COMPANY_SIGNATURE}`
   },
   follow_up: {
     name: '3. Follow-Up nach Erstgespräch',
-    subject: 'Zusammenfassung unseres Gesprächs & Nächste Schritte – TeamTrack-Software',
-    body: (cust) => `${COMPANY_HEADER}
-
-${getGreeting(cust.contactPerson, true)}
+    subject: 'Zusammenfassung unseres Gesprächs & Nächste Schritte – TeamTrack',
+    body: (cust) => `${getGreeting(cust.contactPerson, true)}
 
 vielen Dank für das aufschlussreiche Gespräch heute.
 
@@ -135,9 +124,44 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
     }
   };
 
-  const handleCopyText = () => {
+  const handleCopyText = async () => {
     const fullText = `Betreff: ${subject}\n\n${body}`;
-    navigator.clipboard.writeText(fullText);
+    try {
+      if (navigator.clipboard && window.ClipboardItem) {
+        const htmlBody = `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #0f172a; max-width: 650px;">
+            <table style="width: 100%; border-bottom: 2px solid #0284c7; padding-bottom: 14px; margin-bottom: 20px;">
+              <tr>
+                <td style="width: 60px; vertical-align: middle;">
+                  <img src="https://team-track.de/logo.jpg" alt="TeamTrack Logo" width="52" height="52" style="border-radius: 12px; display: block;" />
+                </td>
+                <td style="vertical-align: middle; padding-left: 14px;">
+                  <div style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px;">
+                    <span style="color: #0f172a;">Team</span><span style="color: #0284c7;">Track</span>
+                  </div>
+                  <div style="font-size: 11px; font-weight: 800; color: #64748b; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px;">
+                    SOFTWAREENTWICKLUNG &amp; IT-BERATUNG
+                  </div>
+                </td>
+              </tr>
+            </table>
+            <div style="white-space: pre-wrap; font-size: 14px; color: #1e293b;">${body}</div>
+          </div>
+        `;
+        const blobText = new Blob([fullText], { type: 'text/plain' });
+        const blobHtml = new Blob([htmlBody], { type: 'text/html' });
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'text/plain': blobText,
+            'text/html': blobHtml
+          })
+        ]);
+      } else {
+        await navigator.clipboard.writeText(fullText);
+      }
+    } catch {
+      await navigator.clipboard.writeText(fullText);
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
@@ -229,7 +253,7 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
           </div>
 
           {/* Body */}
-          <div>
+          <div className="space-y-2">
             <div className="flex items-center justify-between mb-1">
               <label className="block text-xs font-semibold text-slate-700">
                 E-Mail-Inhalt (Vorschau / Bearbeiten)
@@ -240,15 +264,32 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
                 className="text-xs text-sky-600 hover:text-sky-700 font-semibold flex items-center gap-1 cursor-pointer"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? 'Kopiert!' : 'Text kopieren'}</span>
+                <span>{copied ? 'HTML & Text kopiert!' : 'Text & Logo kopieren'}</span>
               </button>
             </div>
+
+            {/* Visual Corporate Logo Header Banner (Exact match to screenshot) */}
+            <div className="bg-gradient-to-r from-slate-50 to-sky-50/50 border border-slate-200 rounded-2xl p-3.5 flex items-center gap-4 shadow-2xs">
+              <div className="w-14 h-14 bg-white rounded-2xl shadow-sm border border-slate-200 p-1 flex items-center justify-center shrink-0">
+                <img src="/logo.jpg" alt="TeamTrack Logo" className="w-full h-full object-contain rounded-xl" />
+              </div>
+              <div>
+                <div className="text-2xl font-black tracking-tight flex items-baseline">
+                  <span className="text-slate-950 font-black">Team</span>
+                  <span className="text-sky-600 font-black">Track</span>
+                </div>
+                <div className="text-[11px] font-black uppercase tracking-wider text-slate-500 mt-0.5">
+                  SOFTWAREENTWICKLUNG &amp; IT-BERATUNG
+                </div>
+              </div>
+            </div>
+
             <textarea
-              rows={13}
+              rows={11}
               required
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs font-mono leading-relaxed focus:ring-2 focus:ring-sky-500 focus:outline-none resize-none"
+              className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs font-sans leading-relaxed focus:ring-2 focus:ring-sky-500 focus:outline-none resize-none"
             />
           </div>
 
