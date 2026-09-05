@@ -42,7 +42,7 @@ export default function InvoiceModal({
     notes: 'Vielen Dank für Ihren Auftrag und das Vertrauen in unsere digitale Arbeit.',
     paymentTerms: 'Zahlbar innerhalb von 14 Tagen ohne Abzug.',
     items: [
-      { id: '1', description: 'Softwareentwicklung Service', quantity: 1, unitPrice: 0, taxRate: 0 }
+      { id: '1', description: 'Softwareentwicklung & IT-Beratung Service', quantity: 1, unitPrice: 0, taxRate: 0 }
     ]
   });
 
@@ -95,7 +95,7 @@ export default function InvoiceModal({
       const defaultCust = customers.find(c => c.id === preselectedCustomerId) || customers[0];
       const initialItemDesc = prefilledItem?.title 
         ? `${prefilledItem.title}${prefilledItem.type === 'abo' ? ' (Monatliches Abonnement)' : ''}`
-        : 'Softwareentwicklung Service';
+        : 'Softwareentwicklung & IT-Beratung Service';
       const initialItemPrice = prefilledItem?.price !== undefined ? Number(prefilledItem.price) : 0;
       const initialServiceDate = prefilledItem?.startDate?.split('T')[0] || prefilledItem?.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0];
 

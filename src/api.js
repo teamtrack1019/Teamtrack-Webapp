@@ -6,7 +6,7 @@ const defaultSeed = {
   companySettings: {
     companyName: 'TeamTrack-Software',
     ownerName: 'Huriye Ünalsoy',
-    tagline: 'Softwareentwicklung',
+    tagline: 'Softwareentwicklung & IT-Beratung',
     street: 'Balthasar-Neumann-Str. 38',
     zipCode: '97236',
     city: 'Randersacker',
@@ -312,8 +312,8 @@ function getLocalData() {
         parsed.companySettings.kleinunternehmerText = 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).';
         
         // Auto-upgrade corporate identity if still on old tagline/owner
-        if (!parsed.companySettings.tagline || parsed.companySettings.tagline.includes('Papierkram') || parsed.companySettings.tagline.includes('IT-Beratung')) {
-          parsed.companySettings.tagline = 'Softwareentwicklung';
+        if (!parsed.companySettings.tagline || parsed.companySettings.tagline.includes('Papierkram')) {
+          parsed.companySettings.tagline = 'Softwareentwicklung & IT-Beratung';
         }
         if (!parsed.companySettings.ownerName || parsed.companySettings.ownerName === 'Geschäftsinhaber' || parsed.companySettings.ownerName.includes('Hakan')) {
           parsed.companySettings.ownerName = 'Huriye Ünalsoy';

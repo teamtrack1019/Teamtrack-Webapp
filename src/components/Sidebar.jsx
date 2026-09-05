@@ -45,7 +45,7 @@ export default function Sidebar({ activeTab, setActiveTab, counts = {}, isMobile
               TeamTrack
               <span className="text-[10px] uppercase font-bold bg-sky-500/20 text-sky-400 px-1.5 py-0.5 rounded border border-sky-500/30">Pro</span>
             </h1>
-            <p className="text-[11px] text-slate-400 truncate">Softwareentwicklung</p>
+            <p className="text-[11px] text-slate-400 truncate">Softwareentwicklung & IT-Beratung</p>
           </div>
         </div>
 

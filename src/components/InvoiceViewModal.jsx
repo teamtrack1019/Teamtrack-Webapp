@@ -166,7 +166,7 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
                         {companySettings.companyName || 'TeamTrack-Software'}
                       </div>
                       <p className="text-xs text-slate-800 font-bold mt-0.5">
-                        {companySettings.tagline || 'Softwareentwicklung'}
+                        {companySettings.tagline || 'Softwareentwicklung & IT-Beratung'}
                       </p>
                       
                       <div className="mt-2 text-xs text-slate-600 space-y-1">
