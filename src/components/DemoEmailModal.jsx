@@ -139,7 +139,7 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
             <table style="width: 100%; border-bottom: 2px solid #0082cb; padding-bottom: 16px; margin-bottom: 22px; font-family: Arial, Helvetica, sans-serif; border-collapse: collapse;">
               <tr>
                 <td style="width: 64px; vertical-align: middle;">
-                  <img src="${TEAMTRACK_LOGO_BASE64}" alt="TeamTrack Logo" width="56" height="56" style="border-radius: 12px; display: block; border: 1px solid #e2e8f0;" />
+                  <img src="https://teamtrack-webapp.vercel.app/logo.jpg" alt="TeamTrack Logo" width="56" height="56" style="border-radius: 12px; display: block; border: 1px solid #e2e8f0;" />
                 </td>
                 <td style="vertical-align: middle; padding-left: 14px;">
                   <div style="font-size: 26px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.1;">
