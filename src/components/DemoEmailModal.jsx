@@ -19,7 +19,7 @@ function getGreeting(contactPerson, isFormal = true) {
 const COMPANY_SIGNATURE = `Mit freundlichen Grüßen
 
 TeamTrack-Software
-Softwareentwicklung & IT-Beratung
+Softwareentwicklung
 
 Balthasar-Neumann-Str. 38
 97236 Randersacker
@@ -146,7 +146,7 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
                     <span style="color: #000a1f; font-weight: 900;">Team</span><span style="color: #0082cb; font-weight: 900;">Track</span>
                   </div>
                   <div style="font-size: 10.5px; font-weight: 800; color: #64748b; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 5px; line-height: 1;">
-                    SOFTWAREENTWICKLUNG &amp; IT-BERATUNG
+                    SOFTWAREENTWICKLUNG
                   </div>
                 </td>
               </tr>
@@ -191,7 +191,7 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
                 </span>
               </div>
               <p className="text-xs text-slate-300 mt-0.5">
-                Softwareentwicklung & IT-Beratung • Vorstellungs- & Demo-E-Mail
+                Softwareentwicklung • Vorstellungs- & Demo-E-Mail
               </p>
             </div>
           </div>
@@ -287,7 +287,7 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
                   <span className="text-[#0082cb]">Track</span>
                 </div>
                 <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.14em] text-[#64748b] mt-1.5 leading-none">
-                  SOFTWAREENTWICKLUNG &amp; IT-BERATUNG
+                  SOFTWAREENTWICKLUNG
                 </div>
               </div>
             </div>

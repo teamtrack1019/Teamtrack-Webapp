@@ -91,7 +91,7 @@ export default function DashboardPage({
         <div className="space-y-2 max-w-2xl">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 text-xs font-bold border border-sky-500/30">
             <Zap className="w-3.5 h-3.5 text-sky-400" />
-            <span>Softwareentwicklung & IT-Beratung</span>
+            <span>Softwareentwicklung</span>
           </div>
           <h2 className="text-2xl md:text-3xl font-black tracking-tight">
             Willkommen bei TeamTrack
