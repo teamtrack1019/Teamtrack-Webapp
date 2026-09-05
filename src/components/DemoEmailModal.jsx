@@ -109,12 +109,12 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent 
     }
   };
 
-  // 2. Open directly in Outlook Web / Hotmail Web
+  // 2. Open directly in Outlook Web
   const handleOpenOutlookWeb = async () => {
     setLoading(true);
     try {
       await onEmailSent(customer.id, { subject, body, templateType: templateKey });
-      const webmailUrl = `https://outlook.live.com/mail/0/deeplink/compose?to=${encodeURIComponent(customer.email || '')}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      const webmailUrl = `https://outlook.live.com/mail/0/deeplink/compose?login_hint=${encodeURIComponent('kontakt@team-track.de')}&to=${encodeURIComponent(customer.email || '')}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       window.open(webmailUrl, '_blank');
       onClose();
     } catch (err) {
