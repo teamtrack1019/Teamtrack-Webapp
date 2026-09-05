@@ -40,7 +40,8 @@ TeamTrack
 Huriye Ünalsoy
 
 Tel: 0172 4690446
-E-Mail: teamtrack.software@hotmail.com
+E-Mail: kontakt@team-track.de
+Web: https://team-track.de
 Balthasar-Neumann-Str. 38
 97236 Randersacker`
   },
@@ -51,7 +52,7 @@ Balthasar-Neumann-Str. 38
 
 wie besprochen habe ich für ${cust.companyName} eine Vorschau-Umgebung vorbereitet, damit Sie und Ihr Team die Vorteile direkt live testen können.
 
-Link zur WebApp Demo: https://teamtrack-webapp.vercel.app
+Link zur WebApp Demo: https://team-track.de
 Test-Login: ${cust.email || 'demo@ihrefirma.de'}
 
 Probieren Sie gerne aus, wie schnell Aufträge, Stundenzettel und Mitarbeiterberichte erfasst werden können. Bei Fragen stehe ich Ihnen jederzeit persönlich zur Verfügung.
@@ -62,7 +63,8 @@ TeamTrack
 Huriye Ünalsoy
 
 Tel: 0172 4690446
-E-Mail: teamtrack.software@hotmail.com
+E-Mail: kontakt@team-track.de
+Web: https://team-track.de
 Balthasar-Neumann-Str. 38
 97236 Randersacker`
   },
@@ -83,7 +85,8 @@ TeamTrack
 Huriye Ünalsoy
 
 Tel: 0172 4690446
-E-Mail: teamtrack.software@hotmail.com
+E-Mail: kontakt@team-track.de
+Web: https://team-track.de
 Balthasar-Neumann-Str. 38
 97236 Randersacker`
   }

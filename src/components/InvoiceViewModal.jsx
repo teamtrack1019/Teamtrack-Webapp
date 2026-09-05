@@ -171,8 +171,8 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
                       
                       <div className="mt-2 text-xs text-slate-600 space-y-1">
                         <div>{streetLine}, {cityLine}</div>
-                        <div>Tel: {companySettings.phone || '+49 172 4690446'} &bull; E-Mail: {companySettings.email || 'teamtrack.software@hotmail.com'}</div>
-                        <div>Web: {companySettings.website || 'https://teamtrack-webapp.vercel.app'}</div>
+                        <div>Tel: {companySettings.phone || '+49 172 4690446'} &bull; E-Mail: {companySettings.email || 'kontakt@team-track.de'}</div>
+                        <div>Web: {companySettings.website || 'https://team-track.de'}</div>
                       </div>
                     </div>
                   </div>

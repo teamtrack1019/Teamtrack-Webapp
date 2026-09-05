@@ -72,10 +72,10 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
   const fullAddressLine = `${streetLine}, ${cityLine}`;
   doc.text(fullAddressLine, textStartX, 36.5);
 
-  const phoneEmail = `Tel: ${companySettings.phone || '+49 172 4690446'}   |   E-Mail: ${companySettings.email || 'teamtrack.software@hotmail.com'}`;
+  const phoneEmail = `Tel: ${companySettings.phone || '+49 172 4690446'}   |   E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`;
   doc.text(phoneEmail, textStartX, 41.5);
 
-  const webUrl = companySettings.website || 'https://teamtrack-webapp.vercel.app';
+  const webUrl = companySettings.website || 'https://team-track.de';
   doc.text(`Web: ${webUrl}`, textStartX, 46.5);
 
   // Header Right: RECHNUNG & Number (High-contrast dark for crisp print)

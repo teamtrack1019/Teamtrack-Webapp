@@ -12,8 +12,8 @@ const defaultSeed = {
     city: 'Randersacker',
     address: 'Balthasar-Neumann-Str. 38, 97236 Randersacker',
     phone: '+49 172 4690446',
-    email: 'teamtrack.software@hotmail.com',
-    website: 'https://teamtrack-webapp.vercel.app',
+    email: 'kontakt@team-track.de',
+    website: 'https://team-track.de',
     taxNumber: '27/123/45678',
     vatId: '61502944380',
     bankName: 'Postbank',
@@ -330,8 +330,11 @@ function getLocalData() {
         if (!parsed.companySettings.city) {
           parsed.companySettings.city = 'Randersacker';
         }
-        if (!parsed.companySettings.website || parsed.companySettings.website.includes('teamtrack-digital.de')) {
-          parsed.companySettings.website = 'https://teamtrack-webapp.vercel.app';
+        if (!parsed.companySettings.email || parsed.companySettings.email.includes('hotmail.com')) {
+          parsed.companySettings.email = 'kontakt@team-track.de';
+        }
+        if (!parsed.companySettings.website || parsed.companySettings.website.includes('vercel.app') || parsed.companySettings.website.includes('teamtrack-digital.de') || parsed.companySettings.website.includes('team-trak')) {
+          parsed.companySettings.website = 'https://team-track.de';
         }
       }
 
