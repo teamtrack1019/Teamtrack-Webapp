@@ -44,6 +44,9 @@ Unsere Kernbereiche im Überblick:
 • Mitarbeiter- & Kundenverwaltung: Übersichtliche Nachverfolgung aller Einsätze und Kundenprozesse.
 • Individuelle Web-Apps & Web-Optimierung: Moderne, schnelle Web-Lösungen, die genau auf Ihre Betriebsabläufe zugeschnitten sind.
 
+💡 Kostenlose Live-Demo & Testzugang:
+Gerne stellen wir Ihnen auch einen kostenlosen Demo-Zugang zur Verfügung oder führen Ihnen das System kurz unverbindlich vor, damit Sie und Ihr Team sich direkt selbst von den Vorteilen überzeugen können. (Demo-Umgebung: https://team-track.de)
+
 Bei Interesse oder Fragen stehen wir Ihnen jederzeit gerne für einen unverbindlichen Austausch zur Verfügung. Sie erreichen uns einfach per E-Mail oder telefonisch.
 Wir freuen uns auf Ihre Kontaktaufnahme.
 
