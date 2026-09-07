@@ -12,6 +12,7 @@ import {
   Repeat, 
   Zap, 
   FileText, 
+  FileSpreadsheet,
   ChevronRight, 
   MoreVertical, 
   Edit3, 
@@ -191,7 +192,7 @@ export default function CustomersPage({
                   )}
                 </div>
 
-                {/* DEMO / EMAIL TRACKING BADGE & OUTLOOK BUTTON */}
+                {/* DEMO / EMAIL & OFFER TRACKING BADGES & OUTLOOK BUTTON */}
                 <div className="pt-2 border-t border-slate-100 space-y-1.5">
                   <button
                     onClick={() => onOpenDemoEmailModal(customer)}
@@ -201,11 +202,37 @@ export default function CustomersPage({
                     <span>E-Mail senden (Outlook / Vorlage)</span>
                   </button>
 
+                  {/* Angebot / Kostenvoranschlag Sent Badge */}
+                  {(customer.offerEmailSent || customer.lastOffer) && (
+                    <div className={`border rounded-lg px-2.5 py-1.5 flex items-center justify-between text-[11px] font-semibold ${
+                      (customer.offerEmailType || customer.lastOffer?.type) === 'kostenvoranschlag'
+                        ? 'bg-amber-50/90 border-amber-200 text-amber-950'
+                        : 'bg-sky-50/90 border-sky-200 text-sky-950'
+                    }`}>
+                      <span className="flex items-center gap-1.5 truncate">
+                        <FileSpreadsheet className={`w-3.5 h-3.5 shrink-0 ${
+                          (customer.offerEmailType || customer.lastOffer?.type) === 'kostenvoranschlag' ? 'text-amber-600' : 'text-sky-600'
+                        }`} />
+                        <span className="truncate">
+                          {(customer.offerEmailType || customer.lastOffer?.type) === 'kostenvoranschlag' ? 'Kostenvoranschlag' : 'Angebot'} ({customer.offerEmailNumber || customer.lastOffer?.offerNumber}): {formatDate(customer.offerEmailSentAt || customer.lastOffer?.sentAt)}
+                        </span>
+                      </span>
+                      <span className={`text-[9.5px] uppercase font-bold px-1.5 py-0.5 rounded shrink-0 ${
+                        (customer.offerEmailType || customer.lastOffer?.type) === 'kostenvoranschlag'
+                          ? 'bg-amber-200/80 text-amber-900'
+                          : 'bg-sky-200/80 text-sky-900'
+                      }`}>
+                        Gesendet
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Vorstellungs-E-Mail Sent Badge */}
                   {customer.demoEmailSent && (
                     <div className="bg-emerald-50 border border-emerald-200/80 rounded-lg px-2.5 py-1 flex items-center justify-between text-[11px] text-emerald-800 font-medium">
                       <span className="flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                        <span>Gesendet: {formatDateTime(customer.demoEmailSentAt)}</span>
+                        <span>Vorstellung: {formatDate(customer.demoEmailSentAt)}</span>
                       </span>
                       <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-100/80 px-1.5 py-0.2 rounded">Erfasst</span>
                     </div>

@@ -312,9 +312,22 @@ Web: https://team-track.de`;
   };
 
   // Open Outlook Web Compose
-  const handleOpenOutlook = () => {
+  const handleOpenOutlook = async () => {
     const subject = `${isKV ? 'Kostenvoranschlag' : 'Angebot'} ${offerNumber} für ${selectedCustomer?.companyName || 'Ihr Unternehmen'} – TeamTrack`;
     const body = getOfferEmailBody();
+
+    try {
+      const payload = getCurrentOfferPayload();
+      payload.status = 'sent';
+      payload.emailBody = body;
+      await api.createOffer(payload);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+      await loadOffers();
+    } catch (err) {
+      console.warn('Auto-save offer error:', err);
+    }
+
     const mailto = `https://outlook.live.com/mail/0/deeplink/compose?login_hint=${encodeURIComponent('kontakt@team-track.de')}&to=${encodeURIComponent(selectedCustomer?.email || '')}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(mailto, '_blank');
   };

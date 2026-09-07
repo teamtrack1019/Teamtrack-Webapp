@@ -674,6 +674,8 @@ async function handleLocalRequest(endpoint, options = {}) {
       const result = db.customers.map(cust => {
         const custServices = db.services.filter(s => s.customerId === cust.id);
         const custInvoices = db.invoices.filter(i => i.customerId === cust.id);
+        const custOffers = (db.offers || []).filter(o => o.customerId === cust.id);
+        const lastOffer = custOffers[0] || null;
         const activeAbos = custServices.filter(s => s.type === 'abo' && s.status === 'active');
         const totalAboMonthly = activeAbos.reduce((sum, s) => sum + Number(s.price || 0), 0);
         const einmaligeServices = custServices.filter(s => s.type === 'einmalig');
@@ -688,6 +690,11 @@ async function handleLocalRequest(endpoint, options = {}) {
           hasChanges = true;
         }
 
+        const offerEmailSent = cust.offerEmailSent || Boolean(lastOffer);
+        const offerEmailSentAt = cust.offerEmailSentAt || lastOffer?.createdAt || lastOffer?.date;
+        const offerEmailType = cust.offerEmailType || lastOffer?.type;
+        const offerEmailNumber = cust.offerEmailNumber || lastOffer?.offerNumber;
+
         return {
           ...cust,
           status: currentStatus,
@@ -695,7 +702,13 @@ async function handleLocalRequest(endpoint, options = {}) {
           totalAboMonthly,
           einmaligeCount: einmaligeServices.length,
           totalRevenue,
-          invoicesCount: custInvoices.length
+          invoicesCount: custInvoices.length,
+          offersCount: custOffers.length,
+          lastOffer,
+          offerEmailSent,
+          offerEmailSentAt,
+          offerEmailType,
+          offerEmailNumber
         };
       });
 
@@ -758,6 +771,8 @@ async function handleLocalRequest(endpoint, options = {}) {
       if (!customer) throw new Error('Kunde nicht gefunden');
       const custServices = db.services.filter(s => s.customerId === custId);
       const custInvoices = db.invoices.filter(i => i.customerId === custId);
+      const custOffers = (db.offers || []).filter(o => o.customerId === custId);
+      const lastOffer = custOffers[0] || null;
       const hasJobs = custServices.length > 0 || custInvoices.length > 0;
       const targetStatus = hasJobs ? 'active' : 'lead';
       
@@ -766,13 +781,25 @@ async function handleLocalRequest(endpoint, options = {}) {
         saveLocalData(db);
         pushToFirebase(db);
       }
+
+      const offerEmailSent = customer.offerEmailSent || Boolean(lastOffer);
+      const offerEmailSentAt = customer.offerEmailSentAt || lastOffer?.createdAt || lastOffer?.date;
+      const offerEmailType = customer.offerEmailType || lastOffer?.type;
+      const offerEmailNumber = customer.offerEmailNumber || lastOffer?.offerNumber;
+
       return {
         customer: {
           ...customer,
-          status: targetStatus
+          status: targetStatus,
+          lastOffer,
+          offerEmailSent,
+          offerEmailSentAt,
+          offerEmailType,
+          offerEmailNumber
         },
         services: custServices,
         invoices: custInvoices,
+        offers: custOffers,
         mileage: db.mileage.filter(m => m.customerId === custId),
         emailLogs: (db.emailLogs || []).filter(e => e.customerId === custId)
       };
@@ -1293,6 +1320,41 @@ async function handleLocalRequest(endpoint, options = {}) {
       };
 
       db.offers.unshift(newOffer);
+
+      // Auto-sync with customer record and log in E-Mail history
+      if (newOffer.customerId) {
+        const targetCust = db.customers.find(c => c.id === newOffer.customerId);
+        if (targetCust) {
+          const nowStr = new Date().toISOString();
+          targetCust.lastOffer = {
+            id: newOffer.id,
+            offerNumber: newOffer.offerNumber,
+            type: newOffer.type,
+            date: newOffer.date,
+            totalAmount: newOffer.totalAmount || newOffer.totalOneTime,
+            sentAt: nowStr
+          };
+          targetCust.offerEmailSent = true;
+          targetCust.offerEmailSentAt = nowStr;
+          targetCust.offerEmailType = newOffer.type;
+          targetCust.offerEmailNumber = newOffer.offerNumber;
+          targetCust.updatedAt = nowStr;
+
+          const emailLog = {
+            id: `mail-offer-${Date.now()}`,
+            customerId: targetCust.id,
+            customerName: targetCust.companyName,
+            recipientEmail: targetCust.email || newOffer.customerEmail,
+            subject: `${newOffer.type === 'kostenvoranschlag' ? 'Kostenvoranschlag' : 'Angebot'} ${newOffer.offerNumber} für ${targetCust.companyName}`,
+            templateType: newOffer.type,
+            sentAt: nowStr,
+            body: body.emailBody || `${newOffer.type === 'kostenvoranschlag' ? 'Kostenvoranschlag' : 'Angebot'} ${newOffer.offerNumber} über ${newOffer.totalAmount || newOffer.totalOneTime} € erfasst & versendet.`
+          };
+          db.emailLogs = db.emailLogs || [];
+          db.emailLogs.unshift(emailLog);
+        }
+      }
+
       saveLocalData(db);
       pushToFirebase(db);
       return newOffer;
@@ -1302,10 +1364,31 @@ async function handleLocalRequest(endpoint, options = {}) {
       const id = endpoint.split('/')[2];
       const idx = db.offers.findIndex(o => o.id === id);
       if (idx !== -1) {
-        db.offers[idx] = { ...db.offers[idx], ...body, updatedAt: new Date().toISOString() };
+        const updatedOffer = { ...db.offers[idx], ...body, updatedAt: new Date().toISOString() };
+        db.offers[idx] = updatedOffer;
+
+        if (updatedOffer.customerId) {
+          const targetCust = db.customers.find(c => c.id === updatedOffer.customerId);
+          if (targetCust) {
+            targetCust.lastOffer = {
+              id: updatedOffer.id,
+              offerNumber: updatedOffer.offerNumber,
+              type: updatedOffer.type,
+              date: updatedOffer.date,
+              totalAmount: updatedOffer.totalAmount || updatedOffer.totalOneTime,
+              sentAt: new Date().toISOString()
+            };
+            targetCust.offerEmailSent = true;
+            targetCust.offerEmailSentAt = targetCust.offerEmailSentAt || new Date().toISOString();
+            targetCust.offerEmailType = updatedOffer.type;
+            targetCust.offerEmailNumber = updatedOffer.offerNumber;
+            targetCust.updatedAt = new Date().toISOString();
+          }
+        }
+
         saveLocalData(db);
         pushToFirebase(db);
-        return db.offers[idx];
+        return updatedOffer;
       }
     }
 
