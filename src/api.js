@@ -298,6 +298,7 @@ const defaultSeed = {
       createdAt: '2026-08-30T16:00:00.000Z'
     }
   ],
+  offers: [],
   emailLogs: []
 };
 
@@ -307,6 +308,9 @@ function getLocalData() {
     const raw = localStorage.getItem('teamtrack_local_db');
     if (raw) {
       const parsed = JSON.parse(raw);
+      if (!parsed.offers) {
+        parsed.offers = [];
+      }
       if (parsed.companySettings) {
         parsed.companySettings.isKleinunternehmer = true;
         parsed.companySettings.kleinunternehmerText = 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).';
@@ -1218,6 +1222,96 @@ async function handleLocalRequest(endpoint, options = {}) {
     }
   }
 
+  // OFFERS & KOSTENVORANSCHLÄGE
+  if (endpoint.startsWith('/offers')) {
+    if (!db.offers) db.offers = [];
+
+    if (method === 'GET') {
+      if (endpoint.includes('customerId=')) {
+        const queryCustId = endpoint.split('customerId=')[1]?.split('&')[0];
+        if (queryCustId) {
+          return db.offers.filter(o => o.customerId === queryCustId);
+        }
+      }
+      const id = endpoint.split('/')[2];
+      if (id && !id.includes('?')) {
+        return db.offers.find(o => o.id === id) || null;
+      }
+      return db.offers || [];
+    }
+
+    if (method === 'POST') {
+      const type = body.type === 'kostenvoranschlag' ? 'kostenvoranschlag' : 'angebot';
+      const prefix = type === 'kostenvoranschlag' ? 'KV' : 'ANG';
+      const currentYear = new Date().getFullYear();
+
+      let maxNum = 0;
+      (db.offers || []).forEach(off => {
+        if (off.offerNumber) {
+          const match = String(off.offerNumber).match(new RegExp(`${prefix}-\\d{4}-(\\d+)`));
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (!isNaN(num) && num > maxNum) maxNum = num;
+          }
+        }
+      });
+      const generatedNumber = `${prefix}-${currentYear}-${String(maxNum + 1).padStart(4, '0')}`;
+
+      const newOffer = {
+        id: `offer-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        offerNumber: body.offerNumber || generatedNumber,
+        type,
+        status: body.status || 'draft',
+        date: body.date || new Date().toISOString().split('T')[0],
+        validUntilDate: body.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        customerId: body.customerId || '',
+        customerName: body.customerName || '',
+        customerContact: body.customerContact || '',
+        customerAddress: body.customerAddress || '',
+        customerEmail: body.customerEmail || '',
+        customerTaxId: body.customerTaxId || '',
+        packageA: body.packageA || null,
+        packageB: body.packageB || null,
+        packageC: body.packageC || null,
+        customItems: body.customItems || [],
+        totalOneTime: Number(body.totalOneTime || 0),
+        totalRecurring: Number(body.totalRecurring || 0),
+        recurringInterval: body.recurringInterval || 'monthly',
+        totalAmount: Number(body.totalAmount || 0),
+        notes: body.notes || '',
+        terms: body.terms || '',
+        createdAt: new Date().toISOString()
+      };
+
+      db.offers.unshift(newOffer);
+      saveLocalData(db);
+      pushToFirebase(db);
+      return newOffer;
+    }
+
+    if (method === 'PUT') {
+      const id = endpoint.split('/')[2];
+      const idx = db.offers.findIndex(o => o.id === id);
+      if (idx !== -1) {
+        db.offers[idx] = { ...db.offers[idx], ...body, updatedAt: new Date().toISOString() };
+        saveLocalData(db);
+        pushToFirebase(db);
+        return db.offers[idx];
+      }
+    }
+
+    if (method === 'DELETE') {
+      const id = endpoint.split('/')[2];
+      const idx = db.offers.findIndex(o => o.id === id);
+      if (idx !== -1) {
+        const del = db.offers.splice(idx, 1)[0];
+        saveLocalData(db);
+        pushToFirebase(db);
+        return del;
+      }
+    }
+  }
+
   // TAX REPORT (§ 19 UStG Kleinunternehmer)
   if (endpoint.startsWith('/reports/tax-year/')) {
     const year = endpoint.split('/')[3] || '2026';
@@ -1323,6 +1417,11 @@ export const api = {
   createMileage: (data) => request('/mileage', { method: 'POST', body: JSON.stringify(data) }),
   updateMileage: (id, data) => request(`/mileage/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteMileage: (id) => request(`/mileage/${id}`, { method: 'DELETE' }),
+  getOffers: (customerId) => request(`/offers${customerId ? `?customerId=${customerId}` : ''}`),
+  getOffer: (id) => request(`/offers/${id}`),
+  createOffer: (data) => request('/offers', { method: 'POST', body: JSON.stringify(data) }),
+  updateOffer: (id, data) => request(`/offers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteOffer: (id) => request(`/offers/${id}`, { method: 'DELETE' }),
   getTaxReport: (year) => request(`/reports/tax-year/${year}`),
   getSettings: () => request('/settings'),
   updateSettings: (data) => request('/settings', { method: 'PUT', body: JSON.stringify(data) }),
@@ -1352,6 +1451,7 @@ export const api = {
         customers: (db.customers || []).length,
         services: (db.services || []).length,
         invoices: (db.invoices || []).length,
+        offers: (db.offers || []).length,
         expenses: (db.expenses || []).length,
         mileage: (db.mileage || []).length
       },
@@ -1371,6 +1471,7 @@ export const api = {
       customers: rawData.customers || [],
       services: rawData.services || [],
       invoices: rawData.invoices || [],
+      offers: rawData.offers || [],
       expenses: rawData.expenses || [],
       mileage: rawData.mileage || [],
       emailLogs: rawData.emailLogs || [],
@@ -1389,6 +1490,7 @@ export const api = {
         customers: db.customers.length,
         services: db.services.length,
         invoices: db.invoices.length,
+        offers: (db.offers || []).length,
         expenses: db.expenses.length,
         mileage: db.mileage.length
       }

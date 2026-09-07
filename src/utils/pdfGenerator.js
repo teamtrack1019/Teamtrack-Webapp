@@ -537,3 +537,374 @@ export function downloadTaxReportPdf(reportData) {
   const fileName = `Finanzamt_EUR_Bericht_${year}.pdf`;
   doc.save(fileName);
 }
+
+// -------------------------------------------------------------
+// 3. OFFICIAL PROPOSAL & COST ESTIMATE PDF (ANGEBOT / KOSTENVORANSCHLAG)
+// -------------------------------------------------------------
+export function createOfferDoc(offer, companySettings = {}) {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth(); // 210mm
+  const margin = 20;
+
+  const isKV = offer.type === 'kostenvoranschlag';
+  const docTitle = isKV ? 'KOSTENVORANSCHLAG' : 'ANGEBOT';
+  const docPrefix = isKV ? 'ab ' : '';
+  const isKleinunternehmer = companySettings.isKleinunternehmer !== false;
+  const kleinunternehmerText = companySettings.kleinunternehmerText || 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).';
+
+  // 1. TOP HEADER (Prominent 30x30mm Logo Card & Company Info)
+  const logoSize = 30;
+  const logoY = 20;
+  const textStartX = margin + logoSize + 6;
+
+  // Logo Shadow & Frame
+  doc.setFillColor(226, 232, 240);
+  doc.roundedRect(margin + 0.8, logoY + 0.8, logoSize, logoSize, 3.5, 3.5, 'F');
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(margin, logoY, logoSize, logoSize, 3, 3, 'FD');
+
+  try {
+    doc.addImage(TEAMTRACK_LOGO_BASE64, 'JPEG', margin + 1.5, logoY + 1.5, logoSize - 3, logoSize - 3);
+  } catch {
+    doc.setFillColor(15, 23, 42);
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TT', margin + 9, logoY + 19);
+  }
+
+  // Company Details
+  doc.setTextColor(15, 23, 42);
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  const streetLine = companySettings.street || 'Balthasar-Neumann-Str. 38';
+  const cityLine = (companySettings.zipCode && companySettings.city) ? `${companySettings.zipCode} ${companySettings.city}` : '97236 Randersacker';
+
+  doc.text(companySettings.companyName || 'TeamTrack-Software', textStartX, 25.5);
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(30, 41, 59);
+  doc.text(companySettings.tagline || 'Softwareentwicklung & IT-Beratung', textStartX, 30.5);
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text(`${streetLine}, ${cityLine}`, textStartX, 36.5);
+  doc.text(`Tel: ${companySettings.phone || '+49 172 4690446'}   |   E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, textStartX, 41.5);
+  doc.text(`Web: ${companySettings.website || 'https://team-track.de'}`, textStartX, 46.5);
+
+  // Header Right: Title & Number
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text(docTitle, pageWidth - margin, 27.5, { align: 'right' });
+
+  doc.setFontSize(10.5);
+  doc.setTextColor(0, 130, 203);
+  doc.text(offer.offerNumber || (isKV ? 'KV-2026-0001' : 'ANG-2026-0001'), pageWidth - margin, 34, { align: 'right' });
+
+  // 2. RECIPIENT & META GRID
+  const recipientY = 58;
+
+  // Single-line sender info
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  doc.text(`${companySettings.companyName || 'TeamTrack-Software'} • ${streetLine} • ${cityLine}`, margin, recipientY);
+
+  // Recipient Box
+  doc.setFontSize(10.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text(offer.customerName || 'Empfänger / Kunde', margin, recipientY + 6);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(51, 65, 85);
+  let curRecY = recipientY + 11;
+  if (offer.customerContact) {
+    doc.text(`z. Hd. ${offer.customerContact}`, margin, curRecY);
+    curRecY += 4.5;
+  }
+  if (offer.customerAddress) {
+    const addrLines = offer.customerAddress.split('\n');
+    addrLines.forEach(l => {
+      doc.text(l.trim(), margin, curRecY);
+      curRecY += 4.5;
+    });
+  }
+  if (offer.customerEmail) {
+    doc.text(`E-Mail: ${offer.customerEmail}`, margin, curRecY);
+    curRecY += 4.5;
+  }
+
+  // Meta Box (Right Side)
+  const metaX = pageWidth - margin - 65;
+  const metaY = recipientY - 2;
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(metaX, metaY, 65, 30, 2.5, 2.5, 'FD');
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(71, 85, 105);
+  doc.text('Datum:', metaX + 4, metaY + 6.5);
+  doc.text('Gültig bis:', metaX + 4, metaY + 13.5);
+  doc.text('Dokument-Art:', metaX + 4, metaY + 20.5);
+  doc.text('Bearbeiter:', metaX + 4, metaY + 27.5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(15, 23, 42);
+  doc.text(formatDate(offer.date || new Date()), metaX + 61, metaY + 6.5, { align: 'right' });
+  doc.text(formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)), metaX + 61, metaY + 13.5, { align: 'right' });
+  doc.text(isKV ? 'Kostenvoranschlag' : 'Verbindl. Angebot', metaX + 61, metaY + 20.5, { align: 'right' });
+  doc.text('TeamTrack Team', metaX + 61, metaY + 27.5, { align: 'right' });
+
+  // 3. INTRODUCTORY GREETING & TEXT
+  const introY = Math.max(curRecY + 4, 94);
+  doc.setFontSize(9.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  const greeting = offer.customerContact 
+    ? (offer.customerContact.toLowerCase().startsWith('frau') ? `Sehr geehrte ${offer.customerContact},` : offer.customerContact.toLowerCase().startsWith('herr') ? `Sehr geehrter ${offer.customerContact},` : `Sehr geehrte(r) Frau/Herr ${offer.customerContact},`)
+    : 'Sehr geehrte Damen und Herren,';
+  doc.text(greeting, margin, introY);
+
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(51, 65, 85);
+  const introDesc = isKV
+    ? 'vielen Dank für Ihre Anfrage. Nachfolgend erhalten Sie unseren detaillierten und unverbindlichen Kostenvoranschlag für die geplante Umsetzung Ihrer maßgeschneiderten Softwarelösung:'
+    : 'vielen Dank für Ihr Vertrauen. Gerne unterbreiten wir Ihnen nachfolgend unser maßgeschneidertes, verbindliches Angebot für die Entwicklung und Bereitstellung Ihrer Lösung:';
+  
+  const introSplit = doc.splitTextToSize(introDesc, pageWidth - (margin * 2));
+  doc.text(introSplit, margin, introY + 5);
+
+  // 4. PREPARE TABLE ITEMS
+  const tableBody = [];
+  let posCounter = 1;
+
+  // Paket A
+  if (offer.packageA && offer.packageA.included) {
+    const pAPrice = Number(offer.packageA.price || 2400);
+    tableBody.push([
+      `${posCounter++}`,
+      `Paket A: Komplett-Entwicklung & WebApp\n` +
+      `• Maßgeschneiderte WebApp & Prozessdigitalisierung\n` +
+      `• Benutzer-, Mitarbeiter- & Rollenverwaltung\n` +
+      `• Responsive Design (Desktop, Tablet & Smartphone)\n` +
+      `• Sichere Cloud-Datenbank & SSL-Verschlüsselung\n` +
+      `• Schlüsselfertige Übergabe inkl. 12 Monate Garantie`,
+      '1x Einmalig',
+      `${docPrefix}${formatCurrency(pAPrice)}`,
+      `${docPrefix}${formatCurrency(pAPrice)}`
+    ]);
+  }
+
+  // Paket B
+  if (offer.packageB && offer.packageB.included) {
+    const setupPrice = Number(offer.packageB.setupPrice || 149);
+    const interval = offer.packageB.interval || 'monthly';
+    const intervalLabel = interval === 'yearly' ? 'Jährlich' : interval === 'quarterly' ? 'Vierteljährlich' : 'Monatlich';
+    const recurringPrice = Number(offer.packageB.recurringPrice || (interval === 'yearly' ? 1590 : interval === 'quarterly' ? 420 : 149));
+
+    tableBody.push([
+      `${posCounter++}`,
+      `Paket B: Setup + Laufende Betreuung & Wartung (${intervalLabel})\n` +
+      `• Einmalige Einrichtung & System-Initialisierung (${docPrefix}${formatCurrency(setupPrice)})\n` +
+      `• Laufende Serverwartung, Sicherheits-Updates & Cloud-Backups\n` +
+      `• Priorisierter technischer Support & Systemoptimierung\n` +
+      `• Laufzeit: ${intervalLabel} kündbar / verlängerbar`,
+      `${intervalLabel}`,
+      `${docPrefix}${formatCurrency(recurringPrice)}`,
+      `${docPrefix}${formatCurrency(setupPrice)} + ${docPrefix}${formatCurrency(recurringPrice)} / ${interval === 'yearly' ? 'Jahr' : interval === 'quarterly' ? 'Quartal' : 'Monat'}`
+    ]);
+  }
+
+  // Paket C
+  if (offer.packageC && offer.packageC.included) {
+    const unitPrice = Number(offer.packageC.unitPrice || 890);
+    const qty = Number(offer.packageC.quantity || 1);
+    const cTotal = unitPrice * qty;
+    const moduleName = offer.packageC.moduleName || 'Individuelle Erweiterungsmodule';
+
+    tableBody.push([
+      `${posCounter++}`,
+      `Paket C: Modulare Funktionserweiterung\n` +
+      `• Modul(e): ${moduleName}\n` +
+      `• Nahtlose Integration in bestehende TeamTrack-Architektur\n` +
+      `• Inkl. Funktionstest, Schnittstellenanbindung & Dokumentation`,
+      `${qty} Modul(e)`,
+      `${docPrefix}${formatCurrency(unitPrice)}`,
+      `${docPrefix}${formatCurrency(cTotal)}`
+    ]);
+  }
+
+  // Custom Items
+  (offer.customItems || []).forEach(item => {
+    const q = Number(item.quantity || 1);
+    const p = Number(item.unitPrice || 0);
+    tableBody.push([
+      `${posCounter++}`,
+      item.description || 'Individuelle Zusatzleistung',
+      `${q}x`,
+      `${docPrefix}${formatCurrency(p)}`,
+      `${docPrefix}${formatCurrency(q * p)}`
+    ]);
+  });
+
+  if (tableBody.length === 0) {
+    tableBody.push([
+      '1',
+      'Softwareentwicklung & IT-Beratung Komplettlösung',
+      '1x',
+      `${docPrefix}${formatCurrency(offer.totalAmount || 2400)}`,
+      `${docPrefix}${formatCurrency(offer.totalAmount || 2400)}`
+    ]);
+  }
+
+  const tableStartY = introY + 5 + (introSplit.length * 4.5) + 3;
+
+  autoTable(doc, {
+    startY: tableStartY,
+    margin: { left: margin, right: margin },
+    head: [['Pos.', 'Bezeichnung / Leistungsumfang', 'Menge', 'Einzelpreis', 'Gesamtpreis']],
+    body: tableBody,
+    theme: 'grid',
+    styles: {
+      fontSize: 8,
+      cellPadding: 2.8,
+      textColor: [30, 41, 59],
+      lineColor: [226, 232, 240],
+      lineWidth: 0.2
+    },
+    headStyles: {
+      fillColor: [15, 23, 42],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      fontSize: 8.5
+    },
+    columnStyles: {
+      0: { cellWidth: 10, halign: 'center' },
+      1: { cellWidth: 'auto' },
+      2: { cellWidth: 28, halign: 'center' },
+      3: { cellWidth: 28, halign: 'right' },
+      4: { cellWidth: 35, halign: 'right', fontStyle: 'bold' }
+    }
+  });
+
+  // 5. TOTALS & SUMMARY BOX
+  const finalY = doc.lastAutoTable.finalY + 5;
+  const totalsWidth = 90;
+  const totalsX = pageWidth - margin - totalsWidth;
+
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(totalsX, finalY, totalsWidth, 24, 2, 2, 'FD');
+
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+
+  const oneTimeSum = Number(offer.totalOneTime || 0);
+  const recurringSum = Number(offer.totalRecurring || 0);
+  const recInterval = offer.recurringInterval || 'monthly';
+  const recLabel = recInterval === 'yearly' ? 'pro Jahr' : recInterval === 'quarterly' ? 'pro Quartal' : 'pro Monat';
+
+  doc.text('Einmalige Entwicklung:', totalsX + 4, finalY + 6);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text(`${docPrefix}${formatCurrency(oneTimeSum)}`, totalsX + totalsWidth - 4, finalY + 6, { align: 'right' });
+
+  if (recurringSum > 0) {
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Laufende Betreuung (${recLabel}):`, totalsX + 4, finalY + 12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 130, 203);
+    doc.text(`${docPrefix}${formatCurrency(recurringSum)}`, totalsX + totalsWidth - 4, finalY + 12, { align: 'right' });
+  }
+
+  // Summary line
+  doc.setDrawColor(203, 213, 225);
+  doc.line(totalsX + 4, finalY + 15, totalsX + totalsWidth - 4, finalY + 15);
+  doc.setFontSize(9.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text('Gesamtsumme:', totalsX + 4, finalY + 20.5);
+  doc.setTextColor(0, 130, 203);
+  doc.text(`${docPrefix}${formatCurrency(offer.totalAmount || oneTimeSum)}`, totalsX + totalsWidth - 4, finalY + 20.5, { align: 'right' });
+
+  // Tax note
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(100, 116, 139);
+  doc.text(kleinunternehmerText, margin, finalY + 28);
+
+  // 6. CONDITIONS & ACCEPTANCE SECTION
+  const condY = finalY + 34;
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(margin, condY, pageWidth - (margin * 2), 24, 2, 2, 'FD');
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text('Konditionen & Gültigkeit:', margin + 4, condY + 5.5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text('• Zahlungsmodalitäten: 50% Anzahlung bei Beauftragung, 50% Restbetrag nach erfolgreicher Übergabe & Abnahme.', margin + 4, condY + 10.5);
+  doc.text(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`, margin + 4, condY + 15.5);
+  doc.text('• Datenschutz & Sicherheit: Hosting auf ISO-zertifizierten deutschen Servern gemäß DSGVO-Richtlinien.', margin + 4, condY + 20.5);
+
+  // Signature lines
+  const sigY = condY + 28;
+  if (sigY < 265) {
+    doc.setDrawColor(203, 213, 225);
+    doc.line(margin, sigY + 12, margin + 70, sigY + 12);
+    doc.line(pageWidth - margin - 70, sigY + 12, pageWidth - margin, sigY + 12);
+
+    doc.setFontSize(7.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text('Ort, Datum & Unterschrift Auftragnehmer', margin, sigY + 16);
+    doc.text('Auftragsbestätigung Kunde (Unterschrift & Stempel)', pageWidth - margin - 70, sigY + 16);
+  }
+
+  // 7. FOOTER
+  const footerY = 282;
+  doc.setDrawColor(226, 232, 240);
+  doc.line(margin, footerY - 4, pageWidth - margin, footerY - 4);
+
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+
+  const colW = (pageWidth - (margin * 2)) / 4;
+  doc.text(`${companySettings.companyName || 'TeamTrack-Software'}\nInhaberin: ${companySettings.ownerName || 'Huriye Ünalsoy'}`, margin, footerY);
+  doc.text(`${streetLine}\n${cityLine}`, margin + colW, footerY);
+  doc.text(`Bank: ${companySettings.bankName || 'Postbank'}\nIBAN: ${companySettings.iban || 'DE16 1001 0010 0012 7271 85'}`, margin + (colW * 2), footerY);
+  doc.text(`St.-Nr.: ${companySettings.taxNumber || '27/123/45678'}\nE-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, margin + (colW * 3), footerY);
+
+  return doc;
+}
+
+export function generateOfferPDF(offer, companySettings = {}) {
+  const doc = createOfferDoc(offer, companySettings);
+  const isKV = offer.type === 'kostenvoranschlag';
+  const prefix = isKV ? 'Kostenvoranschlag' : 'Angebot';
+  const num = offer.offerNumber || (isKV ? 'KV-2026-0001' : 'ANG-2026-0001');
+  const custName = (offer.customerName || 'Kunde').replace(/[^a-zA-Z0-9_-]/g, '_');
+  const fileName = `${prefix}_${num}_${custName}.pdf`;
+  doc.save(fileName);
+}
+

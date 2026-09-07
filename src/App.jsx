@@ -10,6 +10,7 @@ import MileagePage from './pages/MileagePage';
 import TaxReportPage from './pages/TaxReportPage';
 import BackupPage from './pages/BackupPage';
 import SettingsPage from './pages/SettingsPage';
+import PricingOffersPage from './pages/PricingOffersPage';
 
 // Modals
 import CustomerModal from './components/CustomerModal';
@@ -373,6 +374,25 @@ export default function App() {
                 setCustomerModalOpen(true);
               }}
               onReloadAllData={loadAllData}
+            />
+          )}
+
+          {activeTab === 'pricing-offers' && (
+            <PricingOffersPage
+              customers={customers}
+              companySettings={companySettings}
+              onOpenCustomerModal={() => {
+                setEditingCustomer(null);
+                setCustomerModalOpen(true);
+              }}
+              onConvertToInvoice={(offer) => {
+                const prefilled = {
+                  title: `${offer.type === 'kostenvoranschlag' ? 'Kostenvoranschlag' : 'Angebot'} ${offer.offerNumber}`,
+                  price: offer.totalOneTime || offer.totalAmount || 0,
+                  type: 'einmalig'
+                };
+                handleOpenInvoiceModal(offer.customerId, null, prefilled);
+              }}
             />
           )}
 

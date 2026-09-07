@@ -10,13 +10,15 @@ import {
   Sparkles, 
   Layers, 
   X,
-  ShieldCheck 
+  ShieldCheck,
+  Tag 
 } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab, counts = {}, isMobileOpen, setIsMobileOpen }) {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'customers', label: 'Kundenverwaltung', icon: Users, badge: counts.customers },
+    { id: 'pricing-offers', label: 'Preise & Angebote', icon: Tag },
     { id: 'invoices', label: 'Ausgehende Rechnungen', icon: FileText, badge: counts.pendingInvoices, badgeColor: 'bg-amber-100 text-amber-700' },
     { id: 'expenses', label: 'Eingehende Belege (Ausgaben)', icon: Receipt, badge: counts.expenses },
     { id: 'mileage', label: 'KM-Tracking / Fahrtenbuch', icon: Car },
