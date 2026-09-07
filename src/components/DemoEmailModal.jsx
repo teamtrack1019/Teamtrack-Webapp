@@ -47,6 +47,9 @@ Unsere Kernbereiche im Überblick:
 💡 Kostenlose Live-Demo & Testzugang:
 Auf Wunsch stellen wir Ihnen gerne einen kostenlosen Demo-Zugang zur Verfügung oder führen Ihnen das System kurz unverbindlich vor, damit Sie und Ihr Team sich direkt selbst von den Vorteilen überzeugen können.
 
+🌐 Unsere Website & Einblicke:
+Werfen Sie auch gerne jederzeit einen Blick auf unsere Website unter https://team-track.de, um mehr über unsere Arbeit und digitalen Lösungen zu erfahren.
+
 Bei Interesse oder Fragen stehen wir Ihnen jederzeit gerne für einen unverbindlichen Austausch zur Verfügung. Sie erreichen uns einfach per E-Mail oder telefonisch.
 Wir freuen uns auf Ihre Kontaktaufnahme.
 
