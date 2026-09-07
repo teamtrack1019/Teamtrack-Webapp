@@ -856,36 +856,59 @@ export function createOfferDoc(offer, companySettings = {}) {
   doc.text(kleinunternehmerText, margin, finalY + 28);
 
   // 6. CONDITIONS & ACCEPTANCE SECTION
-  const condY = finalY + 32;
-  const hasNotes = Boolean(offer.notes && offer.notes.trim());
-  const condH = hasNotes ? 33 : 28;
+  const condY = finalY + 30;
+  const boxWidth = pageWidth - (margin * 2); // 170mm
+  const textWidth = boxWidth - 8; // 162mm
+
+  const scopeText = '• Verbindlicher Leistungsumfang: Es werden ausschließlich die in diesem Angebot explizit ausgewählten und aufgeführten Module umgesetzt. Nicht im Angebot enthaltene Funktionsbereiche bedürfen einer gesonderten schriftlichen Beauftragung.';
+  const paymentText = '• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung & Freigabe.';
+  const validityText = `• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`;
+
+  const scopeLines = doc.splitTextToSize(scopeText, textWidth);
+  const paymentLines = doc.splitTextToSize(paymentText, textWidth);
+  const validityLines = doc.splitTextToSize(validityText, textWidth);
+  const noteLines = (offer.notes && offer.notes.trim()) 
+    ? doc.splitTextToSize(`• Individuelle Kundenvereinbarung: ${offer.notes.trim()}`, textWidth)
+    : [];
+
+  const lineCount = scopeLines.length + paymentLines.length + validityLines.length + noteLines.length;
+  const condH = 7.5 + (lineCount * 3.7);
+
   doc.setFillColor(255, 255, 255);
   doc.setDrawColor(203, 213, 225);
   doc.setLineWidth(0.4);
-  doc.roundedRect(margin, condY, pageWidth - (margin * 2), condH, 2, 2, 'FD');
+  doc.roundedRect(margin, condY, boxWidth, condH, 2, 2, 'FD');
 
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
   doc.text('Leistungsumfang, Konditionen & Vereinbarungen:', margin + 4, condY + 5.5);
 
-  doc.setFontSize(7.8);
+  doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(51, 65, 85);
-  doc.text('• Verbindlicher Leistungsumfang: Es werden ausschließlich die in diesem Angebot explizit ausgewählten und aufgeführten Module umgesetzt.', margin + 4, condY + 10.5);
-  doc.text('  Nicht aufgeführte Funktionsbereiche, zusätzliche Drittsysteme oder spätere Sonderwünsche bedürfen einer gesonderten schriftlichen Beauftragung.', margin + 4, condY + 14.5);
-  doc.text('• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung & Freigabe.', margin + 4, condY + 18.5);
-  doc.text(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`, margin + 4, condY + 22.5);
-  if (hasNotes) {
+
+  let curY = condY + 9.5;
+  doc.text(scopeLines, margin + 4, curY);
+  curY += (scopeLines.length * 3.7);
+
+  doc.text(paymentLines, margin + 4, curY);
+  curY += (paymentLines.length * 3.7);
+
+  doc.text(validityLines, margin + 4, curY);
+  curY += (validityLines.length * 3.7);
+
+  if (noteLines.length > 0) {
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(30, 41, 59);
-    doc.text(`• Individuelle Vereinbarung: ${offer.notes.trim()}`, margin + 4, condY + 27);
+    doc.text(noteLines, margin + 4, curY);
   }
 
   // Signature lines
   const sigY = condY + condH + 3;
-  if (sigY < 268) {
+  if (sigY < 266) {
     doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.4);
     doc.line(margin, sigY + 10, margin + 70, sigY + 10);
     doc.line(pageWidth - margin - 70, sigY + 10, pageWidth - margin, sigY + 10);
 
@@ -896,20 +919,47 @@ export function createOfferDoc(offer, companySettings = {}) {
     doc.text('Auftragsbestätigung Kunde (Unterschrift & Stempel)', pageWidth - margin - 70, sigY + 14);
   }
 
-  // 7. FOOTER
-  const footerY = 282;
+  // 7. FOOTER (3 Spacious Columns to prevent any IBAN / Email overlap)
+  const footerY = 281;
   doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.4);
   doc.line(margin, footerY - 4, pageWidth - margin, footerY - 4);
 
-  doc.setFontSize(7);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 116, 139);
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
 
-  const colW = (pageWidth - (margin * 2)) / 4;
-  doc.text(`${companySettings.companyName || 'TeamTrack-Software'}\nInhaberin: ${companySettings.ownerName || 'Huriye Ünalsoy'}`, margin, footerY);
-  doc.text(`${streetLine}\n${cityLine}`, margin + colW, footerY);
-  doc.text(`Bank: ${companySettings.bankName || 'Postbank'}\nIBAN: ${companySettings.iban || 'DE16 1001 0010 0012 7271 85'}`, margin + (colW * 2), footerY);
-  doc.text(`St.-Nr.: ${companySettings.taxNumber || '27/123/45678'}\nE-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, margin + (colW * 3), footerY);
+  // Column 1: Company & Address (margin = 20mm)
+  doc.text(companySettings.companyName || 'TeamTrack-Software', margin, footerY);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Inhaberin: ${companySettings.ownerName || 'Huriye Ünalsoy'}`, margin, footerY + 3.8);
+  doc.text(`${streetLine}, ${cityLine}`, margin, footerY + 7.6);
+
+  // Column 2: Bankverbindung (Starts at 78mm - ample room for long IBANs)
+  const col2X = 78;
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text('Bankverbindung', col2X, footerY);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Bank: ${companySettings.bankName || 'Postbank'}`, col2X, footerY + 3.8);
+  doc.text(`IBAN: ${companySettings.iban || 'DE16 1001 0010 0012 7271 85'}`, col2X, footerY + 7.6);
+
+  // Column 3: Contact & Tax (Starts at 140mm)
+  const col3X = 140;
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text('Kontakt & Steuernummer', col3X, footerY);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`St.-Nr.: ${companySettings.taxNumber || '27/123/45678'}`, col3X, footerY + 3.8);
+  doc.text(`E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, col3X, footerY + 7.6);
 
   return doc;
 }
