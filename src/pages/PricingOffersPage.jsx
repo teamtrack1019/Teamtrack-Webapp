@@ -288,7 +288,7 @@ vielen Dank für Ihr Interesse an einer Zusammenarbeit mit TeamTrack-Software.
 ${isKV ? 'Wie besprochen haben wir für Sie einen unverbindlichen Kostenvoranschlag' : 'Gerne unterbreiten wir Ihnen nachfolgend unser maßgeschneidertes Angebot'} für die Digitalisierung Ihrer Betriebsabläufe zusammengestellt:
 
 📋 ${isKV ? 'KOSTENVORANSCHLAG' : 'ANGEBOT'} ${offerNumber}
-${pkgAIncluded ? `• Paket A (Komplett-Entwicklung & WebApp): ${pricePrefix}${formatCurrency(pkgAPrice)} (einmalig)\n` : ''}${pkgBIncluded ? `• Paket B (Setup + Wartung & Betreuung): Setup ${pricePrefix}${formatCurrency(pkgBSetupPrice)} + ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)} / ${intervalText}\n` : ''}${pkgCIncluded && selectedModulesCount > 0 ? `• Paket C (Modulare Funktionserweiterung - ${selectedModulesCount} Modul${selectedModulesCount > 1 ? 'e' : ''} zu je ${pricePrefix}${formatCurrency(pkgCUnitPrice)} = ${pricePrefix}${formatCurrency(pkgCTotal)}):\n  Ausgewählte Funktionsbereiche:\n${selectedModsFormatted}\n` : ''}
+${pkgAIncluded ? `• Paket A (Komplett-Entwicklung & WebApp): ${pricePrefix}${formatCurrency(pkgAPrice)} (einmalig)\n` : ''}${pkgBIncluded ? `• Paket B (Setup + 7/24 Abo-Betreuung): Setup ${pricePrefix}${formatCurrency(pkgBSetupPrice)} + ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)} / ${intervalText}\n` : ''}${pkgCIncluded && selectedModulesCount > 0 ? `• Paket C (Modulare Funktionserweiterung - ${selectedModulesCount} Modul${selectedModulesCount > 1 ? 'e' : ''} zu je ${pricePrefix}${formatCurrency(pkgCUnitPrice)} = ${pricePrefix}${formatCurrency(pkgCTotal)}):\n  Ausgewählte Funktionsbereiche:\n${selectedModsFormatted}\n` : ''}
 Gesamtsumme Einmalig: ${pricePrefix}${formatCurrency(totalOneTime)}
 ${currentPkgBRecurringPrice > 0 ? `Laufende Betreuung: ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)} (${intervalText})\n` : ''}
 ⚠️ Wichtiger Hinweis zum Leistungsumfang:
@@ -606,11 +606,11 @@ Web: https://team-track.de`;
                     />
                     <div className="flex-1">
                       <label htmlFor="pkgB" className="font-black text-slate-900 text-sm cursor-pointer flex items-center gap-2">
-                        Paket B: Setup + Laufende Betreuung & Wartung
+                        Paket B: Setup + 7/24 Abo-Betreuung (Laufender Service)
                         <span className="text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">Abo</span>
                       </label>
                       <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                        Einmalige Einrichtung plus laufende Cloud-Wartung, automatische Backups, SSL & technischer Support.
+                        Einmalige schlüsselfertige Implementierung plus flexibles 7/24-Abo für Notfall-Support, DSGVO-Updates, Backups & laufende Weiterentwicklung.
                       </p>
 
                       {pkgBIncluded && (

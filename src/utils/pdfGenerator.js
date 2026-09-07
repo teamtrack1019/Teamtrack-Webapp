@@ -716,18 +716,28 @@ export function createOfferDoc(offer, companySettings = {}) {
     const setupPrice = Number(offer.packageB.setupPrice || 149);
     const interval = offer.packageB.interval || 'monthly';
     const intervalLabel = interval === 'yearly' ? 'Jährlich' : interval === 'quarterly' ? 'Vierteljährlich' : 'Monatlich';
+    const intervalUnit = interval === 'yearly' ? 'Jahr' : interval === 'quarterly' ? 'Quartal' : 'Monat';
     const recurringPrice = Number(offer.packageB.recurringPrice || (interval === 'yearly' ? 1590 : interval === 'quarterly' ? 420 : 149));
+
+    const paketBDesc = 
+      `Paket B: Setup + 7/24 Abo-Betreuung (${intervalLabel})\n` +
+      `• Einmaliges Initial-Setup & System-Initialisierung (${docPrefix}${formatCurrency(setupPrice)})\n` +
+      `• 7/24 Notfall-Support & Schnelle Reaktionszeit: Direkter Entwickler-Kontakt und vorrangige Fehlerbehebung\n` +
+      `• Hochleistungs-Cloud & Tägliche Backups: Server-Betrieb in ISO-zertifizierten Rechenzentren mit täglicher Sicherung\n` +
+      `• DSGVO-Wartung & Sicherheitsupdates: Kontinuierliche Server- und Datenbank-Sicherheits-Patches\n` +
+      `• Laufende Feature-Erweiterungen: Schnelle Umsetzung neuer Eingabefelder, Auswertungen und Anpassungen\n` +
+      `• Laufzeit: ${intervalLabel} kündbar und flexibel anpassbar`;
+
+    const totalColumnStr = setupPrice > 0
+      ? `${docPrefix}${formatCurrency(setupPrice)} (Setup) +\n${docPrefix}${formatCurrency(recurringPrice)} / ${intervalUnit}`
+      : `${docPrefix}${formatCurrency(recurringPrice)} / ${intervalUnit}`;
 
     tableBody.push([
       `${posCounter++}`,
-      `Paket B: Setup + Laufende Betreuung & Wartung (${intervalLabel})\n` +
-      `• Einmalige Einrichtung & System-Initialisierung (${docPrefix}${formatCurrency(setupPrice)})\n` +
-      `• Laufende Serverwartung, Sicherheits-Updates & Cloud-Backups\n` +
-      `• Priorisierter technischer Support & Systemoptimierung\n` +
-      `• Laufzeit: ${intervalLabel} kündbar / verlängerbar`,
+      paketBDesc,
       `${intervalLabel}`,
-      `${docPrefix}${formatCurrency(recurringPrice)}`,
-      `${docPrefix}${formatCurrency(setupPrice)} + ${docPrefix}${formatCurrency(recurringPrice)} / ${interval === 'yearly' ? 'Jahr' : interval === 'quarterly' ? 'Quartal' : 'Monat'}`
+      `${docPrefix}${formatCurrency(recurringPrice)} / ${intervalUnit}`,
+      totalColumnStr
     ]);
   }
 
