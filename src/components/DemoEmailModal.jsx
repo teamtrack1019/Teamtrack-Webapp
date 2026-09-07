@@ -63,7 +63,6 @@ ${COMPANY_SIGNATURE}`
 wie besprochen habe ich für ${cust.companyName} eine Vorschau-Umgebung vorbereitet, damit Sie und Ihr Team die Vorteile direkt live testen können.
 
 Link zur WebApp Demo: https://team-track.de
-Test-Login: ${cust.email || 'demo@ihrefirma.de'}
 
 Probieren Sie gerne aus, wie schnell Aufträge, Stundenzettel und Mitarbeiterberichte erfasst werden können. Bei Fragen stehe ich Ihnen jederzeit persönlich zur Verfügung.
 
