@@ -582,7 +582,7 @@ export function createOfferDoc(offer, companySettings = {}) {
 
   // Company Details
   doc.setTextColor(15, 23, 42);
-  doc.setFontSize(16);
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   const streetLine = companySettings.street || 'Balthasar-Neumann-Str. 38';
   const cityLine = (companySettings.zipCode && companySettings.city) ? `${companySettings.zipCode} ${companySettings.city}` : '97236 Randersacker';
@@ -596,19 +596,21 @@ export function createOfferDoc(offer, companySettings = {}) {
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(71, 85, 105);
-  doc.text(`${streetLine}, ${cityLine}`, textStartX, 36.5);
-  doc.text(`Tel: ${companySettings.phone || '+49 172 4690446'}   |   E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, textStartX, 41.5);
-  doc.text(`Web: ${companySettings.website || 'https://team-track.de'}`, textStartX, 46.5);
+  doc.text(`${streetLine}, ${cityLine}`, textStartX, 36);
+  doc.text(`Tel: ${companySettings.phone || '+49 172 4690446'}   |   E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, textStartX, 41);
+  doc.text(`Web: ${companySettings.website || 'https://team-track.de'}`, textStartX, 46);
 
-  // Header Right: Title & Number
-  doc.setFontSize(20);
+  // Header Right: Title & Number (Proportionate font size to avoid any text collision)
+  const titleFontSize = isKV ? 13 : 16;
+  doc.setFontSize(titleFontSize);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  doc.text(docTitle, pageWidth - margin, 27.5, { align: 'right' });
+  doc.text(docTitle, pageWidth - margin, 26, { align: 'right' });
 
-  doc.setFontSize(10.5);
+  doc.setFontSize(9.5);
+  doc.setFont('helvetica', 'bold');
   doc.setTextColor(0, 130, 203);
-  doc.text(offer.offerNumber || (isKV ? 'KV-2026-0001' : 'ANG-2026-0001'), pageWidth - margin, 34, { align: 'right' });
+  doc.text(offer.offerNumber || (isKV ? 'KV-2026-0001' : 'ANG-2026-0001'), pageWidth - margin, 32.5, { align: 'right' });
 
   // 2. RECIPIENT & META GRID
   const recipientY = 58;
