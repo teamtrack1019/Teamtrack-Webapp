@@ -311,7 +311,7 @@ E-Mail: kontakt@team-track.de
 Web: https://team-track.de`;
   };
 
-  // Open Outlook Web Compose
+  // Open Outlook App Compose
   const handleOpenOutlook = async () => {
     const subject = `${isKV ? 'Kostenvoranschlag' : 'Angebot'} ${offerNumber} für ${selectedCustomer?.companyName || 'Ihr Unternehmen'} – TeamTrack`;
     const body = getOfferEmailBody();
@@ -328,8 +328,8 @@ Web: https://team-track.de`;
       console.warn('Auto-save offer error:', err);
     }
 
-    const mailto = `https://outlook.live.com/mail/0/deeplink/compose?login_hint=${encodeURIComponent('kontakt@team-track.de')}&to=${encodeURIComponent(selectedCustomer?.email || '')}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(mailto, '_blank');
+    const mailtoUrl = `mailto:${encodeURIComponent(selectedCustomer?.email || '')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoUrl;
   };
 
   // Copy Email Text
@@ -1024,7 +1024,7 @@ Web: https://team-track.de`;
                     className="py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Send className="w-3.5 h-3.5 text-sky-300" />
-                    <span>In Outlook öffnen</span>
+                    <span>In Outlook App öffnen</span>
                   </button>
 
                   <button
