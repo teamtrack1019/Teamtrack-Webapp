@@ -732,16 +732,21 @@ export function createOfferDoc(offer, companySettings = {}) {
   // Paket C
   if (offer.packageC && offer.packageC.included) {
     const unitPrice = Number(offer.packageC.unitPrice || 890);
-    const qty = Number(offer.packageC.quantity || 1);
+    const selectedMods = (offer.packageC.selectedModules || []).filter(m => m.selected !== false);
+    const qty = selectedMods.length > 0 ? selectedMods.length : Number(offer.packageC.quantity || 1);
     const cTotal = unitPrice * qty;
-    const moduleName = offer.packageC.moduleName || 'Individuelle Erweiterungsmodule';
+
+    const moduleBulletList = selectedMods.length > 0
+      ? selectedMods.map(m => `  • ${m.title || m.name || m}`).join('\n')
+      : `  • ${offer.packageC.moduleName || 'Individuelle Erweiterungsmodule'}`;
 
     tableBody.push([
       `${posCounter++}`,
-      `Paket C: Modulare Funktionserweiterung\n` +
-      `• Modul(e): ${moduleName}\n` +
-      `• Nahtlose Integration in bestehende TeamTrack-Architektur\n` +
-      `• Inkl. Funktionstest, Schnittstellenanbindung & Dokumentation`,
+      `Paket C: Modulare Funktionserweiterung (${qty} Modul${qty > 1 ? 'e' : ''} ausgewählt)\n` +
+      `Ausgewählte(s) Funktionsmodul(e):\n` +
+      `${moduleBulletList}\n` +
+      `• Nahtlose Integration in die TeamTrack-Systemarchitektur\n` +
+      `• Inkl. Funktionstest, Schnittstellenanbindung & Einweisung`,
       `${qty} Modul(e)`,
       `${docPrefix}${formatCurrency(unitPrice)}`,
       `${docPrefix}${formatCurrency(cTotal)}`
@@ -854,21 +859,22 @@ export function createOfferDoc(offer, companySettings = {}) {
   const condY = finalY + 34;
   doc.setFillColor(255, 255, 255);
   doc.setDrawColor(226, 232, 240);
-  doc.roundedRect(margin, condY, pageWidth - (margin * 2), 24, 2, 2, 'FD');
+  doc.roundedRect(margin, condY, pageWidth - (margin * 2), 27, 2, 2, 'FD');
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  doc.text('Konditionen & Gültigkeit:', margin + 4, condY + 5.5);
+  doc.text('Konditionen & Leistungsumfang:', margin + 4, condY + 5.5);
 
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(71, 85, 105);
-  doc.text('• Zahlungsmodalitäten: 50% Anzahlung bei Beauftragung, 50% Restbetrag nach erfolgreicher Übergabe & Abnahme.', margin + 4, condY + 10.5);
-  doc.text(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`, margin + 4, condY + 15.5);
-  doc.text('• Datenschutz & Sicherheit: Hosting auf ISO-zertifizierten deutschen Servern gemäß DSGVO-Richtlinien.', margin + 4, condY + 20.5);
+  doc.text('• Leistungsumfang: Es werden ausschließlich die hier explizit ausgewählten Module und Leistungspositionen umgesetzt.', margin + 4, condY + 10.5);
+  doc.text('  Nicht im Angebot enthaltene Funktionsbereiche oder nachträgliche Sonderwünsche bedürfen einer gesonderten Beauftragung.', margin + 4, condY + 14.5);
+  doc.text('• Zahlungsmodalitäten: 50% Anzahlung bei Beauftragung, 50% Restbetrag nach erfolgreicher Übergabe & Abnahme.', margin + 4, condY + 18.5);
+  doc.text(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`, margin + 4, condY + 22.5);
 
   // Signature lines
-  const sigY = condY + 28;
+  const sigY = condY + 31;
   if (sigY < 265) {
     doc.setDrawColor(203, 213, 225);
     doc.line(margin, sigY + 12, margin + 70, sigY + 12);

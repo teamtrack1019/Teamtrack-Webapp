@@ -25,11 +25,23 @@ import {
   ArrowRight,
   TrendingUp,
   Receipt,
-  FileSpreadsheet
+  FileSpreadsheet,
+  CheckSquare,
+  Square,
+  ShieldAlert,
+  Info
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { generateOfferPDF } from '../utils/pdfGenerator';
 import { api } from '../api';
+
+const PREDEFINED_MODULES = [
+  { id: 'mod-1', num: '1', title: 'Modul 1: Mobile Zeiterfassung & Digitale Stundenzettel', desc: 'Rechtssichere Mitarbeiter-Zeiterfassung, GPS-Stempelung & digitale Arbeitszeitnachweise' },
+  { id: 'mod-2', num: '2', title: 'Modul 2: 1-Klick Rechnungsstellung & Mahnwesen', desc: 'Automatische Rechnungserstellung, Mahnstufen, EÜR-Export & PDF-Versand' },
+  { id: 'mod-3', num: '3', title: 'Modul 3: Fuhrpark-, TÜV- & Materialverwaltung', desc: 'Digitales Fahrtenbuch (0,30 €/km), Fahrzeugwartung, TÜV-Fristen & Lagerbestand' },
+  { id: 'mod-4', num: '4', title: 'Modul 4: Kundenverwaltung (CRM) & Kunden-Portal', desc: 'Zentraler Kundenstamm, Einsatzhistorie, Dokumentenablage & Kunden-Selbstbedienung' },
+  { id: 'mod-5', num: '5', title: 'Modul 5: Logistik-, Dispositions- & Tourenplanung', desc: 'Einsatzplanung für Mitarbeiter & Fahrzeuge, Routenoptimierung & Auftragsverfolgung' }
+];
 
 export default function PricingOffersPage({ 
   customers = [], 
@@ -62,11 +74,12 @@ export default function PricingOffersPage({
   const [pkgBQuarterlyPrice, setPkgBQuarterlyPrice] = useState(420);
   const [pkgBYearlyPrice, setPkgBYearlyPrice] = useState(1590);
 
-  // Package C: Modul-Erweiterung
+  // Package C: Modul-Erweiterung (Selectable modules list)
   const [pkgCIncluded, setPkgCIncluded] = useState(false);
   const [pkgCUnitPrice, setPkgCUnitPrice] = useState(890);
-  const [pkgCQuantity, setPkgCQuantity] = useState(1);
-  const [pkgCModuleName, setPkgCModuleName] = useState('Digitales Zeiterfassungs- & Fahrtenbuch-Modul');
+  const [selectedModuleIds, setSelectedModuleIds] = useState(['mod-1']);
+  const [customModules, setCustomModules] = useState([]);
+  const [newCustomModuleName, setNewCustomModuleName] = useState('');
 
   // Custom Items
   const [customItems, setCustomItems] = useState([]);
@@ -121,6 +134,39 @@ export default function PricingOffersPage({
     return d.toISOString().split('T')[0];
   }, [date, validDays]);
 
+  // Module toggle
+  const toggleModuleSelection = (id) => {
+    setSelectedModuleIds(prev => 
+      prev.includes(id) ? prev.filter(mId => mId !== id) : [...prev, id]
+    );
+  };
+
+  // Add custom module
+  const handleAddCustomModule = () => {
+    if (!newCustomModuleName.trim()) return;
+    const newId = `custom-mod-${Date.now()}`;
+    setCustomModules(prev => [
+      ...prev,
+      { id: newId, num: `${PREDEFINED_MODULES.length + prev.length + 1}`, title: `Modul: ${newCustomModuleName.trim()}`, desc: 'Kundenspezifisches Erweiterungsmodul', selected: true }
+    ]);
+    setSelectedModuleIds(prev => [...prev, newId]);
+    setNewCustomModuleName('');
+  };
+
+  const handleRemoveCustomModule = (id) => {
+    setCustomModules(prev => prev.filter(m => m.id !== id));
+    setSelectedModuleIds(prev => prev.filter(mId => mId !== id));
+  };
+
+  // Active Modules List
+  const activeSelectedModules = useMemo(() => {
+    const std = PREDEFINED_MODULES.filter(m => selectedModuleIds.includes(m.id));
+    const cst = customModules.filter(m => selectedModuleIds.includes(m.id));
+    return [...std, ...cst];
+  }, [selectedModuleIds, customModules]);
+
+  const selectedModulesCount = activeSelectedModules.length;
+
   // Calculate Totals
   const currentPkgBRecurringPrice = useMemo(() => {
     if (!pkgBIncluded) return 0;
@@ -129,16 +175,21 @@ export default function PricingOffersPage({
     return Number(pkgBMonthlyPrice || 149);
   }, [pkgBIncluded, pkgBInterval, pkgBMonthlyPrice, pkgBQuarterlyPrice, pkgBYearlyPrice]);
 
+  const pkgCTotal = useMemo(() => {
+    if (!pkgCIncluded) return 0;
+    return Number(pkgCUnitPrice || 890) * selectedModulesCount;
+  }, [pkgCIncluded, pkgCUnitPrice, selectedModulesCount]);
+
   const totalOneTime = useMemo(() => {
     let sum = 0;
     if (pkgAIncluded) sum += Number(pkgAPrice || 0);
     if (pkgBIncluded) sum += Number(pkgBSetupPrice || 0);
-    if (pkgCIncluded) sum += (Number(pkgCUnitPrice || 0) * Number(pkgCQuantity || 1));
+    if (pkgCIncluded) sum += pkgCTotal;
     (customItems || []).forEach(it => {
       sum += (Number(it.unitPrice || 0) * Number(it.quantity || 1));
     });
     return sum;
-  }, [pkgAIncluded, pkgAPrice, pkgBIncluded, pkgBSetupPrice, pkgCIncluded, pkgCUnitPrice, pkgCQuantity, customItems]);
+  }, [pkgAIncluded, pkgAPrice, pkgBIncluded, pkgBSetupPrice, pkgCIncluded, pkgCTotal, customItems]);
 
   const isKV = docType === 'kostenvoranschlag';
   const pricePrefix = isKV ? 'ab ' : '';
@@ -186,8 +237,9 @@ export default function PricingOffersPage({
       packageC: {
         included: pkgCIncluded,
         unitPrice: Number(pkgCUnitPrice || 890),
-        quantity: Number(pkgCQuantity || 1),
-        moduleName: pkgCModuleName
+        quantity: selectedModulesCount,
+        selectedModules: activeSelectedModules.map(m => ({ id: m.id, title: m.title })),
+        moduleName: activeSelectedModules.map(m => m.title).join(' • ')
       },
       customItems,
       totalOneTime,
@@ -226,15 +278,22 @@ export default function PricingOffersPage({
 
     const intervalText = pkgBInterval === 'yearly' ? 'jährlich' : pkgBInterval === 'quarterly' ? 'vierteljährlich' : 'monatlich';
 
+    const selectedModsFormatted = activeSelectedModules.length > 0
+      ? activeSelectedModules.map(m => `    - ${m.title}`).join('\n')
+      : '    - Keine Module ausgewählt';
+
     return `${greeting}
 
 vielen Dank für Ihr Interesse an einer Zusammenarbeit mit TeamTrack-Software.
 ${isKV ? 'Wie besprochen haben wir für Sie einen unverbindlichen Kostenvoranschlag' : 'Gerne unterbreiten wir Ihnen nachfolgend unser maßgeschneidertes Angebot'} für die Digitalisierung Ihrer Betriebsabläufe zusammengestellt:
 
 📋 ${isKV ? 'KOSTENVORANSCHLAG' : 'ANGEBOT'} ${offerNumber}
-${pkgAIncluded ? `• Paket A (Komplett-Entwicklung & WebApp): ${pricePrefix}${formatCurrency(pkgAPrice)} (einmalig)\n` : ''}${pkgBIncluded ? `• Paket B (Setup + Wartung & Betreuung): Setup ${pricePrefix}${formatCurrency(pkgBSetupPrice)} + ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)} / ${intervalText}\n` : ''}${pkgCIncluded ? `• Paket C (Modulare Erweiterung - ${pkgCQuantity}x ${pkgCModuleName}): ${pricePrefix}${formatCurrency(pkgCUnitPrice * pkgCQuantity)}\n` : ''}
+${pkgAIncluded ? `• Paket A (Komplett-Entwicklung & WebApp): ${pricePrefix}${formatCurrency(pkgAPrice)} (einmalig)\n` : ''}${pkgBIncluded ? `• Paket B (Setup + Wartung & Betreuung): Setup ${pricePrefix}${formatCurrency(pkgBSetupPrice)} + ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)} / ${intervalText}\n` : ''}${pkgCIncluded && selectedModulesCount > 0 ? `• Paket C (Modulare Funktionserweiterung - ${selectedModulesCount} Modul${selectedModulesCount > 1 ? 'e' : ''} zu je ${pricePrefix}${formatCurrency(pkgCUnitPrice)} = ${pricePrefix}${formatCurrency(pkgCTotal)}):\n  Ausgewählte Funktionsbereiche:\n${selectedModsFormatted}\n` : ''}
 Gesamtsumme Einmalig: ${pricePrefix}${formatCurrency(totalOneTime)}
 ${currentPkgBRecurringPrice > 0 ? `Laufende Betreuung: ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)} (${intervalText})\n` : ''}
+⚠️ Wichtiger Hinweis zum Leistungsumfang:
+Der Leistungsumfang beschränkt sich ausschließlich auf die oben explizit ausgewählten und aufgeführten Module. Nicht ausgewählte Bereiche sind nicht Bestandteil dieses Angebots.
+
 Das vollständige und detaillierte PDF-Dokument inklusive Leistungsbeschreibung ist für Sie vorbereitet.
 Gültig bis: ${formatDate(validUntilDate)}
 
@@ -644,7 +703,7 @@ Web: https://team-track.de`;
                 </div>
               </div>
 
-              {/* PAKET C: MODUL-SYSTEM */}
+              {/* PAKET C: MODUL-SYSTEM (SELECTABLE MODULES WITH CHECKBOXES) */}
               <div className={`p-5 rounded-2xl border transition-all ${
                 pkgCIncluded ? 'border-emerald-300 bg-emerald-50/30 shadow-xs' : 'border-slate-200 bg-slate-50/50 opacity-70'
               }`}>
@@ -658,72 +717,163 @@ Web: https://team-track.de`;
                       className="mt-1 w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
                     />
                     <div className="flex-1">
-                      <label htmlFor="pkgC" className="font-black text-slate-900 text-sm cursor-pointer flex items-center gap-2">
-                        Paket C: Modulare Erweiterung (Pro Modul)
-                        <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Multiplizierbar</span>
-                      </label>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <label htmlFor="pkgC" className="font-black text-slate-900 text-sm cursor-pointer flex items-center gap-2">
+                          Paket C: Modulare Funktionserweiterung
+                          <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                            {selectedModulesCount} Modul(e) gewählt
+                          </span>
+                        </label>
+
+                        {/* Price per Module Input */}
+                        <div className="flex items-center gap-1.5 self-start sm:self-auto">
+                          <span className="text-xs font-semibold text-slate-600">Preis pro Modul:</span>
+                          <span className="text-xs text-slate-500">{pricePrefix}</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="50"
+                            disabled={!pkgCIncluded}
+                            value={pkgCUnitPrice}
+                            onChange={(e) => setPkgCUnitPrice(Number(e.target.value))}
+                            className="w-24 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-right font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs"
+                          />
+                          <span className="text-xs font-bold text-slate-700">€</span>
+                        </div>
+                      </div>
+
                       <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                        Zusätzliche maßgeschneiderte Spezialmodule (z.B. Fahrtenbuch, Zeiterfassung, Kundenportal).
+                        Wählen Sie die gewünschten Funktionsmodule per Checkbox aus. Im PDF und Angebot werden <strong>nur die ausgewählten Module</strong> aufgeführt.
                       </p>
 
                       {pkgCIncluded && (
                         <div className="mt-4 pt-3 border-t border-emerald-100/80 space-y-3">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                              <span className="text-[10px] font-bold text-slate-600 block mb-1">Modul-Bezeichnung:</span>
-                              <input
-                                type="text"
-                                value={pkgCModuleName}
-                                onChange={(e) => setPkgCModuleName(e.target.value)}
-                                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800"
-                                placeholder="z.B. Fahrtenbuch & Zeiterfassung"
-                              />
+                          {/* Predefined Core Modules List */}
+                          <div className="space-y-2">
+                            {PREDEFINED_MODULES.map((mod) => {
+                              const isChecked = selectedModuleIds.includes(mod.id);
+                              return (
+                                <div
+                                  key={mod.id}
+                                  onClick={() => toggleModuleSelection(mod.id)}
+                                  className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
+                                    isChecked
+                                      ? 'bg-white border-emerald-400 shadow-2xs ring-1 ring-emerald-400/30'
+                                      : 'bg-slate-50/60 border-slate-200 hover:bg-white hover:border-slate-300'
+                                  }`}
+                                >
+                                  <div className="flex items-start gap-2.5">
+                                    <div className="mt-0.5">
+                                      {isChecked ? (
+                                        <CheckSquare className="w-4 h-4 text-emerald-600" />
+                                      ) : (
+                                        <Square className="w-4 h-4 text-slate-400" />
+                                      )}
+                                    </div>
+                                    <div>
+                                      <span className={`text-xs font-bold ${isChecked ? 'text-slate-900' : 'text-slate-600'}`}>
+                                        {mod.title}
+                                      </span>
+                                      <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                                        {mod.desc}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="text-right shrink-0">
+                                    <span className={`text-xs font-black ${isChecked ? 'text-emerald-700' : 'text-slate-400'}`}>
+                                      {pricePrefix}{formatCurrency(pkgCUnitPrice)}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+
+                            {/* Custom Added Modules */}
+                            {customModules.map((cMod) => {
+                              const isChecked = selectedModuleIds.includes(cMod.id);
+                              return (
+                                <div
+                                  key={cMod.id}
+                                  className={`p-3 rounded-xl border transition-all flex items-start justify-between gap-3 ${
+                                    isChecked
+                                      ? 'bg-white border-emerald-400 shadow-2xs ring-1 ring-emerald-400/30'
+                                      : 'bg-slate-50/60 border-slate-200'
+                                  }`}
+                                >
+                                  <div 
+                                    onClick={() => toggleModuleSelection(cMod.id)}
+                                    className="flex items-start gap-2.5 flex-1 cursor-pointer"
+                                  >
+                                    <div className="mt-0.5">
+                                      {isChecked ? (
+                                        <CheckSquare className="w-4 h-4 text-emerald-600" />
+                                      ) : (
+                                        <Square className="w-4 h-4 text-slate-400" />
+                                      )}
+                                    </div>
+                                    <div>
+                                      <span className={`text-xs font-bold ${isChecked ? 'text-slate-900' : 'text-slate-600'}`}>
+                                        {cMod.title}
+                                      </span>
+                                      <p className="text-[11px] text-slate-500 mt-0.5">Individuell hinzugefügt</p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
+                                    <span className={`text-xs font-black ${isChecked ? 'text-emerald-700' : 'text-slate-400'}`}>
+                                      {pricePrefix}{formatCurrency(pkgCUnitPrice)}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveCustomModule(cMod.id)}
+                                      className="p-1 text-slate-400 hover:text-rose-600 transition"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {/* Add Custom Module Input */}
+                          <div className="flex items-center gap-2 pt-1">
+                            <input
+                              type="text"
+                              placeholder="+ Weiteres individuelles Modul hinzufügen (z.B. Baustellen-Fotodokumentation)..."
+                              value={newCustomModuleName}
+                              onChange={(e) => setNewCustomModuleName(e.target.value)}
+                              onKeyDown={(e) => e.key === 'Enter' && handleAddCustomModule()}
+                              className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleAddCustomModule}
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                            >
+                              <Plus className="w-3.5 h-3.5" /> Hinzufügen
+                            </button>
+                          </div>
+
+                          {/* Live Multiplier Result Box */}
+                          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                            <div className="text-emerald-900">
+                              <span className="font-bold">Ausgewählt: </span>
+                              <span className="font-black text-emerald-800">{selectedModulesCount} Modul(e)</span>
+                              <span className="text-slate-500 ml-1.5">({selectedModulesCount} × {pricePrefix}{formatCurrency(pkgCUnitPrice)})</span>
                             </div>
-
-                            <div className="flex items-center gap-3">
-                              <div>
-                                <span className="text-[10px] font-bold text-slate-600 block mb-1">Menge / Stück:</span>
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    type="button"
-                                    onClick={() => setPkgCQuantity(q => Math.max(1, q - 1))}
-                                    className="w-7 h-7 bg-white border border-slate-300 rounded-lg font-bold text-slate-700 flex items-center justify-center hover:bg-slate-100 cursor-pointer"
-                                  >
-                                    -
-                                  </button>
-                                  <span className="w-8 text-center font-black text-slate-900 text-sm">{pkgCQuantity}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => setPkgCQuantity(q => q + 1)}
-                                    className="w-7 h-7 bg-white border border-slate-300 rounded-lg font-bold text-slate-700 flex items-center justify-center hover:bg-slate-100 cursor-pointer"
-                                  >
-                                    +
-                                  </button>
-                                </div>
-                              </div>
-
-                              <div className="flex-1">
-                                <span className="text-[10px] font-bold text-slate-600 block mb-1">Preis pro Modul:</span>
-                                <div className="flex items-center gap-1">
-                                  <span className="text-xs text-slate-500">{pricePrefix}</span>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    step="50"
-                                    value={pkgCUnitPrice}
-                                    onChange={(e) => setPkgCUnitPrice(Number(e.target.value))}
-                                    className="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg text-right font-bold text-slate-900"
-                                  />
-                                  <span className="text-xs text-slate-700">€</span>
-                                </div>
-                              </div>
+                            <div className="text-emerald-700 font-black text-sm sm:text-right">
+                              Gesamt Paket C = {pricePrefix}{formatCurrency(pkgCTotal)}
                             </div>
                           </div>
 
-                          {/* Auto Calculation Result */}
-                          <div className="bg-emerald-50 border border-emerald-200/80 rounded-xl p-2.5 flex items-center justify-between text-xs text-emerald-950 font-bold">
-                            <span>Kalkulation: {pkgCQuantity} × {pricePrefix}{formatCurrency(pkgCUnitPrice)}</span>
-                            <span className="text-emerald-700 font-black text-sm">= {pricePrefix}{formatCurrency(pkgCQuantity * pkgCUnitPrice)}</span>
+                          {/* Scope Legal Disclaimer Notice */}
+                          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2.5 text-amber-900 text-xs">
+                            <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                            <p className="leading-relaxed text-[11.5px]">
+                              <strong>Hinweis zum Leistungsumfang:</strong> Im generierten PDF und Angebot werden ausschließlich die oben angehakten Module aufgeführt. Es wird automatisch vermerkt, dass weitere Funktionsbereiche nicht im Leistungsumfang enthalten sind.
+                            </p>
                           </div>
                         </div>
                       )}
@@ -912,10 +1062,23 @@ Web: https://team-track.de`;
                   </div>
                 </div>
 
-                <div className="text-[11px] text-slate-600 border-t border-slate-200 pt-2 space-y-0.5">
+                <div className="text-[11px] text-slate-600 border-t border-slate-200 pt-2 space-y-1">
                   <div className="font-bold text-slate-900">{isKV ? 'Unverbindlicher Kostenvoranschlag' : 'Verbindliches Angebot'}</div>
                   <div>Empfänger: <span className="font-semibold text-slate-800">{selectedCustomer?.companyName || 'Interessent'}</span></div>
                   <div>Gültig bis: <span className="font-semibold text-slate-800">{formatDate(validUntilDate)}</span></div>
+
+                  {pkgCIncluded && (
+                    <div className="mt-2 pt-2 border-t border-slate-200">
+                      <span className="font-bold text-emerald-800 block mb-1">
+                        Ausgewählte Module ({selectedModulesCount}):
+                      </span>
+                      <ul className="list-disc list-inside space-y-0.5 text-[10.5px] text-slate-700">
+                        {activeSelectedModules.map(m => (
+                          <li key={m.id} className="truncate">{m.title}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
