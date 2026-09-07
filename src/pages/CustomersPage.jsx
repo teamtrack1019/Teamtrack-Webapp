@@ -18,9 +18,12 @@ import {
   Edit3, 
   Trash2,
   Building2,
-  Sparkles
+  Sparkles,
+  AlertTriangle,
+  Bell
 } from 'lucide-react';
-import { formatCurrency, formatDate, formatDateTime, getStatusBadge } from '../utils/formatters';
+import { api } from '../api';
+import { formatCurrency, formatDate, formatDateTime, getStatusBadge, getOfferReminderStatus } from '../utils/formatters';
 
 export default function CustomersPage({ 
   customers, 
@@ -30,7 +33,8 @@ export default function CustomersPage({
   onOpenInvoiceModal,
   onEditCustomer, 
   onUpdateCustomerStatus,
-  onDeleteCustomer 
+  onDeleteCustomer,
+  onReloadAllData
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -192,8 +196,8 @@ export default function CustomersPage({
                   )}
                 </div>
 
-                {/* DEMO / EMAIL & OFFER TRACKING BADGES & OUTLOOK BUTTON */}
-                <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                {/* DEMO / EMAIL & OFFER TRACKING BADGES & REMINDER ALERTS */}
+                <div className="pt-2 border-t border-slate-100 space-y-2">
                   <button
                     onClick={() => onOpenDemoEmailModal(customer)}
                     className="w-full bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-800 rounded-xl p-2.5 flex items-center justify-center space-x-2 text-xs font-bold transition shadow-xs cursor-pointer"
@@ -202,7 +206,88 @@ export default function CustomersPage({
                     <span>E-Mail senden (Outlook / Vorlage)</span>
                   </button>
 
-                  {/* Angebot / Kostenvoranschlag Sent Badge */}
+                  {/* 3-DAY REMINDER ALERT (RED) OR RESPONDED CONFIRMATION (GREEN) */}
+                  {(() => {
+                    const reminder = getOfferReminderStatus(customer);
+                    if (!reminder) return null;
+
+                    if (reminder.shouldAlert) {
+                      return (
+                        <div className="bg-rose-50 border border-rose-300 rounded-xl p-2.5 space-y-2 text-xs shadow-2xs animate-fadeIn">
+                          <div className="flex items-start gap-1.5 text-rose-950">
+                            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5 animate-pulse" />
+                            <div className="space-y-0.5">
+                              <span className="text-rose-900 font-black block text-[11.5px]">
+                                {reminder.isExpired 
+                                  ? `Frist abgelaufen (${formatDate(reminder.validUntilDate)})`
+                                  : `Gültigkeit endet in ${reminder.diffDays === 0 ? 'heute' : reminder.diffDays === 1 ? '1 Tag' : `${reminder.diffDays} Tagen`}!`}
+                              </span>
+                              <p className="text-[10.5px] font-medium text-rose-700 leading-tight">
+                                Keine Rückmeldung zu {reminder.type === 'kostenvoranschlag' ? 'Kostenvoranschlag' : 'Angebot'} {reminder.offerNumber}. Bitte nachfassen!
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 pt-1.5 border-t border-rose-200/80">
+                            <button
+                              type="button"
+                              onClick={() => onOpenDemoEmailModal(customer, 'offer_reminder')}
+                              className="flex-1 py-1 px-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10.5px] font-bold flex items-center justify-center gap-1 transition shadow-xs cursor-pointer"
+                              title="Erinnerungs-Vorlage 4 öffnen"
+                            >
+                              <Mail className="w-3 h-3" />
+                              <span>Erinnerung senden (V4)</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  await api.setOfferCustomerResponded(customer.id, true);
+                                  if (onReloadAllData) await onReloadAllData();
+                                } catch (e) {
+                                  alert('Fehler: ' + e.message);
+                                }
+                              }}
+                              className="py-1 px-2 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-lg text-[10.5px] font-bold flex items-center gap-1 transition cursor-pointer"
+                              title="Kunde hat sich gemeldet"
+                            >
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              <span>Kunde hat sich gemeldet</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    if (reminder.hasResponded) {
+                      return (
+                        <div className="bg-emerald-50 border border-emerald-200/90 rounded-lg px-2.5 py-1.5 flex items-center justify-between text-[11px] font-semibold text-emerald-950">
+                          <span className="flex items-center gap-1.5 truncate">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span className="truncate">Kunde hat sich gemeldet {reminder.respondedAt ? `(${formatDate(reminder.respondedAt)})` : ''}</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                await api.setOfferCustomerResponded(customer.id, false);
+                                if (onReloadAllData) await onReloadAllData();
+                              } catch (e) {
+                                alert('Fehler: ' + e.message);
+                              }
+                            }}
+                            className="text-[10px] text-emerald-700 hover:text-emerald-900 underline font-normal cursor-pointer ml-1"
+                          >
+                            Zurücksetzen
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    return null;
+                  })()}
+
+                  {/* Angebot / Kostenvoranschlag Standard Sent Badge */}
                   {(customer.offerEmailSent || customer.lastOffer) && (
                     <div className={`border rounded-lg px-2.5 py-1.5 flex items-center justify-between text-[11px] font-semibold ${
                       (customer.offerEmailType || customer.lastOffer?.type) === 'kostenvoranschlag'

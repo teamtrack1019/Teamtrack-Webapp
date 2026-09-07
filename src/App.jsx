@@ -69,6 +69,7 @@ export default function App() {
 
   const [demoEmailModalOpen, setDemoEmailModalOpen] = useState(false);
   const [demoEmailCustomer, setDemoEmailCustomer] = useState(null);
+  const [demoEmailTemplateKey, setDemoEmailTemplateKey] = useState('digitalisierung_intro');
 
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
   const [serviceModalCustId, setServiceModalCustId] = useState(null);
@@ -237,8 +238,9 @@ export default function App() {
     }
   };
 
-  const handleOpenDemoEmail = (cust) => {
+  const handleOpenDemoEmail = (cust, templateKey = 'digitalisierung_intro') => {
     setDemoEmailCustomer(cust);
+    setDemoEmailTemplateKey(templateKey);
     setDemoEmailModalOpen(true);
   };
 
@@ -532,6 +534,7 @@ export default function App() {
         isOpen={demoEmailModalOpen}
         onClose={() => setDemoEmailModalOpen(false)}
         customer={demoEmailCustomer}
+        initialTemplateKey={demoEmailTemplateKey}
         onEmailSent={handleDemoEmailSent}
       />
 

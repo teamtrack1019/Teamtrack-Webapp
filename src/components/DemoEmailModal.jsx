@@ -80,15 +80,46 @@ Wie besprochen können wir die Digitalisierung Ihrer Papierformulare und die Ein
 Ich freue mich auf Ihre Rückmeldung zur weiteren Vorgehensweise.
 
 ${COMPANY_SIGNATURE}`
+  },
+  offer_reminder: {
+    name: '4. Angebot / Kostenvoranschlag Erinnerung (Fristablauf & Nachfassen)',
+    subject: 'Kurze Rückfrage zu unserem Angebot / Kostenvoranschlag – TeamTrack',
+    body: (cust) => {
+      const offerNum = cust.offerEmailNumber || cust.lastOffer?.offerNumber || '';
+      const isKV = (cust.offerEmailType || cust.lastOffer?.type) === 'kostenvoranschlag';
+      const docLabel = isKV ? 'unseren Kostenvoranschlag' : 'unser Angebot';
+      const refText = offerNum ? `${docLabel} (${offerNum})` : docLabel;
+
+      return `${getGreeting(cust.contactPerson, true)}
+
+vor einigen Tagen haben wir Ihnen ${refText} für die Digitalisierung Ihrer Betriebsabläufe und die Bereitstellung Ihrer individuellen WebApp-Lösung zukommen lassen.
+
+Da die reguläre Gültigkeitsdauer in Kürze abläuft, möchten wir uns kurz nach dem aktuellen Stand erkundigen:
+• Konnten Sie die Unterlagen bereits in Ruhe prüfen?
+• Haben Sie noch offene Fragen zu den ausgewählten Funktionsmodulen oder Anpassungswünsche?
+• Sollen wir Details kurz telefonisch oder in einer kurzen Online-Präsentation gemeinsam durchgehen?
+
+Gerne reservieren wir Ihnen die geplanten Entwicklungs- und Umsetzungskapazitäten, damit wir Ihr Projekt zeitnah und reibungslos realisieren können.
+
+Ich freue mich auf Ihre kurze Rückmeldung und stehe Ihnen für alle Fragen jederzeit gerne persönlich zur Verfügung.
+
+${COMPANY_SIGNATURE}`;
+    }
   }
 };
 
-export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent }) {
-  const [templateKey, setTemplateKey] = useState('digitalisierung_intro');
+export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent, initialTemplateKey = 'digitalisierung_intro' }) {
+  const [templateKey, setTemplateKey] = useState(initialTemplateKey);
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && initialTemplateKey) {
+      setTemplateKey(initialTemplateKey);
+    }
+  }, [isOpen, initialTemplateKey]);
 
   useEffect(() => {
     if (customer) {

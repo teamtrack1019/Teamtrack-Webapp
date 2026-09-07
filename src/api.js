@@ -766,6 +766,20 @@ async function handleLocalRequest(endpoint, options = {}) {
       }
     }
 
+    if (endpoint.endsWith('/offer-response')) {
+      const customer = db.customers.find(c => c.id === custId);
+      if (customer) {
+        const now = new Date().toISOString();
+        const isResponded = body.responded !== false;
+        customer.offerCustomerResponded = isResponded;
+        customer.offerCustomerRespondedAt = isResponded ? now : null;
+        customer.updatedAt = now;
+        saveLocalData(db);
+        pushToFirebase(db);
+        return { success: true, customer };
+      }
+    }
+
     if (method === 'GET') {
       const customer = db.customers.find(c => c.id === custId);
       if (!customer) throw new Error('Kunde nicht gefunden');
@@ -1514,6 +1528,7 @@ export const api = {
   createOffer: (data) => request('/offers', { method: 'POST', body: JSON.stringify(data) }),
   updateOffer: (id, data) => request(`/offers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteOffer: (id) => request(`/offers/${id}`, { method: 'DELETE' }),
+  setOfferCustomerResponded: (customerId, responded = true) => request(`/customers/${customerId}/offer-response`, { method: 'POST', body: JSON.stringify({ responded }) }),
   getTaxReport: (year) => request(`/reports/tax-year/${year}`),
   getSettings: () => request('/settings'),
   updateSettings: (data) => request('/settings', { method: 'PUT', body: JSON.stringify(data) }),

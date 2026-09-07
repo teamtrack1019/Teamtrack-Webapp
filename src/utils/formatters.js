@@ -62,3 +62,41 @@ export function getStatusBadge(status) {
       return { label: status, bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200' };
   }
 }
+
+export function getOfferReminderStatus(customer) {
+  if (!customer) return null;
+  const hasOffer = customer.offerEmailSent || Boolean(customer.lastOffer);
+  if (!hasOffer) return null;
+
+  const validUntilStr = customer.offerValidUntilDate || customer.lastOffer?.validUntilDate;
+  if (!validUntilStr) return null;
+
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const targetDate = new Date(validUntilStr);
+    targetDate.setHours(0, 0, 0, 0);
+
+    const diffTime = targetDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    const hasResponded = Boolean(customer.offerCustomerResponded);
+    const isExpired = diffDays < 0;
+    const isDueSoon = diffDays <= 3; // 3 days before or on/past due date
+
+    return {
+      diffDays,
+      validUntilDate: validUntilStr,
+      hasResponded,
+      respondedAt: customer.offerCustomerRespondedAt,
+      isExpired,
+      isDueSoon,
+      shouldAlert: !hasResponded && isDueSoon,
+      type: customer.offerEmailType || customer.lastOffer?.type || 'angebot',
+      offerNumber: customer.offerEmailNumber || customer.lastOffer?.offerNumber || ''
+    };
+  } catch {
+    return null;
+  }
+}

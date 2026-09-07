@@ -24,10 +24,12 @@ import {
   Receipt,
   ChevronDown,
   FileSpreadsheet,
-  Download
+  Download,
+  AlertTriangle,
+  Bell
 } from 'lucide-react';
 import { api } from '../api';
-import { formatCurrency, formatDate, formatDateTime } from '../utils/formatters';
+import { formatCurrency, formatDate, formatDateTime, getOfferReminderStatus } from '../utils/formatters';
 import { generateOfferPDF } from '../utils/pdfGenerator';
 
 export default function CustomerDetailPage({
@@ -194,43 +196,124 @@ export default function CustomerDetailPage({
 
           {/* Right: Actions & Marketing / Demo Email & Offer Status Badges */}
           <div className="flex flex-col space-y-3 lg:w-80 shrink-0">
-            {/* OFFER / KOSTENVORANSCHLAG TRACKER BOX */}
-            {(customer.offerEmailSent || customer.lastOffer || offers.length > 0) && (
-              <div className={`p-4 rounded-2xl border ${
-                (customer.offerEmailType || customer.lastOffer?.type || offers[0]?.type) === 'kostenvoranschlag'
-                  ? 'bg-amber-50/80 border-amber-200'
-                  : 'bg-sky-50/80 border-sky-200'
-              }`}>
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                    <FileSpreadsheet className={`w-4 h-4 ${
-                      (customer.offerEmailType || customer.lastOffer?.type || offers[0]?.type) === 'kostenvoranschlag' ? 'text-amber-600' : 'text-sky-600'
-                    }`} />
-                    <span>{(customer.offerEmailType || customer.lastOffer?.type || offers[0]?.type) === 'kostenvoranschlag' ? 'Kostenvoranschlag' : 'Angebot'} Status</span>
-                  </span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    (customer.offerEmailType || customer.lastOffer?.type || offers[0]?.type) === 'kostenvoranschlag'
-                      ? 'bg-amber-200/80 text-amber-900'
-                      : 'bg-sky-200/80 text-sky-900'
-                  }`}>
-                    Gesendet
-                  </span>
-                </div>
-                <div className="text-xs text-slate-800 space-y-1">
-                  <div className="font-bold text-slate-900">
-                    {customer.offerEmailNumber || customer.lastOffer?.offerNumber || offers[0]?.offerNumber || 'Dokument'}
-                  </div>
-                  <div className="text-[11px] text-slate-600">
-                    Gesendet am: <span className="font-semibold text-slate-900">{formatDateTime(customer.offerEmailSentAt || customer.lastOffer?.sentAt || offers[0]?.createdAt)}</span>
-                  </div>
-                  {(customer.lastOffer?.totalAmount || offers[0]?.totalAmount) && (
-                    <div className="text-[11px] text-slate-600">
-                      Investition: <span className="font-bold text-slate-900">{formatCurrency(customer.lastOffer?.totalAmount || offers[0]?.totalAmount)}</span>
+            {/* OFFER / KOSTENVORANSCHLAG TRACKER BOX & 3-DAY REMINDER */}
+            {(() => {
+              const hasOffer = customer.offerEmailSent || customer.lastOffer || offers.length > 0;
+              if (!hasOffer) return null;
+
+              const reminder = getOfferReminderStatus(customer);
+              const isKV = (customer.offerEmailType || customer.lastOffer?.type || offers[0]?.type) === 'kostenvoranschlag';
+
+              return (
+                <div className="space-y-2">
+                  {/* 3-DAY REMINDER ALERT (RED) */}
+                  {reminder && reminder.shouldAlert && (
+                    <div className="bg-rose-50 border border-rose-300 rounded-2xl p-3.5 space-y-2.5 text-xs shadow-sm animate-fadeIn">
+                      <div className="flex items-start gap-2 text-rose-950">
+                        <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5 animate-pulse" />
+                        <div className="space-y-0.5">
+                          <span className="text-rose-900 font-black block text-xs">
+                            {reminder.isExpired 
+                              ? `Frist abgelaufen (${formatDate(reminder.validUntilDate)})`
+                              : `Gültigkeit endet in ${reminder.diffDays === 0 ? 'heute' : reminder.diffDays === 1 ? '1 Tag' : `${reminder.diffDays} Tagen`}!`}
+                          </span>
+                          <p className="text-[11px] font-medium text-rose-700 leading-tight">
+                            Noch keine Rückmeldung erhalten. Bitte Erinnerungs-Mail senden oder Kunde anrufen.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row items-stretch gap-1.5 pt-1 border-t border-rose-200">
+                        <button
+                          type="button"
+                          onClick={() => onOpenDemoEmailModal(customer, 'offer_reminder')}
+                          className="flex-1 py-2 px-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer"
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                          <span>Erinnerung senden (Vorlage 4)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              await api.setOfferCustomerResponded(customer.id, true);
+                              await loadData();
+                              if (onReloadAllData) await onReloadAllData();
+                            } catch (e) {
+                              alert('Fehler: ' + e.message);
+                            }
+                          }}
+                          className="py-2 px-3 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Kunde hat sich gemeldet</span>
+                        </button>
+                      </div>
                     </div>
                   )}
+
+                  {/* GREEN RESPONDED BADGE */}
+                  {reminder && reminder.hasResponded && (
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex items-center justify-between text-xs font-semibold text-emerald-950">
+                      <span className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>Kunde hat sich gemeldet {reminder.respondedAt ? `(${formatDate(reminder.respondedAt)})` : ''}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await api.setOfferCustomerResponded(customer.id, false);
+                            await loadData();
+                            if (onReloadAllData) await onReloadAllData();
+                          } catch (e) {
+                            alert('Fehler: ' + e.message);
+                          }
+                        }}
+                        className="text-[11px] text-emerald-700 hover:text-emerald-900 underline font-normal cursor-pointer"
+                      >
+                        Status ändern
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Standard Offer Overview Card */}
+                  <div className={`p-4 rounded-2xl border ${
+                    isKV ? 'bg-amber-50/80 border-amber-200' : 'bg-sky-50/80 border-sky-200'
+                  }`}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                        <FileSpreadsheet className={`w-4 h-4 ${isKV ? 'text-amber-600' : 'text-sky-600'}`} />
+                        <span>{isKV ? 'Kostenvoranschlag' : 'Angebot'} Status</span>
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        isKV ? 'bg-amber-200/80 text-amber-900' : 'bg-sky-200/80 text-sky-900'
+                      }`}>
+                        Gesendet
+                      </span>
+                    </div>
+                    <div className="text-xs text-slate-800 space-y-1">
+                      <div className="font-bold text-slate-900">
+                        {customer.offerEmailNumber || customer.lastOffer?.offerNumber || offers[0]?.offerNumber || 'Dokument'}
+                      </div>
+                      <div className="text-[11px] text-slate-600">
+                        Gesendet am: <span className="font-semibold text-slate-900">{formatDateTime(customer.offerEmailSentAt || customer.lastOffer?.sentAt || offers[0]?.createdAt)}</span>
+                      </div>
+                      {(customer.lastOffer?.validUntilDate || customer.offerValidUntilDate) && (
+                        <div className="text-[11px] text-slate-600">
+                          Gültig bis: <span className="font-semibold text-slate-900">{formatDate(customer.lastOffer?.validUntilDate || customer.offerValidUntilDate)}</span>
+                        </div>
+                      )}
+                      {(customer.lastOffer?.totalAmount || offers[0]?.totalAmount) && (
+                        <div className="text-[11px] text-slate-600">
+                          Investition: <span className="font-bold text-slate-900">{formatCurrency(customer.lastOffer?.totalAmount || offers[0]?.totalAmount)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* DEMO / EMAIL TRACKER BOX */}
             <div className={`p-4 rounded-2xl border ${customer.demoEmailSent ? 'bg-emerald-50/80 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}>
