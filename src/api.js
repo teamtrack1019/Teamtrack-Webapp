@@ -18,7 +18,7 @@ const defaultSeed = {
     vatId: '61502944380',
     bankName: 'Postbank',
     iban: 'DE16 1001 0010 0012 7271 85',
-    bic: 'PBNKDEFFXXX',
+    bic: 'PBNKDEFF',
     kmRate: 0.30,
     isKleinunternehmer: true,
     kleinunternehmerText: 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).',

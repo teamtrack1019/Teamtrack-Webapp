@@ -265,9 +265,9 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
   doc.setFont('helvetica', 'bold');
   doc.text('Bankverbindung', col2X, footerY);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Bank: ${companySettings.bankName || 'Sparkasse Berlin'}`, col2X, footerY + 3.8);
-  doc.text(`IBAN: ${companySettings.iban || '-'}`, col2X, footerY + 7.6);
-  doc.text(`BIC: ${companySettings.bic || '-'}`, col2X, footerY + 11.4);
+  doc.text(`Bank: ${companySettings.bankName || 'Postbank'}`, col2X, footerY + 3.8);
+  doc.text(`IBAN: ${companySettings.iban || 'DE16 1001 0010 0012 7271 85'}`, col2X, footerY + 7.6);
+  doc.text(`BIC: ${companySettings.bic || 'PBNKDEFF'}`, col2X, footerY + 11.4);
 
   // Column 3: Tax Info (§ 19 UStG)
   const col3X = 145;
@@ -948,6 +948,7 @@ export function createOfferDoc(offer, companySettings = {}) {
   doc.setTextColor(100, 116, 139);
   doc.text(`Bank: ${companySettings.bankName || 'Postbank'}`, col2X, footerY + 3.8);
   doc.text(`IBAN: ${companySettings.iban || 'DE16 1001 0010 0012 7271 85'}`, col2X, footerY + 7.6);
+  doc.text(`BIC: ${companySettings.bic || 'PBNKDEFF'}`, col2X, footerY + 11.4);
 
   // Column 3: Contact & Tax (Starts at 140mm)
   const col3X = 140;
