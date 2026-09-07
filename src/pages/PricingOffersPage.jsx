@@ -1079,6 +1079,11 @@ Web: https://team-track.de`;
                       </ul>
                     </div>
                   )}
+
+                  <div className="mt-2 pt-2 border-t border-slate-200 text-[10px] text-slate-500 italic bg-amber-50/60 p-2 rounded-lg border border-amber-200/60">
+                    <span className="font-bold text-amber-900 not-italic block mb-0.5">Leistungsumfang im PDF:</span>
+                    Es werden ausschließlich die explizit ausgewählten Leistungspositionen und Module umgesetzt.
+                  </div>
                 </div>
               </div>
             </div>

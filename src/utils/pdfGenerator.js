@@ -856,34 +856,44 @@ export function createOfferDoc(offer, companySettings = {}) {
   doc.text(kleinunternehmerText, margin, finalY + 28);
 
   // 6. CONDITIONS & ACCEPTANCE SECTION
-  const condY = finalY + 34;
+  const condY = finalY + 32;
+  const hasNotes = Boolean(offer.notes && offer.notes.trim());
+  const condH = hasNotes ? 33 : 28;
   doc.setFillColor(255, 255, 255);
-  doc.setDrawColor(226, 232, 240);
-  doc.roundedRect(margin, condY, pageWidth - (margin * 2), 27, 2, 2, 'FD');
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(margin, condY, pageWidth - (margin * 2), condH, 2, 2, 'FD');
 
-  doc.setFontSize(8);
+  doc.setFontSize(8.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  doc.text('Konditionen & Leistungsumfang:', margin + 4, condY + 5.5);
+  doc.text('Leistungsumfang, Konditionen & Vereinbarungen:', margin + 4, condY + 5.5);
 
+  doc.setFontSize(7.8);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(71, 85, 105);
-  doc.text('• Leistungsumfang: Es werden ausschließlich die hier explizit ausgewählten Module und Leistungspositionen umgesetzt.', margin + 4, condY + 10.5);
-  doc.text('  Nicht im Angebot enthaltene Funktionsbereiche oder nachträgliche Sonderwünsche bedürfen einer gesonderten Beauftragung.', margin + 4, condY + 14.5);
-  doc.text('• Zahlungsmodalitäten: 50% Anzahlung bei Beauftragung, 50% Restbetrag nach erfolgreicher Übergabe & Abnahme.', margin + 4, condY + 18.5);
+  doc.setTextColor(51, 65, 85);
+  doc.text('• Verbindlicher Leistungsumfang: Es werden ausschließlich die in diesem Angebot explizit ausgewählten und aufgeführten Module umgesetzt.', margin + 4, condY + 10.5);
+  doc.text('  Nicht aufgeführte Funktionsbereiche, zusätzliche Drittsysteme oder spätere Sonderwünsche bedürfen einer gesonderten schriftlichen Beauftragung.', margin + 4, condY + 14.5);
+  doc.text('• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung & Freigabe.', margin + 4, condY + 18.5);
   doc.text(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`, margin + 4, condY + 22.5);
+  if (hasNotes) {
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(30, 41, 59);
+    doc.text(`• Individuelle Vereinbarung: ${offer.notes.trim()}`, margin + 4, condY + 27);
+  }
 
   // Signature lines
-  const sigY = condY + 31;
-  if (sigY < 265) {
+  const sigY = condY + condH + 3;
+  if (sigY < 268) {
     doc.setDrawColor(203, 213, 225);
-    doc.line(margin, sigY + 12, margin + 70, sigY + 12);
-    doc.line(pageWidth - margin - 70, sigY + 12, pageWidth - margin, sigY + 12);
+    doc.line(margin, sigY + 10, margin + 70, sigY + 10);
+    doc.line(pageWidth - margin - 70, sigY + 10, pageWidth - margin, sigY + 10);
 
     doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 116, 139);
-    doc.text('Ort, Datum & Unterschrift Auftragnehmer', margin, sigY + 16);
-    doc.text('Auftragsbestätigung Kunde (Unterschrift & Stempel)', pageWidth - margin - 70, sigY + 16);
+    doc.text('Ort, Datum & Unterschrift Auftragnehmer', margin, sigY + 14);
+    doc.text('Auftragsbestätigung Kunde (Unterschrift & Stempel)', pageWidth - margin - 70, sigY + 14);
   }
 
   // 7. FOOTER
