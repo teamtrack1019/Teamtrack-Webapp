@@ -340,6 +340,15 @@ function getLocalData() {
         if (!parsed.companySettings.website || parsed.companySettings.website.includes('vercel.app') || parsed.companySettings.website.includes('teamtrack-digital.de') || parsed.companySettings.website.includes('team-trak')) {
           parsed.companySettings.website = 'https://team-track.de';
         }
+        if (!parsed.companySettings.bic || parsed.companySettings.bic.includes('XXX') || parsed.companySettings.bic === '') {
+          parsed.companySettings.bic = 'PBNKDEFF';
+        }
+        if (!parsed.companySettings.bankName || parsed.companySettings.bankName.includes('Sparkasse')) {
+          parsed.companySettings.bankName = 'Postbank';
+        }
+        if (!parsed.companySettings.iban || parsed.companySettings.iban === '-' || !parsed.companySettings.iban.startsWith('DE')) {
+          parsed.companySettings.iban = 'DE16 1001 0010 0012 7271 85';
+        }
       }
 
       // Auto-migrate invoices: align exact Liefer-/Leistungsdatum with corresponding service and keep dueDate in sync

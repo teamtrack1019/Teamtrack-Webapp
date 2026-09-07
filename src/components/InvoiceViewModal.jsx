@@ -301,9 +301,9 @@ export default function InvoiceViewModal({ isOpen, onClose, invoice, companySett
 
               <div>
                 <div className="font-bold text-slate-700">Bankverbindung</div>
-                <div>Bank: {companySettings.bankName}</div>
-                <div>IBAN: <span className="font-mono">{companySettings.iban}</span></div>
-                <div>BIC: <span className="font-mono">{companySettings.bic}</span></div>
+                <div>Bank: {companySettings.bankName || 'Postbank'}</div>
+                <div>IBAN: <span className="font-mono">{companySettings.iban || 'DE16 1001 0010 0012 7271 85'}</span></div>
+                <div>BIC: <span className="font-mono">{companySettings.bic || 'PBNKDEFF'}</span></div>
               </div>
 
               <div>
