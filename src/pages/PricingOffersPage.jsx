@@ -320,18 +320,35 @@ ${currentPkgBRecurringPrice > 0
   ? `Einmalige Investition (Setup): ${pricePrefix}${formatCurrency(totalOneTime)}\nLaufende Betreuung (${intervalText}): ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)}\nGesamtsumme (Erstabwicklung inkl. 1. ${pkgBInterval === 'yearly' ? 'Jahr' : pkgBInterval === 'quarterly' ? 'Quartal' : 'Monat'}): ${pricePrefix}${formatCurrency(totalOneTime + currentPkgBRecurringPrice)}\n`
   : `Gesamtsumme: ${pricePrefix}${formatCurrency(totalOneTime)}\n`
 }
-${pkgBIncluded && !pkgAIncluded && !pkgCIncluded 
-  ? `ℹ️ Leistungsumfang & Abo-Service:
-Das System wird mit einer initialen Einrichtung schlüsselfertig bereitgestellt. Die laufende 7/24-Betreuung beinhaltet vorrangigen Notfall-Support, sicheren Cloud-Betrieb mit täglichen Backups, kontinuierliche DSGVO- & Sicherheitsupdates sowie laufende Feature-Erweiterungen (${intervalText} kündbar und flexibel anpassbar).
-`
-  : `⚠️ Wichtiger Hinweis zum Leistungsumfang:
-Der Leistungsumfang beschränkt sich ausschließlich auf die oben explizit ausgewählten und aufgeführten Module. Nicht ausgewählte Bereiche sind nicht Bestandteil dieses Angebots.
-`}${pkgAIncluded ? `
-📌 Abnahme & 30-Tage-Garantie (Paket A):
+${(() => {
+  let cond = '';
+  if (pkgAIncluded) {
+    cond += `\n📌 Vereinbarungen & 30-Tage-Garantie (Paket A):
+• Verbindlicher Leistungsumfang: Es werden ausschließlich die oben explizit ausgewählten Module umgesetzt.
 • Abnahme & Prüfung: Nach Übergabe der betriebsbereiten Software hat der Auftraggeber das System innerhalb von 10 Werktagen zu prüfen und schriftlich abzunehmen.
 • Kostenlose 30-Tage-Garantie: Ab dem Tag der Abnahme behebt der Auftragnehmer für einen Zeitraum von 30 Kalendertagen alle reproduzierbaren Fehler (Bugs) der vereinbarten Funktionen kostenlos.
-• Nach Ablauf der 30 Tage (Ausschluss kostenloser Wartung): Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenlose Serviceleistungen. Zukünftige Anpassungen, Sicherheitsupdates oder Betriebssystem-Upgrades erfolgen ausschließlich gegen gesonderte Vergütung zum Stundensatz von 85,- € / Std. oder im Rahmen eines separaten Wartungsvertrags (Paket 2).
-` : ''}
+• Nach Ablauf der 30 Tage (Ausschluss kostenloser Wartung): Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenlose Serviceleistungen. Zukünftige Anpassungen, Sicherheitsupdates oder Betriebssystem-Upgrades erfolgen ausschließlich gegen gesonderte Vergütung zum Stundensatz von 85,- € / Std. oder im Rahmen eines separaten Wartungsvertrags (Paket B).
+`;
+  }
+  if (pkgBIncluded) {
+    cond += `\nℹ️ Leistungsumfang & Abo-Bedingungen (Paket B):
+• Schlüsselfertige Implementierung: Das System wird mit einer einmaligen Initial-Einrichtung betriebsbereit übergeben.
+• 7/24-Abo-Betreuung: Umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, sicheren Cloud-Betrieb mit täglichen Backups in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- & Sicherheitsupdates sowie laufende Feature-Erweiterungen.
+• Laufzeit & Kündigung: Der Betreuungsvertrag ist ${intervalText} flexibel anpassbar und kündbar.
+• Zahlungsmodalitäten: Setup bei Bereitstellung; laufende Abo-Betreuung jeweils zu Beginn des Abrechnungszeitraums (${intervalText}).
+`;
+  }
+  if (pkgCIncluded && selectedModulesCount > 0) {
+    cond += `\n🧩 Vereinbarungen zu den Erweiterungsmodulen (Paket C):
+• Verbindlicher Leistungsumfang: Der Leistungsumfang beschränkt sich ausschließlich auf die ${selectedModulesCount} oben ausgewählten Module. Zusätzliche oder nicht aufgeführte Funktionsbereiche bedürfen einer gesonderten schriftlichen Beauftragung.
+• Nahtlose Integration: Vollständige technische Anbindung an das bestehende TeamTrack-System inklusive Funktionstest und Einweisung.
+`;
+  }
+  if (pkgAIncluded || (pkgCIncluded && selectedModulesCount > 0)) {
+    cond += `\n💳 Zahlungsmodalitäten (Entwicklung): 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung & Freigabe.\n`;
+  }
+  return cond;
+})()}
 Das vollständige und detaillierte PDF-Dokument inklusive Leistungsbeschreibung ist für Sie vorbereitet.
 Gültig bis: ${formatDate(validUntilDate)}
 
