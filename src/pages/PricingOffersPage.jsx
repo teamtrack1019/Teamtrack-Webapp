@@ -58,17 +58,22 @@ const PREDEFINED_MODULES = [
 ];
 
 function PricingOffersContent({ 
+  initialTab = 'creator',
   customers = [], 
   companySettings = {}, 
   onConvertToInvoice,
   onOpenCustomerModal 
 }) {
   const safeCustomers = Array.isArray(customers) ? customers : [];
-  const [activeTab, setActiveTab] = useState('creator'); // 'creator' | 'history'
+  const [activeTab, setActiveTab] = useState(initialTab || 'creator'); // 'creator' | 'abnahme' | 'history'
   const [offersList, setOffersList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    if (initialTab) setActiveTab(initialTab);
+  }, [initialTab]);
 
   // Abnahmeprotokoll Modal State
   const [abnahmeModalOffer, setAbnahmeModalOffer] = useState(null);
@@ -577,21 +582,32 @@ Web: https://team-track.de`;
         </div>
 
         {/* View Switcher Tabs */}
-        <div className="flex bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700 shrink-0 self-start md:self-auto">
+        <div className="flex bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700 shrink-0 self-start md:self-auto gap-1">
           <button
             onClick={() => setActiveTab('creator')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'creator'
                 ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <Calculator className="w-4 h-4" />
-            <span>Generator</span>
+            <span>Angebote & KV</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('abnahme')}
+            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'abnahme'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4 text-emerald-300" />
+            <span>Abnahmeprotokolle</span>
           </button>
           <button
             onClick={() => setActiveTab('history')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'history'
                 ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
                 : 'text-slate-400 hover:text-white'
@@ -1171,7 +1187,7 @@ Web: https://team-track.de`;
                             placeholder="Preis €"
                             value={item.unitPrice}
                             onChange={(e) => handleUpdateCustomItem(item.id, 'unitPrice', Number(e.target.value))}
-                            className="w-24 px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-right font-bold"
+                            className="w-24 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-right font-bold"
                           />
                           <span className="text-slate-500">€</span>
                         </div>
@@ -1274,11 +1290,11 @@ Web: https://team-track.de`;
                 {/* Abnahmeprotokoll Button */}
                 <button
                   type="button"
-                  onClick={() => setAbnahmeModalOffer(getCurrentOfferPayload())}
+                  onClick={() => setActiveTab('abnahme')}
                   className="w-full py-2.5 bg-emerald-800/90 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer border border-emerald-600/40 shadow-xs"
                 >
                   <ShieldCheck className="w-4 h-4 text-emerald-300" />
-                  <span>Abnahmeprotokoll & Erklärung erstellen</span>
+                  <span>Zum Abnahmeprotokoll Studio</span>
                 </button>
 
                 <button
@@ -1358,6 +1374,277 @@ Web: https://team-track.de`;
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      ) : activeTab === 'abnahme' ? (
+        /* ================= DEDICATED ABNAHMEPROTOKOLL STUDIO TAB ================= */
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fadeIn">
+          {/* Left Column: Handover Scope & Legal Clauses (7 Cols) */}
+          <div className="lg:col-span-7 space-y-6">
+            {/* Customer & Document Info Card */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-black text-slate-900">Abnahmeprotokoll & Garantieerklärung</h2>
+                    <p className="text-xs text-slate-500">Rechtssichere Softwareübergabe für Paket A, Paket B und Paket C</p>
+                  </div>
+                </div>
+                <span className="text-xs font-mono font-bold bg-emerald-50 text-emerald-800 px-3 py-1 rounded-full border border-emerald-200">
+                  ABN-{new Date().getFullYear()}
+                </span>
+              </div>
+
+              {/* Customer Selector */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Auftraggeber (Kunde)</label>
+                  <select
+                    value={selectedCustomerId}
+                    onChange={(e) => setSelectedCustomerId(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  >
+                    <option value="">-- Kunde auswählen --</option>
+                    {safeCustomers.map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.companyName} {c.contactPerson ? `(${c.contactPerson})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Übergabedatum / Abnahmedatum</label>
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {selectedCustomer && (
+                <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block mb-0.5">Empfänger:</span>
+                    <span className="font-black text-slate-900">{selectedCustomer.companyName}</span>
+                    {selectedCustomer.contactPerson && <span className="text-slate-600 ml-1.5">• z.Hd. {selectedCustomer.contactPerson}</span>}
+                  </div>
+                  <span className="font-mono text-emerald-900 bg-white px-2.5 py-1 rounded-lg border border-emerald-200 font-bold">
+                    {selectedCustomer.email || 'Keine E-Mail'}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Package Selection for Abnahme */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+              <div className="border-b border-slate-100 pb-3">
+                <h3 className="text-sm font-black text-slate-900">Zu übergebende Pakete & Module</h3>
+                <p className="text-xs text-slate-500">Wählen Sie an, welche Leistungspakete und Modulbestandteile abgenommen werden</p>
+              </div>
+
+              {/* Paket A Abnahme */}
+              <div className={`p-4 rounded-2xl border transition-all ${
+                pkgAIncluded ? 'border-sky-300 bg-sky-50/40' : 'border-slate-200 bg-slate-50/50 opacity-60'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={pkgAIncluded}
+                      onChange={(e) => setPkgAIncluded(e.target.checked)}
+                      className="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500"
+                    />
+                    <span className="font-black text-sm text-slate-900">Paket A: Komplett-Entwicklung & WebApp</span>
+                  </label>
+                  <span className="text-[10px] font-bold bg-sky-100 text-sky-800 px-2.5 py-0.5 rounded-full">
+                    {pkgASelectedModuleIds.length} Modul(e)
+                  </span>
+                </div>
+
+                {pkgAIncluded && (
+                  <div className="mt-3 pt-3 border-t border-sky-100 space-y-2">
+                    <span className="text-[11px] font-bold text-slate-700 block">Übergebene Modulbestandteile:</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-white p-3 rounded-xl border border-sky-100">
+                      {PAKET_A_MODULES.map((mod) => {
+                        const isChecked = pkgASelectedModuleIds.includes(mod.id);
+                        return (
+                          <label
+                            key={mod.id}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              togglePkgAModule(mod.id);
+                            }}
+                            className={`flex items-center gap-2 p-1.5 rounded-lg text-xs transition cursor-pointer select-none ${
+                              isChecked ? 'bg-sky-50 text-sky-950 font-bold' : 'text-slate-400 opacity-60'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {}}
+                              className="w-3.5 h-3.5 text-sky-600 rounded"
+                            />
+                            <span className="leading-tight text-[11.5px]">{mod.title}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Paket B Abnahme */}
+              <div className={`p-4 rounded-2xl border transition-all ${
+                pkgBIncluded ? 'border-indigo-300 bg-indigo-50/40' : 'border-slate-200 bg-slate-50/50 opacity-60'
+              }`}>
+                <label className="flex items-center gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={pkgBIncluded}
+                    onChange={(e) => setPkgBIncluded(e.target.checked)}
+                    className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-black text-sm text-slate-900">Paket B: Setup + 7/24 Abo-Betreuung</span>
+                      <span className="text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-full">
+                        {pkgBInterval === 'yearly' ? 'Jährlich' : pkgBInterval === 'quarterly' ? 'Vierteljährlich' : 'Monatlich'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">Initial-Setup übergeben, Admin-Zugänge freigeschaltet und in laufenden Support überführt.</p>
+                  </div>
+                </label>
+              </div>
+
+              {/* Paket C Abnahme */}
+              <div className={`p-4 rounded-2xl border transition-all ${
+                pkgCIncluded ? 'border-emerald-300 bg-emerald-50/40' : 'border-slate-200 bg-slate-50/50 opacity-60'
+              }`}>
+                <label className="flex items-center gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={pkgCIncluded}
+                    onChange={(e) => setPkgCIncluded(e.target.checked)}
+                    className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-black text-sm text-slate-900">Paket C: Modulare Funktionserweiterung</span>
+                      <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">
+                        {selectedModulesCount} Zusatzmodul(e)
+                      </span>
+                    </div>
+                  </div>
+                </label>
+
+                {pkgCIncluded && (
+                  <div className="mt-3 pt-3 border-t border-emerald-100 space-y-1 text-xs">
+                    {activeSelectedModules.map(m => (
+                      <div key={m.id} className="flex items-center gap-2 text-slate-700 bg-white p-2 rounded-lg border border-emerald-100">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="font-bold">{m.title}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Legal Protection Card */}
+            <div className="bg-emerald-950 text-emerald-100 rounded-3xl p-6 border border-emerald-800 shadow-xl space-y-4">
+              <div className="flex items-center gap-2.5 text-white">
+                <FileCheck2 className="w-5 h-5 text-emerald-400" />
+                <h3 className="text-sm font-black tracking-tight">Rechtliche Vereinbarungen & Schutzklauseln im Protokoll</h3>
+              </div>
+
+              <div className="space-y-3 text-xs leading-relaxed">
+                <div className="bg-emerald-900/60 p-3 rounded-2xl border border-emerald-700/60 space-y-1">
+                  <strong className="text-white block font-bold">1. Förmliche Abnahmeerklärung:</strong>
+                  <span>Der Auftraggeber bestätigt die vollständige, betriebsbereite Übergabe und den erfolgreichen Abschluss der Funktionsprüfung ohne wesentliche Mängel.</span>
+                </div>
+
+                {pkgAIncluded && (
+                  <div className="bg-emerald-900/60 p-3 rounded-2xl border border-emerald-700/60 space-y-1">
+                    <strong className="text-white block font-bold">2. Beginn der 30-Tage-Garantie & Ausschluss unentgeltlicher Wartung:</strong>
+                    <span>30 Tage kostenlose Fehlerbehebung reproduzierbarer Bugs ab heute. Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenfreie Serviceleistungen (Zukünftige Arbeiten: 85,- € / Std. oder Wartungsvertrag).</span>
+                  </div>
+                )}
+
+                <div className="bg-emerald-900/60 p-3 rounded-2xl border border-emerald-700/60 space-y-1">
+                  <strong className="text-white block font-bold">3. Eigenverantwortung Datensicherung (Backups):</strong>
+                  <span>Ausdrücklicher Haftungsausschluss bei Datenverlust; die regelmäßige Datensicherung erfolgt eigenverantwortlich durch den Kunden über die integrierte 1-Klick Backup-Funktion im System.</span>
+                </div>
+
+                <div className="bg-emerald-900/60 p-3 rounded-2xl border border-emerald-700/60 space-y-1">
+                  <strong className="text-white block font-bold">4. Ausschluss nicht vereinbarter Sonderleistungen:</strong>
+                  <span>Funktionen, die nicht explizit in diesem Protokoll aufgeführt sind, sind nicht Bestandteil dieser Abnahme und bedürfen gesonderter Beauftragung.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Actions & E-Mail Live Preview (5 Cols) */}
+          <div className="lg:col-span-5 space-y-6">
+            {/* Quick Action Panel */}
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 text-white shadow-xl border border-slate-700/60 space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                  Abnahmeprotokoll Aktionen
+                </span>
+                <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Rechtsverbindlich
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() => handleDownloadAbnahmePDF(getCurrentOfferPayload())}
+                  className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-black transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 cursor-pointer"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Abnahmeprotokoll als PDF herunterladen</span>
+                </button>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenAbnahmeOutlook(getCurrentOfferPayload())}
+                    className="py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Send className="w-3.5 h-3.5 text-sky-300" />
+                    <span>In Outlook App öffnen</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleCopyAbnahmeText(getCurrentOfferPayload())}
+                    className="py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    {abnahmeCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{abnahmeCopied ? 'Kopiert!' : 'Text kopieren'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Live E-Mail Text Box */}
+            <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm space-y-3 text-xs">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <span className="text-xs font-black text-slate-900">Vorschau E-Mail an den Kunden</span>
+                <span className="text-[11px] text-slate-400 font-mono">{selectedCustomer?.email || 'kontakt@kunde.de'}</span>
+              </div>
+
+              <pre className="text-[11px] font-mono text-slate-700 bg-slate-50 p-4 rounded-2xl border border-slate-200/80 max-h-96 overflow-y-auto whitespace-pre-wrap leading-relaxed">
+                {getAbnahmeEmailBody(getCurrentOfferPayload())}
+              </pre>
             </div>
           </div>
         </div>

@@ -379,8 +379,9 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'pricing-offers' && (
+          {(activeTab === 'pricing-offers' || activeTab === 'abnahme') && (
             <PricingOffersPage
+              initialTab={activeTab === 'abnahme' ? 'abnahme' : 'creator'}
               customers={customers}
               companySettings={companySettings}
               onOpenCustomerModal={() => {
