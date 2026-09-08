@@ -714,16 +714,13 @@ export function createOfferDoc(offer, companySettings = {}) {
           ? offer.packageA.moduleNames
           : defaultModNames);
 
-    const modBulletList = selectedModsA.map(name => `  • ${name}`).join('\n');
+    const modBulletList = selectedModsA.map(name => `• ${name}`).join('\n');
 
     tableBody.push([
       `${posCounter++}`,
       `Paket A: Komplett-Entwicklung & WebApp\n` +
-      `Vereinbarter Modulumfang (${selectedModsA.length} Module):\n` +
-      `${modBulletList}\n` +
-      `• Responsive Design (Desktop, Tablet & Smartphone)\n` +
-      `• Sichere Cloud-Datenbank & SSL-Verschlüsselung\n` +
-      `• Schlüsselfertige Übergabe inkl. 30 Tage Garantie`,
+      `Vereinbarter Modulumfang:\n` +
+      `${modBulletList}`,
       '1x Einmalig',
       `${docPrefix}${formatCurrency(pAPrice)}`,
       `${docPrefix}${formatCurrency(pAPrice)}`
