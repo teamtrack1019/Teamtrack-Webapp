@@ -29,10 +29,13 @@ import {
   CheckSquare,
   Square,
   ShieldAlert,
+  ShieldCheck,
+  FileCheck2,
+  X,
   Info
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
-import { generateOfferPDF } from '../utils/pdfGenerator';
+import { generateOfferPDF, generateAbnahmePDF } from '../utils/pdfGenerator';
 import { api } from '../api';
 
 export const PAKET_A_MODULES = [
@@ -65,6 +68,10 @@ export default function PricingOffersPage({
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Abnahmeprotokoll Modal State
+  const [abnahmeModalOffer, setAbnahmeModalOffer] = useState(null);
+  const [abnahmeCopied, setAbnahmeCopied] = useState(false);
 
   // Form State
   const [docType, setDocType] = useState('angebot'); // 'angebot' | 'kostenvoranschlag'
@@ -333,7 +340,8 @@ ${(() => {
   if (pkgBIncluded) {
     cond += `\nℹ️ Leistungsumfang & Abo-Bedingungen (Paket B):
 • Schlüsselfertige Implementierung: Das System wird mit einer einmaligen Initial-Einrichtung betriebsbereit übergeben.
-• 7/24-Abo-Betreuung: Umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, sicheren Cloud-Betrieb mit täglichen Backups in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- & Sicherheitsupdates sowie laufende Feature-Erweiterungen.
+• 7/24-Abo-Betreuung: Umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, hochverfügbaren Cloud-Server-Betrieb in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- & Sicherheitsupdates sowie laufende Feature-Erweiterungen.
+• Datensicherung: Integrierte 1-Klick Backup-Funktion zur eigenständigen Datensicherung durch den Kunden.
 • Laufzeit & Kündigung: Der Betreuungsvertrag ist ${intervalText} flexibel anpassbar und kündbar.
 • Zahlungsmodalitäten: Setup bei Bereitstellung; laufende Abo-Betreuung jeweils zu Beginn des Abrechnungszeitraums (${intervalText}).
 `;
@@ -387,15 +395,122 @@ Web: https://team-track.de`;
     window.location.href = mailtoUrl;
   };
 
-  // Copy Email Text
-  const handleCopyText = async () => {
+  // Compose Abnahmeprotokoll Email Text
+  const getAbnahmeEmailBody = (offer) => {
+    const cust = customers.find(c => c.id === offer?.customerId) || { 
+      companyName: offer?.customerName || 'Ihr Unternehmen', 
+      contactPerson: offer?.customerContact || '' 
+    };
+    const greeting = cust.contactPerson 
+      ? (cust.contactPerson.toLowerCase().startsWith('frau') ? `Sehr geehrte ${cust.contactPerson},` : cust.contactPerson.toLowerCase().startsWith('herr') ? `Sehr geehrter ${cust.contactPerson},` : `Sehr geehrte(r) Frau/Herr ${cust.contactPerson},`)
+      : 'Sehr geehrte Damen und Herren,';
+
+    const hasPkgA = Boolean(offer?.packageA && offer.packageA.included);
+    const hasPkgB = Boolean(offer?.packageB && offer.packageB.included);
+    const hasPkgC = Boolean(offer?.packageC && offer.packageC.included);
+    const abnNumber = `ABN-${new Date().getFullYear()}-${String(offer?.id || Date.now()).slice(-4)}`;
+
+    let bodyText = `${greeting}
+
+wir freuen uns, Ihnen mitteilen zu können, dass die Bereitstellung und Implementierung Ihrer maßgeschneiderten Softwarelösung (TeamTrack) erfolgreich abgeschlossen wurde.
+
+📋 SOFTWARE-ABNAHMEPROTOKOLL ${abnNumber}
+Referenz: ${offer?.type === 'kostenvoranschlag' ? 'Kostenvoranschlag' : 'Angebot'} ${offer?.offerNumber || ''}
+Datum: ${formatDate(new Date())}
+`;
+
+    if (hasPkgA) {
+      const defaultMods = [
+        'Kunden- & Stammdatenverwaltung',
+        'Live-Terminkalender & Einsatzplanung',
+        'Zeiterfassung & Digitale Stundenzettel',
+        'Material- & Lagerwirtschaft',
+        'Mobiler Foto-Upload & Schadensberichte',
+        'Rollen- & Rechtesystem (Admin/Mitarbeiter)',
+        'PDF-Berichts- und Rechnungsexport',
+        'Automatisierte E-Mail- / SMS-Benachrichtigung'
+      ];
+      const mods = offer.packageA.selectedModules && offer.packageA.selectedModules.length > 0
+        ? offer.packageA.selectedModules.map(m => typeof m === 'string' ? m : (m.title || m.name || m))
+        : (offer.packageA.moduleNames || defaultMods);
+
+      bodyText += `
+✅ Paket A (Komplett-Entwicklung & WebApp):
+Das System und die nachfolgend vereinbarten Module wurden vollständig betriebsbereit implementiert und übergeben:
+${mods.map(m => `  - ${m}`).join('\n')}
+
+📌 Abnahmeerklärung & 30-Tage-Garantie:
+Mit der heutigen Übergabe beginnt Ihre 30-tägige kostenlose Garantiefrist, in welcher reproduzierbare Funktionsfehler (Bugs) kostenlos durch uns behoben werden. Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenfreie Serviceleistungen. Zukünftige Anpassungen, Sicherheitsupdates oder Upgrades erfolgen ausschließlich gegen gesonderte Vergütung (Stundensatz: 85,- € / Std.) oder im Rahmen eines separaten Betreuungsvertrags (Paket B).
+`;
+    }
+
+    if (hasPkgB) {
+      const intervalText = offer.packageB.interval === 'yearly' ? 'jährlich' : offer.packageB.interval === 'quarterly' ? 'vierteljährlich' : 'monatlich';
+      bodyText += `
+✅ Paket B (Setup + 7/24 Abo-Betreuung):
+Das Initial-Setup wurde erfolgreich bereitgestellt und die Admin-Zugänge übergeben. Das System geht nahtlos in den laufenden 7/24-Betrieb über (${intervalText} kündbar).
+`;
+    }
+
+    if (hasPkgC) {
+      const selectedMods = (offer.packageC.selectedModules || []).filter(m => m.selected !== false);
+      const modNames = selectedMods.length > 0 
+        ? selectedMods.map(m => `  - ${m.title || m.name || m}`).join('\n')
+        : `  - ${offer.packageC.moduleName || 'Individuelle Erweiterungsmodule'}`;
+      bodyText += `
+✅ Paket C (Modulare Funktionserweiterung):
+Die vereinbarten Zusatzmodule wurden erfolgreich in das System integriert und freigegeben:
+${modNames}
+`;
+    }
+
+    bodyText += `
+🔒 Wichtiger Hinweis zur Datensicherung:
+Die regelmäßige Erstellung von Datensicherungen (Backups) obliegt der Eigenverantwortung des Kunden und kann jederzeit eigenständig mit 1 Klick über die integrierte Backup-Funktion im System durchgeführt werden.
+
+Das rechtsverbindliche Abnahmeprotokoll als PDF-Dokument liegt dieser E-Mail bei. Bitte senden Sie uns das Dokument gegengezeichnet zurück.
+
+Bei Fragen stehen wir Ihnen jederzeit gerne zur Verfügung.
+
+Mit freundlichen Grüßen
+
+TeamTrack-Software
+Softwareentwicklung & IT-Beratung
+Balthasar-Neumann-Str. 38
+97236 Randersacker
+
+Tel: +49 172 4690446
+E-Mail: kontakt@team-track.de
+Web: https://team-track.de`;
+
+    return bodyText;
+  };
+
+  // Open Outlook for Abnahme
+  const handleOpenAbnahmeOutlook = (offer) => {
+    const cust = customers.find(c => c.id === offer?.customerId) || { email: offer?.customerEmail || '' };
+    const abnNumber = `ABN-${new Date().getFullYear()}-${String(offer?.id || Date.now()).slice(-4)}`;
+    const subject = `Software-Abnahmeprotokoll ${abnNumber} – ${offer?.customerName || 'Ihr Unternehmen'} – TeamTrack`;
+    const body = getAbnahmeEmailBody(offer);
+
+    const mailtoUrl = `mailto:${encodeURIComponent(cust.email || offer?.customerEmail || '')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoUrl;
+  };
+
+  // Copy Abnahme Text
+  const handleCopyAbnahmeText = async (offer) => {
     try {
-      await navigator.clipboard.writeText(getOfferEmailBody());
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      await navigator.clipboard.writeText(getAbnahmeEmailBody(offer));
+      setAbnahmeCopied(true);
+      setTimeout(() => setAbnahmeCopied(false), 2500);
     } catch {
       alert('Kopieren fehlgeschlagen.');
     }
+  };
+
+  // Download Abnahme PDF
+  const handleDownloadAbnahmePDF = (offer) => {
+    generateAbnahmePDF(offer, companySettings);
   };
 
   // Delete Offer from history
@@ -705,7 +820,7 @@ Web: https://team-track.de`;
                         <span className="text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">Abo</span>
                       </label>
                       <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                        Einmalige schlüsselfertige Implementierung plus flexibles 7/24-Abo für Notfall-Support, DSGVO-Updates, Backups & laufende Weiterentwicklung.
+                        Einmalige schlüsselfertige Implementierung plus flexibles 7/24-Abo für Notfall-Support, DSGVO-Updates, Datensicherungs-Tools & laufende Weiterentwicklung.
                       </p>
 
                       {pkgBIncluded && (
@@ -1132,6 +1247,16 @@ Web: https://team-track.de`;
                   </button>
                 </div>
 
+                {/* Abnahmeprotokoll Button */}
+                <button
+                  type="button"
+                  onClick={() => setAbnahmeModalOffer(getCurrentOfferPayload())}
+                  className="w-full py-2.5 bg-emerald-800/90 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer border border-emerald-600/40 shadow-xs"
+                >
+                  <ShieldCheck className="w-4 h-4 text-emerald-300" />
+                  <span>Abnahmeprotokoll & Erklärung erstellen</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={handleSaveOffer}
@@ -1320,6 +1445,15 @@ Web: https://team-track.de`;
                             <div className="flex items-center justify-end gap-1.5">
                               <button
                                 type="button"
+                                title="Abnahmeprotokoll erstellen / senden"
+                                onClick={() => setAbnahmeModalOffer(offer)}
+                                className="px-2 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition cursor-pointer flex items-center gap-1 font-bold text-xs"
+                              >
+                                <ShieldCheck className="w-3.5 h-3.5" />
+                                <span>Abnahme</span>
+                              </button>
+                              <button
+                                type="button"
                                 title="PDF herunterladen"
                                 onClick={() => generateOfferPDF(offer, companySettings)}
                                 className="p-1.5 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100 transition cursor-pointer"
@@ -1343,6 +1477,129 @@ Web: https://team-track.de`;
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ================= ABNAHMEPROTOKOLL MODAL ================= */}
+      {abnahmeModalOffer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="px-6 py-4.5 bg-slate-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black tracking-tight">Software-Abnahmeprotokoll & Erklärung</h3>
+                  <p className="text-[11px] text-slate-400">Rechtssichere Abnahme & 30-Tage-Garantieerklärung</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAbnahmeModalOffer(null)}
+                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-4 text-xs">
+              {/* Meta Pill Box */}
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 grid grid-cols-2 gap-3 text-slate-700">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Auftraggeber:</span>
+                  <span className="font-black text-slate-900 text-sm block">{abnahmeModalOffer.customerName || 'Kunde'}</span>
+                  {abnahmeModalOffer.customerContact && (
+                    <span className="text-[11px] text-slate-500">z.Hd. {abnahmeModalOffer.customerContact}</span>
+                  )}
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Referenz-Angebot:</span>
+                  <span className="font-mono font-bold text-sky-600 block">{abnahmeModalOffer.offerNumber || 'Entwurf'}</span>
+                  <span className="text-[11px] text-slate-500">Datum: {formatDate(new Date())}</span>
+                </div>
+              </div>
+
+              {/* Legal Protection Summary Card */}
+              <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-2xl p-4 space-y-2.5">
+                <div className="flex items-center gap-2 text-emerald-900 font-bold text-xs">
+                  <FileCheck2 className="w-4 h-4 text-emerald-600" />
+                  <span>Enthaltene rechtliche Schutzklauseln im Protokoll & E-Mail:</span>
+                </div>
+
+                <div className="space-y-2 text-[11.5px] text-slate-700 leading-relaxed">
+                  <div className="bg-white p-3 rounded-xl border border-emerald-100 space-y-1">
+                    <strong className="text-slate-900 block font-bold">1. Förmliche Abnahmeerklärung:</strong>
+                    Bestätigt die vollständige, betriebsbereite Übergabe und den erfolgreichen Abschluss der Funktionsprüfung ohne wesentliche Mängel.
+                  </div>
+
+                  {abnahmeModalOffer.packageA && abnahmeModalOffer.packageA.included && (
+                    <div className="bg-white p-3 rounded-xl border border-emerald-100 space-y-1">
+                      <strong className="text-slate-900 block font-bold">2. Beginn der 30-Tage-Garantie & Ausschluss:</strong>
+                      30 Tage kostenlose Behebung reproduzierbarer Fehler ab heute. Nach 30 Tagen erlischt jeglicher Anspruch auf kostenfreie Services (Zukünftige Arbeiten: 85 €/Std. oder Wartungsvertrag).
+                    </div>
+                  )}
+
+                  <div className="bg-white p-3 rounded-xl border border-emerald-100 space-y-1">
+                    <strong className="text-slate-900 block font-bold">3. Eigenverantwortung Datensicherung (Backups):</strong>
+                    Ausdrücklicher Ausschluss von Haftungsansprüchen bei Datenverlust; regelmäßige Datensicherung erfolgt eigenverantwortlich durch den Kunden über die 1-Klick Backup-Funktion.
+                  </div>
+                </div>
+              </div>
+
+              {/* E-Mail Preview Accordion */}
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                  Vorschau E-Mail-Text für den Kunden:
+                </span>
+                <pre className="text-[11px] font-mono text-slate-700 bg-white p-3 rounded-xl border border-slate-200 max-h-40 overflow-y-auto whitespace-pre-wrap">
+                  {getAbnahmeEmailBody(abnahmeModalOffer)}
+                </pre>
+              </div>
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="p-4 bg-slate-50 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setAbnahmeModalOffer(null)}
+                className="w-full sm:w-auto px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer"
+              >
+                Schließen
+              </button>
+
+              <div className="w-full sm:w-auto flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleCopyAbnahmeText(abnahmeModalOffer)}
+                  className="flex-1 sm:flex-initial px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  {abnahmeCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{abnahmeCopied ? 'Kopiert!' : 'Text kopieren'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleOpenAbnahmeOutlook(abnahmeModalOffer)}
+                  className="flex-1 sm:flex-initial px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  <Send className="w-3.5 h-3.5 text-sky-300" />
+                  <span>In Outlook öffnen</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDownloadAbnahmePDF(abnahmeModalOffer)}
+                  className="flex-1 sm:flex-initial px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-emerald-600/30"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>PDF herunterladen</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

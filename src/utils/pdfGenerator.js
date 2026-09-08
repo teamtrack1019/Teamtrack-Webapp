@@ -901,7 +901,8 @@ export function createOfferDoc(offer, companySettings = {}) {
 
   if (hasPkgB && !hasPkgA && !hasPkgC) {
     // Pure Paket B (Abo)
-    condItems.push(`• Leistungsumfang & Abo-Service: Das System wird mit einer initialen Einrichtung schlüsselfertig implementiert. Die laufende 7/24-Abo-Betreuung umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, sicheren Cloud-Betrieb mit täglichen Backups in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- und Sicherheitsupdates sowie laufende Feature-Erweiterungen und Funktionsanpassungen (${bIntervalLabel} kündbar und flexibel anpassbar).`);
+    condItems.push(`• Leistungsumfang & Abo-Service: Das System wird mit einer initialen Einrichtung schlüsselfertig implementiert. Die laufende 7/24-Abo-Betreuung umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, hochverfügbaren Cloud-Server-Betrieb in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- und Sicherheitsupdates, integrierte Datensicherungs-Tools sowie laufende Feature-Erweiterungen und Funktionsanpassungen (${bIntervalLabel} kündbar und flexibel anpassbar).`);
+    condItems.push(`• Datensicherung (Backups): Die regelmäßige Datensicherung liegt in der Verantwortung des Auftraggebers und erfolgt eigenständig über die im System integrierte 1-Klick Backup-Funktion.`);
     condItems.push(`• Zahlungsmodalitäten: Einmaliges Setup bei Bereitstellung; laufende Abo-Betreuung jeweils zu Beginn des Abrechnungszeitraums (${bIntervalLabel}).`);
     condItems.push(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`);
   } else if (hasPkgA) {
@@ -1026,6 +1027,367 @@ export function generateOfferPDF(offer, companySettings = {}) {
   const num = offer.offerNumber || (isKV ? 'KV-2026-0001' : 'ANG-2026-0001');
   const custName = (offer.customerName || 'Kunde').replace(/[^a-zA-Z0-9_-]/g, '_');
   const fileName = `${prefix}_${num}_${custName}.pdf`;
+  doc.save(fileName);
+}
+
+// ==========================================
+// ABNAHMEPROTOKOLL (SOFTWARE ACCEPTANCE PROTOCOL)
+// ==========================================
+
+export function createAbnahmeDoc(data, companySettings = {}) {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  const pageWidth = doc.internal.pageSize.width; // 210mm
+  const margin = 20;
+
+  // 1. CORPORATE HEADER
+  try {
+    doc.addImage('/logo.jpg', 'JPEG', margin, 18, 24, 24);
+  } catch {
+    doc.setFillColor(0, 10, 31);
+    doc.roundedRect(margin, 18, 24, 24, 3, 3, 'F');
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('TT', margin + 7.5, 33);
+  }
+
+  const textStartX = margin + 27;
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 10, 31);
+  doc.text(companySettings.companyName || 'TeamTrack-Software', textStartX, 25.5);
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(30, 41, 59);
+  doc.text(companySettings.tagline || 'Softwareentwicklung & IT-Beratung', textStartX, 30.5);
+
+  const streetLine = companySettings.street || 'Balthasar-Neumann-Str. 38';
+  const cityLine = companySettings.city ? `${companySettings.zip || ''} ${companySettings.city}` : '97236 Randersacker';
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  doc.text(`${streetLine}, ${cityLine}`, textStartX, 36);
+  doc.text(`Tel: ${companySettings.phone || '+49 172 4690446'}   |   E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, textStartX, 41);
+  doc.text(`Web: ${companySettings.website || 'https://team-track.de'}`, textStartX, 46);
+
+  // Header Right: Title & Protocol Number
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text('ABNAHMEPROTOKOLL', pageWidth - margin, 26, { align: 'right' });
+
+  const abnNumber = data.abnahmeNumber || `ABN-${new Date().getFullYear()}-${String(data.id || Date.now()).slice(-4)}`;
+  doc.setFontSize(9.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 130, 203);
+  doc.text(abnNumber, pageWidth - margin, 32.5, { align: 'right' });
+
+  if (data.offerNumber) {
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text(`zu Angebot: ${data.offerNumber}`, pageWidth - margin, 37.5, { align: 'right' });
+  }
+
+  // 2. RECIPIENT & META GRID
+  const recipientY = 56;
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  doc.text(`${companySettings.companyName || 'TeamTrack-Software'} • ${streetLine} • ${cityLine}`, margin, recipientY);
+
+  doc.setFontSize(10.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text(data.customerName || 'Auftraggeber', margin, recipientY + 6);
+
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(51, 65, 85);
+  let curRecY = recipientY + 11;
+  if (data.customerContact) {
+    doc.text(`z. Hd. ${data.customerContact}`, margin, curRecY);
+    curRecY += 4.5;
+  }
+  if (data.customerAddress) {
+    const addrLines = data.customerAddress.split('\n');
+    addrLines.forEach(l => {
+      doc.text(l.trim(), margin, curRecY);
+      curRecY += 4.5;
+    });
+  }
+  if (data.customerEmail) {
+    doc.text(`E-Mail: ${data.customerEmail}`, margin, curRecY);
+    curRecY += 4.5;
+  }
+
+  // Meta Box (Right Side)
+  const metaX = pageWidth - margin - 65;
+  const metaY = recipientY - 2;
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(metaX, metaY, 65, 28, 2.5, 2.5, 'FD');
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(71, 85, 105);
+  doc.text('Abnahmedatum:', metaX + 4, metaY + 6.5);
+  doc.text('Projekt-Status:', metaX + 4, metaY + 13.5);
+  doc.text('Prüffrist:', metaX + 4, metaY + 20.5);
+  doc.text('Bearbeiter:', metaX + 4, metaY + 27.5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(15, 23, 42);
+  doc.text(formatDate(data.date || new Date()), metaX + 61, metaY + 6.5, { align: 'right' });
+  doc.text('Betriebsbereit', metaX + 61, metaY + 13.5, { align: 'right' });
+  doc.text('10 Werktage (erledigt)', metaX + 61, metaY + 20.5, { align: 'right' });
+  doc.text('TeamTrack Team', metaX + 61, metaY + 27.5, { align: 'right' });
+
+  // 3. INTRODUCTORY STATEMENT
+  const introY = Math.max(curRecY + 3, 90);
+  doc.setFontSize(9.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text('Software-Abnahmeerklärung & Funktionsbestätigung', margin, introY);
+
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(51, 65, 85);
+  const introDesc = `Hiermit wird die förmliche Abnahme und betriebsbereite Übergabe der nachfolgend aufgeführten Softwarelösung zwischen dem Auftragnehmer (${companySettings.companyName || 'TeamTrack-Software'}) und dem Auftraggeber (${data.customerName || 'Auftraggeber'}) dokumentiert und rechtsverbindlich erklärt:`;
+  const introSplit = doc.splitTextToSize(introDesc, pageWidth - (margin * 2));
+  doc.text(introSplit, margin, introY + 5);
+
+  // 4. TABLE OF ACCEPTED MODULES & ITEMS
+  const tableBody = [];
+  let pos = 1;
+
+  const defaultModNames = [
+    'Kunden- & Stammdatenverwaltung',
+    'Live-Terminkalender & Einsatzplanung',
+    'Zeiterfassung & Digitale Stundenzettel',
+    'Material- & Lagerwirtschaft',
+    'Mobiler Foto-Upload & Schadensberichte',
+    'Rollen- & Rechtesystem (Admin/Mitarbeiter)',
+    'PDF-Berichts- und Rechnungsexport',
+    'Automatisierte E-Mail- / SMS-Benachrichtigung'
+  ];
+
+  if (data.packageA && data.packageA.included) {
+    const selectedModsA = data.packageA.selectedModules && data.packageA.selectedModules.length > 0
+      ? data.packageA.selectedModules.map(m => typeof m === 'string' ? m : (m.title || m.name || m))
+      : (data.packageA.moduleNames && data.packageA.moduleNames.length > 0
+          ? data.packageA.moduleNames
+          : defaultModNames);
+
+    tableBody.push([
+      `${pos++}`,
+      `Paket A: Komplett-Entwicklung & WebApp\n` +
+      `Abgenommener Modulumfang:\n` +
+      selectedModsA.map(m => `• ${m}`).join('\n'),
+      'Vollständig bereitgestellt\n& ohne Mängel abgenommen'
+    ]);
+  }
+
+  if (data.packageB && data.packageB.included) {
+    const interval = data.packageB.interval || data.recurringInterval || 'monthly';
+    const intervalLabel = interval === 'yearly' ? 'Jährlich' : interval === 'quarterly' ? 'Vierteljährlich' : 'Monatlich';
+    tableBody.push([
+      `${pos++}`,
+      `Paket B: Setup + 7/24 Abo-Betreuung (${intervalLabel})\n` +
+      `• Schlüsselfertige Initial-Einrichtung & Admin-Übergabe\n` +
+      `• Übergang in den laufenden 7/24-Support & Serverbetrieb`,
+      'Initial-Setup betriebsbereit\nübergeben & freigegeben'
+    ]);
+  }
+
+  if (data.packageC && data.packageC.included) {
+    const selectedMods = (data.packageC.selectedModules || []).filter(m => m.selected !== false);
+    const modNames = selectedMods.length > 0 
+      ? selectedMods.map(m => `• ${m.title || m.name || m}`).join('\n')
+      : `• ${data.packageC.moduleName || 'Individuelle Erweiterungsmodule'}`;
+    tableBody.push([
+      `${pos++}`,
+      `Paket C: Modulare Funktionserweiterung\n${modNames}`,
+      'Funktionsprüfung erfolgreich\nbestanden & integriert'
+    ]);
+  }
+
+  (data.customItems || []).forEach(item => {
+    tableBody.push([
+      `${pos++}`,
+      item.description || 'Individuelle Zusatzleistung',
+      'Erfolgreich bereitgestellt'
+    ]);
+  });
+
+  if (tableBody.length === 0) {
+    tableBody.push([
+      '1',
+      'Maßgeschneiderte Softwarelösung & WebApp Komplettpaket',
+      'Ohne Mängel abgenommen'
+    ]);
+  }
+
+  const tableStartY = introY + 5 + (introSplit.length * 4.2) + 2.5;
+
+  autoTable(doc, {
+    startY: tableStartY,
+    margin: { left: margin, right: margin },
+    head: [['Pos.', 'Abgenommene Leistungspositionen & Module', 'Status der Funktionsprüfung']],
+    body: tableBody,
+    theme: 'grid',
+    styles: {
+      fontSize: 7.5,
+      cellPadding: 2.2,
+      textColor: [30, 41, 59],
+      lineColor: [226, 232, 240],
+      lineWidth: 0.2
+    },
+    headStyles: {
+      fillColor: [15, 23, 42],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      fontSize: 8.0
+    },
+    columnStyles: {
+      0: { cellWidth: 10, halign: 'center' },
+      1: { cellWidth: 'auto' },
+      2: { cellWidth: 55, halign: 'center', fontStyle: 'bold' }
+    }
+  });
+
+  // 5. LEGAL CONDITIONS & PROTECTION PARAGRAPHS (Continuous Sentences)
+  const condY = doc.lastAutoTable.finalY + 4.5;
+  const boxWidth = pageWidth - (margin * 2);
+  const textWidth = boxWidth - 8;
+
+  const hasPkgA = Boolean(data.packageA && data.packageA.included);
+  const hasPkgB = Boolean(data.packageB && data.packageB.included);
+
+  const statements = [];
+
+  // 1. General Acceptance
+  statements.push(
+    '1. Abnahmeerklärung: Der Auftraggeber bestätigt hiermit, dass die vertraglich vereinbarte Softwarelösung und alle oben aufgeführten Module vollständig, betriebsbereit und ordnungsgemäß übergeben wurden. Die Funktionsprüfung wurde innerhalb der vereinbarten Frist erfolgreich durchgeführt und das System wird ohne wesentliche Mängel abgenommen.'
+  );
+
+  // 2. Warranty / 30-Day Guarantee
+  if (hasPkgA) {
+    statements.push(
+      '2. Garantie & Ausschluss nach 30 Tagen: Mit dem Datum der Unterzeichnung dieses Protokolls beginnt die 30-tägige kostenlose Garantiefrist. Innerhalb dieses Zeitraums behebt der Auftragnehmer alle nachweisbaren, reproduzierbaren Funktionsfehler (Bugs) kostenlos. Nach Ablauf der 30 Kalendertage erlischt jeglicher Anspruch auf unentgeltliche Serviceleistungen. Nachträgliche Anpassungen, Erweiterungen oder Sicherheits-Patches erfolgen ausschließlich gegen gesonderte Vergütung (Stundensatz: 85,- € / Std.) oder im Rahmen eines separaten Wartungsvertrags.'
+    );
+  }
+
+  // 3. Backup responsibility (Customer responsibility!)
+  statements.push(
+    `${hasPkgA ? '3.' : '2.'} Eigenverantwortung Datensicherung: Die regelmäßige Erstellung und Sicherung von Backups obliegt der alleinigen Sorgfaltspflicht des Auftraggebers. Über die im System integrierte 1-Klick Backup-Funktion können vollständige Datensicherungen jederzeit eigenständig als JSON-Datei exportiert und archiviert werden.`
+  );
+
+  // 4. Scope Limitation
+  statements.push(
+    `${hasPkgA ? '4.' : '3.'} Ausschluss nicht vereinbarter Leistungen: Funktionen, Schnittstellen oder Sonderwünsche, die nicht explizit in diesem Protokoll aufgeführt sind, sind nicht Bestandteil dieser Abnahme und bedürfen einer gesonderten schriftlichen Beauftragung.`
+  );
+
+  const allSplitStatements = statements.map(st => doc.splitTextToSize(st, textWidth));
+  const totalLines = allSplitStatements.reduce((sum, lines) => sum + lines.length, 0);
+
+  const fontSize = 6.8;
+  const lineSpacing = 2.8;
+  const condH = 5.5 + (totalLines * lineSpacing) + (statements.length * 0.6);
+
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(margin, condY, boxWidth, condH, 2, 2, 'FD');
+
+  doc.setFontSize(7.8);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text('Rechtliche Vereinbarungen & Gewährleistungsbedingungen:', margin + 4, condY + 4.2);
+
+  doc.setFontSize(fontSize);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(51, 65, 85);
+
+  let curStmtY = condY + 7.5;
+  allSplitStatements.forEach((lines) => {
+    doc.text(lines, margin + 4, curStmtY);
+    curStmtY += (lines.length * lineSpacing) + 0.6;
+  });
+
+  // 6. SIGNATURE SECTION
+  const sigY = condY + condH + 3.0;
+  if (sigY + 12 < 278) {
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.4);
+    doc.line(margin, sigY + 8, margin + 70, sigY + 8);
+    doc.line(pageWidth - margin - 70, sigY + 8, pageWidth - margin, sigY + 8);
+
+    doc.setFontSize(7.0);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text('Ort, Datum & Unterschrift Auftragnehmer', margin, sigY + 11.5);
+    doc.text('Ort, Datum, Unterschrift & Stempel Auftraggeber', pageWidth - margin - 70, sigY + 11.5);
+  }
+
+  // 7. FOOTER
+  const footerY = 281;
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.4);
+  doc.line(margin, footerY - 4, pageWidth - margin, footerY - 4);
+
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+
+  // Column 1
+  doc.text(companySettings.companyName || 'TeamTrack-Software', margin, footerY);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Inhaberin: ${companySettings.ownerName || 'Huriye Ünalsoy'}`, margin, footerY + 3.8);
+  doc.text(`${streetLine}, ${cityLine}`, margin, footerY + 7.6);
+
+  // Column 2
+  const col2X = 78;
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text('Bankverbindung', col2X, footerY);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Bank: ${companySettings.bankName || 'Postbank'}`, col2X, footerY + 3.8);
+  doc.text(`IBAN: ${companySettings.iban || 'DE16 1001 0010 0012 7271 85'}`, col2X, footerY + 7.6);
+  doc.text(`BIC: ${companySettings.bic || 'PBNKDEFF'}`, col2X, footerY + 11.4);
+
+  // Column 3
+  const col3X = 140;
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text('Kontakt & Steuernummer', col3X, footerY);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`St.-Nr.: ${companySettings.taxNumber || '27/123/45678'}`, col3X, footerY + 3.8);
+  doc.text(`E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, col3X, footerY + 7.6);
+
+  return doc;
+}
+
+export function generateAbnahmePDF(data, companySettings = {}) {
+  const doc = createAbnahmeDoc(data, companySettings);
+  const num = data.abnahmeNumber || `ABN-${new Date().getFullYear()}-${String(data.id || Date.now()).slice(-4)}`;
+  const custName = (data.customerName || 'Kunde').replace(/[^a-zA-Z0-9_-]/g, '_');
+  const fileName = `Abnahmeprotokoll_${num}_${custName}.pdf`;
   doc.save(fileName);
 }
 
