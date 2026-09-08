@@ -713,31 +713,30 @@ export function createOfferDoc(offer, companySettings = {}) {
 
   // Paket B
   if (offer.packageB && offer.packageB.included) {
-    const setupPrice = Number(offer.packageB.setupPrice || 149);
+    const setupPrice = Number(offer.packageB.setupPrice || 0);
     const interval = offer.packageB.interval || 'monthly';
     const intervalLabel = interval === 'yearly' ? 'Jährlich' : interval === 'quarterly' ? 'Vierteljährlich' : 'Monatlich';
     const intervalUnit = interval === 'yearly' ? 'Jahr' : interval === 'quarterly' ? 'Quartal' : 'Monat';
     const recurringPrice = Number(offer.packageB.recurringPrice || (interval === 'yearly' ? 1590 : interval === 'quarterly' ? 420 : 149));
 
-    const paketBDesc = 
-      `Paket B: Setup + 7/24 Abo-Betreuung (${intervalLabel})\n` +
-      `• Einmaliges Initial-Setup & System-Initialisierung (${docPrefix}${formatCurrency(setupPrice)})\n` +
-      `• 7/24 Notfall-Support & Schnelle Reaktionszeit: Direkter Entwickler-Kontakt und vorrangige Fehlerbehebung\n` +
-      `• Hochleistungs-Cloud & Tägliche Backups: Server-Betrieb in ISO-zertifizierten Rechenzentren mit täglicher Sicherung\n` +
-      `• DSGVO-Wartung & Sicherheitsupdates: Kontinuierliche Server- und Datenbank-Sicherheits-Patches\n` +
-      `• Laufende Feature-Erweiterungen: Schnelle Umsetzung neuer Eingabefelder, Auswertungen und Anpassungen\n` +
-      `• Laufzeit: ${intervalLabel} kündbar und flexibel anpassbar`;
+    // Pos (Setup) if setupPrice > 0
+    if (setupPrice > 0) {
+      tableBody.push([
+        `${posCounter++}`,
+        'Einmalige Einrichtung (Setup)',
+        '1x',
+        `${docPrefix}${formatCurrency(setupPrice)}`,
+        `${docPrefix}${formatCurrency(setupPrice)}`
+      ]);
+    }
 
-    const totalColumnStr = setupPrice > 0
-      ? `${docPrefix}${formatCurrency(setupPrice)} (Setup) +\n${docPrefix}${formatCurrency(recurringPrice)} / ${intervalUnit}`
-      : `${docPrefix}${formatCurrency(recurringPrice)} / ${intervalUnit}`;
-
+    // Pos (Abo-Betreuung)
     tableBody.push([
       `${posCounter++}`,
-      paketBDesc,
+      `Paket B: 7/24 Abo-Betreuung (${intervalLabel})`,
       `${intervalLabel}`,
       `${docPrefix}${formatCurrency(recurringPrice)} / ${intervalUnit}`,
-      totalColumnStr
+      `${docPrefix}${formatCurrency(recurringPrice)} / ${intervalUnit}`
     ]);
   }
 
@@ -872,8 +871,29 @@ export function createOfferDoc(offer, companySettings = {}) {
   const boxWidth = pageWidth - (margin * 2); // 170mm
   const textWidth = boxWidth - 8; // 162mm
 
-  const scopeText = '• Verbindlicher Leistungsumfang: Es werden ausschließlich die in diesem Angebot explizit ausgewählten und aufgeführten Module umgesetzt. Nicht im Angebot enthaltene Funktionsbereiche bedürfen einer gesonderten schriftlichen Beauftragung.';
-  const paymentText = '• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung & Freigabe.';
+  const hasPkgA = Boolean(offer.packageA && offer.packageA.included);
+  const hasPkgB = Boolean(offer.packageB && offer.packageB.included);
+  const hasPkgC = Boolean(offer.packageC && offer.packageC.included);
+  const bInterval = offer.packageB?.interval || offer.recurringInterval || 'monthly';
+  const bIntervalLabel = bInterval === 'yearly' ? 'jährlich' : bInterval === 'quarterly' ? 'vierteljährlich' : 'monatlich';
+
+  let scopeText = '';
+  let paymentText = '';
+
+  if (hasPkgB && !hasPkgA && !hasPkgC) {
+    // Pure Paket B (Abo)
+    scopeText = `• Leistungsumfang & Abo-Service: Das System wird mit einer initialen Einrichtung schlüsselfertig implementiert. Die laufende 7/24-Abo-Betreuung umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, sicheren Cloud-Betrieb mit täglichen Backups in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- und Sicherheitsupdates sowie laufende Feature-Erweiterungen und Funktionsanpassungen (${bIntervalLabel} kündbar und flexibel anpassbar).`;
+    paymentText = `• Zahlungsmodalitäten: Einmaliges Setup bei Bereitstellung; laufende Abo-Betreuung jeweils zu Beginn des Abrechnungszeitraums (${bIntervalLabel}).`;
+  } else if (hasPkgB && (hasPkgA || hasPkgC)) {
+    // Combined development + Abo
+    scopeText = `• Leistungsumfang & Abo-Service: Es werden die in diesem Angebot aufgeführten Leistungspositionen und Module umgesetzt. Die anschließende laufende 7/24-Abo-Betreuung umfasst vorrangigen Notfall-Support, tägliche Cloud-Backups, kontinuierliche DSGVO- und Sicherheitsupdates sowie flexible Feature-Anpassungen (${bIntervalLabel} kündbar).`;
+    paymentText = `• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung; laufendes Abo jeweils zu Beginn des Abrechnungszeitraums (${bIntervalLabel}).`;
+  } else {
+    // One-time project
+    scopeText = '• Verbindlicher Leistungsumfang: Es werden ausschließlich die in diesem Angebot explizit ausgewählten und aufgeführten Module umgesetzt. Nicht im Angebot enthaltene Funktionsbereiche bedürfen einer gesonderten schriftlichen Beauftragung.';
+    paymentText = '• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung & Freigabe.';
+  }
+
   const validityText = `• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`;
 
   const scopeLines = doc.splitTextToSize(scopeText, textWidth);

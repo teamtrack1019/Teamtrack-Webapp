@@ -290,10 +290,10 @@ ${isKV ? 'Wie besprochen haben wir für Sie einen unverbindlichen Kostenvoransch
 📋 ${isKV ? 'KOSTENVORANSCHLAG' : 'ANGEBOT'} ${offerNumber}
 ${pkgAIncluded ? `• Paket A (Komplett-Entwicklung & WebApp): ${pricePrefix}${formatCurrency(pkgAPrice)} (einmalig)\n` : ''}${pkgBIncluded ? `• Paket B (Setup + 7/24 Abo-Betreuung): Setup ${pricePrefix}${formatCurrency(pkgBSetupPrice)} + ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)} / ${intervalText}\n` : ''}${pkgCIncluded && selectedModulesCount > 0 ? `• Paket C (Modulare Funktionserweiterung - ${selectedModulesCount} Modul${selectedModulesCount > 1 ? 'e' : ''} zu je ${pricePrefix}${formatCurrency(pkgCUnitPrice)} = ${pricePrefix}${formatCurrency(pkgCTotal)}):\n  Ausgewählte Funktionsbereiche:\n${selectedModsFormatted}\n` : ''}
 Gesamtsumme Einmalig: ${pricePrefix}${formatCurrency(totalOneTime)}
-${currentPkgBRecurringPrice > 0 ? `Laufende Betreuung: ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)} (${intervalText})\n` : ''}
-⚠️ Wichtiger Hinweis zum Leistungsumfang:
-Der Leistungsumfang beschränkt sich ausschließlich auf die oben explizit ausgewählten und aufgeführten Module. Nicht ausgewählte Bereiche sind nicht Bestandteil dieses Angebots.
-
+${pkgBIncluded && !pkgAIncluded && !pkgCIncluded 
+  ? `ℹ️ Leistungsumfang & Abo-Service:\nDas System wird mit einer initialen Einrichtung schlüsselfertig bereitgestellt. Die laufende 7/24-Betreuung beinhaltet vorrangigen Notfall-Support, sicheren Cloud-Betrieb mit täglichen Backups, kontinuierliche DSGVO- & Sicherheitsupdates sowie laufende Feature-Erweiterungen (${intervalText} kündbar und flexibel anpassbar).\n`
+  : `⚠️ Wichtiger Hinweis zum Leistungsumfang:\nDer Leistungsumfang beschränkt sich ausschließlich auf die oben explizit ausgewählten und aufgeführten Module. Nicht ausgewählte Bereiche sind nicht Bestandteil dieses Angebots.\n`
+}
 Das vollständige und detaillierte PDF-Dokument inklusive Leistungsbeschreibung ist für Sie vorbereitet.
 Gültig bis: ${formatDate(validUntilDate)}
 
@@ -1095,7 +1095,9 @@ Web: https://team-track.de`;
 
                   <div className="mt-2 pt-2 border-t border-slate-200 text-[10px] text-slate-500 italic bg-amber-50/60 p-2 rounded-lg border border-amber-200/60">
                     <span className="font-bold text-amber-900 not-italic block mb-0.5">Leistungsumfang im PDF:</span>
-                    Es werden ausschließlich die explizit ausgewählten Leistungspositionen und Module umgesetzt.
+                    {pkgBIncluded && !pkgAIncluded && !pkgCIncluded
+                      ? 'Schlüsselfertige Implementierung inkl. 7/24-Abo-Betreuung, Notfall-Support, DSGVO-Updates, Backups & Feature-Erweiterungen.'
+                      : 'Es werden ausschließlich die explizit ausgewählten Leistungspositionen und Module umgesetzt.'}
                   </div>
                 </div>
               </div>
