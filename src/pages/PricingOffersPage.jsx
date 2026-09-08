@@ -321,9 +321,17 @@ ${currentPkgBRecurringPrice > 0
   : `Gesamtsumme: ${pricePrefix}${formatCurrency(totalOneTime)}\n`
 }
 ${pkgBIncluded && !pkgAIncluded && !pkgCIncluded 
-  ? `ℹ️ Leistungsumfang & Abo-Service:\nDas System wird mit einer initialen Einrichtung schlüsselfertig bereitgestellt. Die laufende 7/24-Betreuung beinhaltet vorrangigen Notfall-Support, sicheren Cloud-Betrieb mit täglichen Backups, kontinuierliche DSGVO- & Sicherheitsupdates sowie laufende Feature-Erweiterungen (${intervalText} kündbar und flexibel anpassbar).\n`
-  : `⚠️ Wichtiger Hinweis zum Leistungsumfang:\nDer Leistungsumfang beschränkt sich ausschließlich auf die oben explizit ausgewählten und aufgeführten Module. Nicht ausgewählte Bereiche sind nicht Bestandteil dieses Angebots.\n`
-}
+  ? `ℹ️ Leistungsumfang & Abo-Service:
+Das System wird mit einer initialen Einrichtung schlüsselfertig bereitgestellt. Die laufende 7/24-Betreuung beinhaltet vorrangigen Notfall-Support, sicheren Cloud-Betrieb mit täglichen Backups, kontinuierliche DSGVO- & Sicherheitsupdates sowie laufende Feature-Erweiterungen (${intervalText} kündbar und flexibel anpassbar).
+`
+  : `⚠️ Wichtiger Hinweis zum Leistungsumfang:
+Der Leistungsumfang beschränkt sich ausschließlich auf die oben explizit ausgewählten und aufgeführten Module. Nicht ausgewählte Bereiche sind nicht Bestandteil dieses Angebots.
+`}${pkgAIncluded ? `
+📌 Abnahme & 30-Tage-Garantie (Paket A):
+• Abnahme & Prüfung: Nach Übergabe der betriebsbereiten Software hat der Auftraggeber das System innerhalb von 10 Werktagen zu prüfen und schriftlich abzunehmen.
+• Kostenlose 30-Tage-Garantie: Ab dem Tag der Abnahme behebt der Auftragnehmer für einen Zeitraum von 30 Kalendertagen alle reproduzierbaren Fehler (Bugs) der vereinbarten Funktionen kostenlos.
+• Nach Ablauf der 30 Tage (Ausschluss kostenloser Wartung): Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenlose Serviceleistungen. Zukünftige Anpassungen, Sicherheitsupdates oder Betriebssystem-Upgrades erfolgen ausschließlich gegen gesonderte Vergütung zum Stundensatz von 85,- € / Std. oder im Rahmen eines separaten Wartungsvertrags (Paket 2).
+` : ''}
 Das vollständige und detaillierte PDF-Dokument inklusive Leistungsbeschreibung ist für Sie vorbereitet.
 Gültig bis: ${formatDate(validUntilDate)}
 
