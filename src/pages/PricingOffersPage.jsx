@@ -68,7 +68,7 @@ export default function PricingOffersPage({
 
   // Package B: Setup + Abo
   const [pkgBIncluded, setPkgBIncluded] = useState(true);
-  const [pkgBSetupPrice, setPkgBSetupPrice] = useState(149);
+  const [pkgBSetupPrice, setPkgBSetupPrice] = useState(1490);
   const [pkgBInterval, setPkgBInterval] = useState('monthly'); // 'monthly' | 'quarterly' | 'yearly'
   const [pkgBMonthlyPrice, setPkgBMonthlyPrice] = useState(149);
   const [pkgBQuarterlyPrice, setPkgBQuarterlyPrice] = useState(420);
@@ -230,7 +230,7 @@ export default function PricingOffersPage({
       },
       packageB: {
         included: pkgBIncluded,
-        setupPrice: Number(pkgBSetupPrice || 149),
+        setupPrice: Number(pkgBSetupPrice !== undefined && pkgBSetupPrice !== null && pkgBSetupPrice !== '' ? pkgBSetupPrice : 1490),
         interval: pkgBInterval,
         recurringPrice: currentPkgBRecurringPrice
       },
