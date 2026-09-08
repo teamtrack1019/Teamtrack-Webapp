@@ -35,6 +35,17 @@ import { formatCurrency, formatDate } from '../utils/formatters';
 import { generateOfferPDF } from '../utils/pdfGenerator';
 import { api } from '../api';
 
+export const PAKET_A_MODULES = [
+  { id: 'pkgA-1', title: 'Kunden- & Stammdatenverwaltung' },
+  { id: 'pkgA-2', title: 'Live-Terminkalender & Einsatzplanung' },
+  { id: 'pkgA-3', title: 'Zeiterfassung & Digitale Stundenzettel' },
+  { id: 'pkgA-4', title: 'Material- & Lagerwirtschaft' },
+  { id: 'pkgA-5', title: 'Mobiler Foto-Upload & Schadensberichte' },
+  { id: 'pkgA-6', title: 'Rollen- & Rechtesystem (Admin/Mitarbeiter)' },
+  { id: 'pkgA-7', title: 'PDF-Berichts- und Rechnungsexport' },
+  { id: 'pkgA-8', title: 'Automatisierte E-Mail- / SMS-Benachrichtigung' }
+];
+
 const PREDEFINED_MODULES = [
   { id: 'mod-1', num: '1', title: 'Modul 1: Mobile Zeiterfassung & Digitale Stundenzettel', desc: 'Rechtssichere Mitarbeiter-Zeiterfassung, GPS-Stempelung & digitale Arbeitszeitnachweise' },
   { id: 'mod-2', num: '2', title: 'Modul 2: 1-Klick Rechnungsstellung & Mahnwesen', desc: 'Automatische Rechnungserstellung, Mahnstufen, EÜR-Export & PDF-Versand' },
@@ -65,6 +76,15 @@ export default function PricingOffersPage({
   // Package A: Komplett-Entwicklung
   const [pkgAIncluded, setPkgAIncluded] = useState(true);
   const [pkgAPrice, setPkgAPrice] = useState(2400);
+  const [pkgASelectedModuleIds, setPkgASelectedModuleIds] = useState(
+    PAKET_A_MODULES.map(m => m.id)
+  );
+
+  const togglePkgAModule = (id) => {
+    setPkgASelectedModuleIds(prev => 
+      prev.includes(id) ? prev.filter(mId => mId !== id) : [...prev, id]
+    );
+  };
 
   // Package B: Setup + Abo
   const [pkgBIncluded, setPkgBIncluded] = useState(true);
@@ -226,7 +246,9 @@ export default function PricingOffersPage({
       customerTaxId: selectedCustomer?.taxNumber || '',
       packageA: {
         included: pkgAIncluded,
-        price: Number(pkgAPrice || 2400)
+        price: Number(pkgAPrice || 2400),
+        selectedModules: PAKET_A_MODULES.filter(m => pkgASelectedModuleIds.includes(m.id)),
+        moduleNames: PAKET_A_MODULES.filter(m => pkgASelectedModuleIds.includes(m.id)).map(m => m.title)
       },
       packageB: {
         included: pkgBIncluded,
@@ -278,6 +300,11 @@ export default function PricingOffersPage({
 
     const intervalText = pkgBInterval === 'yearly' ? 'jährlich' : pkgBInterval === 'quarterly' ? 'vierteljährlich' : 'monatlich';
 
+    const activePkgAModules = PAKET_A_MODULES.filter(m => pkgASelectedModuleIds.includes(m.id));
+    const selectedPkgAModsFormatted = activePkgAModules.length > 0
+      ? activePkgAModules.map(m => `    - ${m.title}`).join('\n')
+      : '    - Keine Module ausgewählt';
+
     const selectedModsFormatted = activeSelectedModules.length > 0
       ? activeSelectedModules.map(m => `    - ${m.title}`).join('\n')
       : '    - Keine Module ausgewählt';
@@ -288,7 +315,7 @@ vielen Dank für Ihr Interesse an einer Zusammenarbeit mit TeamTrack-Software.
 ${isKV ? 'Wie besprochen haben wir für Sie einen unverbindlichen Kostenvoranschlag' : 'Gerne unterbreiten wir Ihnen nachfolgend unser maßgeschneidertes Angebot'} für die Digitalisierung Ihrer Betriebsabläufe zusammengestellt:
 
 📋 ${isKV ? 'KOSTENVORANSCHLAG' : 'ANGEBOT'} ${offerNumber}
-${pkgAIncluded ? `• Paket A (Komplett-Entwicklung & WebApp): ${pricePrefix}${formatCurrency(pkgAPrice)} (einmalig)\n` : ''}${pkgBIncluded ? `• Paket B (Setup + 7/24 Abo-Betreuung): Setup ${pricePrefix}${formatCurrency(pkgBSetupPrice)} + ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)} / ${intervalText}\n` : ''}${pkgCIncluded && selectedModulesCount > 0 ? `• Paket C (Modulare Funktionserweiterung - ${selectedModulesCount} Modul${selectedModulesCount > 1 ? 'e' : ''} zu je ${pricePrefix}${formatCurrency(pkgCUnitPrice)} = ${pricePrefix}${formatCurrency(pkgCTotal)}):\n  Ausgewählte Funktionsbereiche:\n${selectedModsFormatted}\n` : ''}
+${pkgAIncluded ? `• Paket A (Komplett-Entwicklung & WebApp): ${pricePrefix}${formatCurrency(pkgAPrice)} (einmalig)\n  Vereinbarter Modulumfang:\n${selectedPkgAModsFormatted}\n` : ''}${pkgBIncluded ? `• Paket B (Setup + 7/24 Abo-Betreuung): Setup ${pricePrefix}${formatCurrency(pkgBSetupPrice)} + ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)} / ${intervalText}\n` : ''}${pkgCIncluded && selectedModulesCount > 0 ? `• Paket C (Modulare Funktionserweiterung - ${selectedModulesCount} Modul${selectedModulesCount > 1 ? 'e' : ''} zu je ${pricePrefix}${formatCurrency(pkgCUnitPrice)} = ${pricePrefix}${formatCurrency(pkgCTotal)}):\n  Ausgewählte Funktionsbereiche:\n${selectedModsFormatted}\n` : ''}
 ${currentPkgBRecurringPrice > 0 
   ? `Einmalige Investition (Setup): ${pricePrefix}${formatCurrency(totalOneTime)}\nLaufende Betreuung (${intervalText}): ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)}\nGesamtsumme (Erstabwicklung inkl. 1. ${pkgBInterval === 'yearly' ? 'Jahr' : pkgBInterval === 'quarterly' ? 'Quartal' : 'Monat'}): ${pricePrefix}${formatCurrency(totalOneTime + currentPkgBRecurringPrice)}\n`
   : `Gesamtsumme: ${pricePrefix}${formatCurrency(totalOneTime)}\n`
@@ -557,7 +584,7 @@ Web: https://team-track.de`;
                 pkgAIncluded ? 'border-sky-300 bg-sky-50/30 shadow-xs' : 'border-slate-200 bg-slate-50/50 opacity-70'
               }`}>
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-3 flex-1">
                     <input
                       type="checkbox"
                       id="pkgA"
@@ -565,31 +592,71 @@ Web: https://team-track.de`;
                       onChange={(e) => setPkgAIncluded(e.target.checked)}
                       className="mt-1 w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer"
                     />
-                    <div>
-                      <label htmlFor="pkgA" className="font-black text-slate-900 text-sm cursor-pointer flex items-center gap-2">
-                        Paket A: Komplett-Entwicklung & WebApp
-                        <span className="text-[10px] font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full">Einmalig</span>
-                      </label>
-                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                        Maßgeschneiderte WebApp, Benutzer- & Rollenverwaltung, digitaler Papierkram-Ersatz, Cloud-Datenbank & 12 Monate Garantie.
-                      </p>
-                    </div>
-                  </div>
+                    <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <label htmlFor="pkgA" className="font-black text-slate-900 text-sm cursor-pointer flex items-center gap-2">
+                          Paket A: Komplett-Entwicklung & WebApp
+                          <span className="text-[10px] font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full">
+                            {pkgASelectedModuleIds.length} Modul(e) gewählt
+                          </span>
+                        </label>
 
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-xs font-bold text-slate-500">{pricePrefix}</span>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        min="0"
-                        step="50"
-                        disabled={!pkgAIncluded}
-                        value={pkgAPrice}
-                        onChange={(e) => setPkgAPrice(Number(e.target.value))}
-                        className="w-28 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-right text-sm font-black text-slate-900 focus:ring-2 focus:ring-sky-500 focus:outline-none"
-                      />
+                        {/* Price Input */}
+                        <div className="flex items-center gap-1.5 self-start sm:self-auto">
+                          <span className="text-xs font-semibold text-slate-600">Gesamtpreis Paket A:</span>
+                          <span className="text-xs text-slate-500">{pricePrefix}</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="50"
+                            disabled={!pkgAIncluded}
+                            value={pkgAPrice}
+                            onChange={(e) => setPkgAPrice(Number(e.target.value))}
+                            className="w-28 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-right text-sm font-black text-slate-900 focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                          />
+                          <span className="text-xs font-bold text-slate-700">€</span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                        Maßgeschneiderte WebApp, Benutzer- & Rollenverwaltung, Cloud-Datenbank, SSL-Verschlüsselung & 30 Tage kostenlose Garantie.
+                      </p>
+
+                      {pkgAIncluded && (
+                        <div className="mt-4 pt-3 border-t border-sky-100/80 space-y-2">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 block">
+                            2. Vereinbarter Modulumfang ({pkgASelectedModuleIds.length} von {PAKET_A_MODULES.length} Modulen aktiv):
+                          </span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-white/80 p-3 rounded-xl border border-sky-100">
+                            {PAKET_A_MODULES.map((mod) => {
+                              const isChecked = pkgASelectedModuleIds.includes(mod.id);
+                              return (
+                                <label
+                                  key={mod.id}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    togglePkgAModule(mod.id);
+                                  }}
+                                  className={`flex items-center gap-2.5 p-2 rounded-lg text-xs font-semibold transition cursor-pointer select-none ${
+                                    isChecked
+                                      ? 'bg-sky-50 text-sky-950 font-bold border border-sky-200/80 shadow-2xs'
+                                      : 'text-slate-500 hover:bg-slate-50 border border-transparent opacity-60'
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => {}}
+                                    className="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer"
+                                  />
+                                  <span className="leading-tight">{mod.title}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <span className="text-xs font-bold text-slate-700">€</span>
                   </div>
                 </div>
               </div>
@@ -1083,10 +1150,23 @@ Web: https://team-track.de`;
                   <div>Empfänger: <span className="font-semibold text-slate-800">{selectedCustomer?.companyName || 'Interessent'}</span></div>
                   <div>Gültig bis: <span className="font-semibold text-slate-800">{formatDate(validUntilDate)}</span></div>
 
+                  {pkgAIncluded && (
+                    <div className="mt-2 pt-2 border-t border-slate-200">
+                      <span className="font-bold text-sky-800 block mb-1">
+                        Paket A Modulumfang ({pkgASelectedModuleIds.length}):
+                      </span>
+                      <ul className="list-disc list-inside space-y-0.5 text-[10.5px] text-slate-700">
+                        {PAKET_A_MODULES.filter(m => pkgASelectedModuleIds.includes(m.id)).map(m => (
+                          <li key={m.id} className="truncate">{m.title}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
                   {pkgCIncluded && (
                     <div className="mt-2 pt-2 border-t border-slate-200">
                       <span className="font-bold text-emerald-800 block mb-1">
-                        Ausgewählte Module ({selectedModulesCount}):
+                        Paket C Module ({selectedModulesCount}):
                       </span>
                       <ul className="list-disc list-inside space-y-0.5 text-[10.5px] text-slate-700">
                         {activeSelectedModules.map(m => (

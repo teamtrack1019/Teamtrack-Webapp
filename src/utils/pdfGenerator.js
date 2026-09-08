@@ -697,14 +697,33 @@ export function createOfferDoc(offer, companySettings = {}) {
   // Paket A
   if (offer.packageA && offer.packageA.included) {
     const pAPrice = Number(offer.packageA.price || 2400);
+    const defaultModNames = [
+      'Kunden- & Stammdatenverwaltung',
+      'Live-Terminkalender & Einsatzplanung',
+      'Zeiterfassung & Digitale Stundenzettel',
+      'Material- & Lagerwirtschaft',
+      'Mobiler Foto-Upload & Schadensberichte',
+      'Rollen- & Rechtesystem (Admin/Mitarbeiter)',
+      'PDF-Berichts- und Rechnungsexport',
+      'Automatisierte E-Mail- / SMS-Benachrichtigung'
+    ];
+
+    const selectedModsA = offer.packageA.selectedModules && offer.packageA.selectedModules.length > 0
+      ? offer.packageA.selectedModules.map(m => typeof m === 'string' ? m : (m.title || m.name || m))
+      : (offer.packageA.moduleNames && offer.packageA.moduleNames.length > 0
+          ? offer.packageA.moduleNames
+          : defaultModNames);
+
+    const modBulletList = selectedModsA.map(name => `  • ${name}`).join('\n');
+
     tableBody.push([
       `${posCounter++}`,
       `Paket A: Komplett-Entwicklung & WebApp\n` +
-      `• Maßgeschneiderte WebApp & Prozessdigitalisierung\n` +
-      `• Benutzer-, Mitarbeiter- & Rollenverwaltung\n` +
+      `Vereinbarter Modulumfang (${selectedModsA.length} Module):\n` +
+      `${modBulletList}\n` +
       `• Responsive Design (Desktop, Tablet & Smartphone)\n` +
       `• Sichere Cloud-Datenbank & SSL-Verschlüsselung\n` +
-      `• Schlüsselfertige Übergabe inkl. 12 Monate Garantie`,
+      `• Schlüsselfertige Übergabe inkl. 30 Tage Garantie`,
       '1x Einmalig',
       `${docPrefix}${formatCurrency(pAPrice)}`,
       `${docPrefix}${formatCurrency(pAPrice)}`
@@ -881,78 +900,80 @@ export function createOfferDoc(offer, companySettings = {}) {
   const bInterval = offer.packageB?.interval || offer.recurringInterval || 'monthly';
   const bIntervalLabel = bInterval === 'yearly' ? 'jährlich' : bInterval === 'quarterly' ? 'vierteljährlich' : 'monatlich';
 
-  let scopeText = '';
-  let paymentText = '';
+  const condItems = [];
 
   if (hasPkgB && !hasPkgA && !hasPkgC) {
     // Pure Paket B (Abo)
-    scopeText = `• Leistungsumfang & Abo-Service: Das System wird mit einer initialen Einrichtung schlüsselfertig implementiert. Die laufende 7/24-Abo-Betreuung umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, sicheren Cloud-Betrieb mit täglichen Backups in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- und Sicherheitsupdates sowie laufende Feature-Erweiterungen und Funktionsanpassungen (${bIntervalLabel} kündbar und flexibel anpassbar).`;
-    paymentText = `• Zahlungsmodalitäten: Einmaliges Setup bei Bereitstellung; laufende Abo-Betreuung jeweils zu Beginn des Abrechnungszeitraums (${bIntervalLabel}).`;
-  } else if (hasPkgB && (hasPkgA || hasPkgC)) {
-    // Combined development + Abo
-    scopeText = `• Leistungsumfang & Abo-Service: Es werden die in diesem Angebot aufgeführten Leistungspositionen und Module umgesetzt. Die anschließende laufende 7/24-Abo-Betreuung umfasst vorrangigen Notfall-Support, tägliche Cloud-Backups, kontinuierliche DSGVO- und Sicherheitsupdates sowie flexible Feature-Anpassungen (${bIntervalLabel} kündbar).`;
-    paymentText = `• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung; laufendes Abo jeweils zu Beginn des Abrechnungszeitraums (${bIntervalLabel}).`;
+    condItems.push(`• Leistungsumfang & Abo-Service: Das System wird mit einer initialen Einrichtung schlüsselfertig implementiert. Die laufende 7/24-Abo-Betreuung umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, sicheren Cloud-Betrieb mit täglichen Backups in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- und Sicherheitsupdates sowie laufende Feature-Erweiterungen und Funktionsanpassungen (${bIntervalLabel} kündbar und flexibel anpassbar).`);
+    condItems.push(`• Zahlungsmodalitäten: Einmaliges Setup bei Bereitstellung; laufende Abo-Betreuung jeweils zu Beginn des Abrechnungszeitraums (${bIntervalLabel}).`);
+    condItems.push(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`);
+  } else if (hasPkgA) {
+    // Paket A (Komplett-Entwicklung, optional + Paket B / C)
+    condItems.push('• Verbindlicher Leistungsumfang: Es werden ausschließlich die in diesem Angebot explizit ausgewählten und aufgeführten Module und Leistungspositionen umgesetzt. Nicht im Angebot enthaltene Funktionsbereiche bedürfen einer gesonderten schriftlichen Beauftragung.');
+    condItems.push('• Abnahme & Prüfung: Nach Übergabe der betriebsbereiten Software hat der Auftraggeber das System innerhalb von 10 Werktagen zu prüfen und schriftlich abzunehmen.');
+    condItems.push('• Kostenlose 30-Tage-Garantie: Ab dem Tag der Abnahme behebt der Auftragnehmer für einen Zeitraum von 30 Kalendertagen alle reproduzierbaren Fehler (Bugs) der vereinbarten Funktionen kostenlos.');
+    condItems.push('• Nach Ablauf der 30 Tage (Ausschluss kostenloser Wartung): Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenlose Serviceleistungen. Zukünftige Anpassungen, Sicherheitsupdates oder Betriebssystem-Upgrades erfolgen ausschließlich gegen gesonderte Vergütung zum Stundensatz von 85,- € / Std. oder im Rahmen eines separaten Wartungsvertrags (Paket 2).');
+    if (hasPkgB) {
+      condItems.push(`• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung; laufendes Abo jeweils zu Beginn des Abrechnungszeitraums (${bIntervalLabel}).`);
+    } else {
+      condItems.push('• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung & Freigabe.');
+    }
+    condItems.push(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`);
   } else {
-    // One-time project
-    scopeText = '• Verbindlicher Leistungsumfang: Es werden ausschließlich die in diesem Angebot explizit ausgewählten und aufgeführten Module umgesetzt. Nicht im Angebot enthaltene Funktionsbereiche bedürfen einer gesonderten schriftlichen Beauftragung.';
-    paymentText = '• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung & Freigabe.';
+    // Other (e.g. Paket C only)
+    condItems.push('• Verbindlicher Leistungsumfang: Es werden ausschließlich die in diesem Angebot explizit ausgewählten und aufgeführten Module umgesetzt. Nicht im Angebot enthaltene Funktionsbereiche bedürfen einer gesonderten schriftlichen Beauftragung.');
+    if (hasPkgB) {
+      condItems.push(`• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung; laufendes Abo jeweils zu Beginn des Abrechnungszeitraums (${bIntervalLabel}).`);
+    } else {
+      condItems.push('• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung & Freigabe.');
+    }
+    condItems.push(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`);
   }
 
-  const validityText = `• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`;
+  if (offer.notes && offer.notes.trim()) {
+    condItems.push(`• Individuelle Kundenvereinbarung: ${offer.notes.trim()}`);
+  }
 
-  const scopeLines = doc.splitTextToSize(scopeText, textWidth);
-  const paymentLines = doc.splitTextToSize(paymentText, textWidth);
-  const validityLines = doc.splitTextToSize(validityText, textWidth);
-  const noteLines = (offer.notes && offer.notes.trim()) 
-    ? doc.splitTextToSize(`• Individuelle Kundenvereinbarung: ${offer.notes.trim()}`, textWidth)
-    : [];
+  const allSplitItems = condItems.map(item => doc.splitTextToSize(item, textWidth));
+  const totalLineCount = allSplitItems.reduce((acc, lines) => acc + lines.length, 0);
 
-  const lineCount = scopeLines.length + paymentLines.length + validityLines.length + noteLines.length;
-  const condH = 7.5 + (lineCount * 3.7);
+  const fontSize = 7.0;
+  const lineSpacing = 3.0;
+  const condH = 6.0 + (totalLineCount * lineSpacing) + (condItems.length * 0.8);
 
   doc.setFillColor(255, 255, 255);
   doc.setDrawColor(203, 213, 225);
   doc.setLineWidth(0.4);
   doc.roundedRect(margin, condY, boxWidth, condH, 2, 2, 'FD');
 
-  doc.setFontSize(8.5);
+  doc.setFontSize(8.0);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  doc.text('Leistungsumfang, Konditionen & Vereinbarungen:', margin + 4, condY + 5.5);
+  doc.text('Leistungsumfang, Konditionen & Vereinbarungen:', margin + 4, condY + 4.8);
 
-  doc.setFontSize(7.5);
+  doc.setFontSize(fontSize);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(51, 65, 85);
 
-  let curY = condY + 9.5;
-  doc.text(scopeLines, margin + 4, curY);
-  curY += (scopeLines.length * 3.7);
-
-  doc.text(paymentLines, margin + 4, curY);
-  curY += (paymentLines.length * 3.7);
-
-  doc.text(validityLines, margin + 4, curY);
-  curY += (validityLines.length * 3.7);
-
-  if (noteLines.length > 0) {
-    doc.setFont('helvetica', 'italic');
-    doc.setTextColor(30, 41, 59);
-    doc.text(noteLines, margin + 4, curY);
-  }
+  let curY = condY + 8.2;
+  allSplitItems.forEach((lines) => {
+    doc.text(lines, margin + 4, curY);
+    curY += (lines.length * lineSpacing) + 0.8;
+  });
 
   // Signature lines
-  const sigY = condY + condH + 3;
-  if (sigY < 266) {
+  const sigY = condY + condH + 2.5;
+  if (sigY + 12 < 278) {
     doc.setDrawColor(203, 213, 225);
     doc.setLineWidth(0.4);
-    doc.line(margin, sigY + 10, margin + 70, sigY + 10);
-    doc.line(pageWidth - margin - 70, sigY + 10, pageWidth - margin, sigY + 10);
+    doc.line(margin, sigY + 8, margin + 70, sigY + 8);
+    doc.line(pageWidth - margin - 70, sigY + 8, pageWidth - margin, sigY + 8);
 
-    doc.setFontSize(7.5);
+    doc.setFontSize(7.0);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 116, 139);
-    doc.text('Ort, Datum & Unterschrift Auftragnehmer', margin, sigY + 14);
-    doc.text('Auftragsbestätigung Kunde (Unterschrift & Stempel)', pageWidth - margin - 70, sigY + 14);
+    doc.text('Ort, Datum & Unterschrift Auftragnehmer', margin, sigY + 11.5);
+    doc.text('Auftragsbestätigung Kunde (Unterschrift & Stempel)', pageWidth - margin - 70, sigY + 11.5);
   }
 
   // 7. FOOTER (3 Spacious Columns to prevent any IBAN / Email overlap)
