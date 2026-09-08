@@ -390,6 +390,8 @@ function getLocalData() {
         }
       });
 
+      parsed.offers = Array.isArray(parsed.offers) ? parsed.offers : [];
+
       return parsed;
     }
   } catch (e) {}
@@ -439,6 +441,16 @@ function mergeDatabases(localDb, cloudDb) {
     }
   });
   merged.invoices = Array.from(invoiceMap.values());
+
+  // Merge offers
+  const offerMap = new Map();
+  (cloudDb.offers || []).forEach(o => offerMap.set(o.id, o));
+  (localDb.offers || []).forEach(o => {
+    if (!offerMap.has(o.id)) {
+      offerMap.set(o.id, o);
+    }
+  });
+  merged.offers = Array.from(offerMap.values());
 
   // Merge expenses
   const expenseMap = new Map();

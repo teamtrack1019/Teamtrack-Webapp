@@ -57,12 +57,13 @@ const PREDEFINED_MODULES = [
   { id: 'mod-5', num: '5', title: 'Modul 5: Logistik-, Dispositions- & Tourenplanung', desc: 'Einsatzplanung für Mitarbeiter & Fahrzeuge, Routenoptimierung & Auftragsverfolgung' }
 ];
 
-export default function PricingOffersPage({ 
+function PricingOffersContent({ 
   customers = [], 
   companySettings = {}, 
   onConvertToInvoice,
   onOpenCustomerModal 
 }) {
+  const safeCustomers = Array.isArray(customers) ? customers : [];
   const [activeTab, setActiveTab] = useState('creator'); // 'creator' | 'history'
   const [offersList, setOffersList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -89,7 +90,7 @@ export default function PricingOffersPage({
 
   const togglePkgAModule = (id) => {
     setPkgASelectedModuleIds(prev => 
-      prev.includes(id) ? prev.filter(mId => mId !== id) : [...prev, id]
+      (prev || []).includes(id) ? (prev || []).filter(mId => mId !== id) : [...(prev || []), id]
     );
   };
 
@@ -122,9 +123,10 @@ export default function PricingOffersPage({
     try {
       setLoading(true);
       const res = await api.getOffers();
-      setOffersList(res || []);
+      setOffersList(Array.isArray(res) ? res : []);
     } catch (err) {
       console.error('Failed to load offers:', err);
+      setOffersList([]);
     } finally {
       setLoading(false);
     }
@@ -136,23 +138,23 @@ export default function PricingOffersPage({
 
   // Pre-select first customer if available and none selected
   useEffect(() => {
-    if (!selectedCustomerId && customers.length > 0) {
-      setSelectedCustomerId(customers[0].id);
+    if (!selectedCustomerId && safeCustomers.length > 0) {
+      setSelectedCustomerId(safeCustomers[0]?.id || '');
     }
-  }, [customers, selectedCustomerId]);
+  }, [safeCustomers, selectedCustomerId]);
 
   // Generate dynamic Offer Number preview
   useEffect(() => {
     const prefix = docType === 'kostenvoranschlag' ? 'KV' : 'ANG';
     const year = new Date().getFullYear();
-    const count = offersList.filter(o => o.type === docType).length + 1;
+    const count = (offersList || []).filter(o => o && o.type === docType).length + 1;
     setOfferNumber(`${prefix}-${year}-${String(count).padStart(4, '0')}`);
   }, [docType, offersList]);
 
   // Selected Customer details
   const selectedCustomer = useMemo(() => {
-    return customers.find(c => c.id === selectedCustomerId) || null;
-  }, [customers, selectedCustomerId]);
+    return safeCustomers.find(c => c && c.id === selectedCustomerId) || null;
+  }, [safeCustomers, selectedCustomerId]);
 
   // Calculated Dates
   const validUntilDate = useMemo(() => {
@@ -395,14 +397,26 @@ Web: https://team-track.de`;
     window.location.href = mailtoUrl;
   };
 
+  // Copy Offer Text
+  const handleCopyText = async () => {
+    try {
+      await navigator.clipboard.writeText(getOfferEmailBody());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      alert('Kopieren fehlgeschlagen.');
+    }
+  };
+
   // Compose Abnahmeprotokoll Email Text
   const getAbnahmeEmailBody = (offer) => {
-    const cust = customers.find(c => c.id === offer?.customerId) || { 
+    const cust = safeCustomers.find(c => c && c.id === offer?.customerId) || { 
       companyName: offer?.customerName || 'Ihr Unternehmen', 
       contactPerson: offer?.customerContact || '' 
     };
-    const greeting = cust.contactPerson 
-      ? (cust.contactPerson.toLowerCase().startsWith('frau') ? `Sehr geehrte ${cust.contactPerson},` : cust.contactPerson.toLowerCase().startsWith('herr') ? `Sehr geehrter ${cust.contactPerson},` : `Sehr geehrte(r) Frau/Herr ${cust.contactPerson},`)
+    const cp = String(cust.contactPerson || '').trim();
+    const greeting = cp 
+      ? (cp.toLowerCase().startsWith('frau') ? `Sehr geehrte ${cp},` : cp.toLowerCase().startsWith('herr') ? `Sehr geehrter ${cp},` : `Sehr geehrte(r) Frau/Herr ${cp},`)
       : 'Sehr geehrte Damen und Herren,';
 
     const hasPkgA = Boolean(offer?.packageA && offer.packageA.included);
@@ -430,9 +444,14 @@ Datum: ${formatDate(new Date())}
         'PDF-Berichts- und Rechnungsexport',
         'Automatisierte E-Mail- / SMS-Benachrichtigung'
       ];
-      const mods = offer.packageA.selectedModules && offer.packageA.selectedModules.length > 0
-        ? offer.packageA.selectedModules.map(m => typeof m === 'string' ? m : (m.title || m.name || m))
-        : (offer.packageA.moduleNames || defaultMods);
+      let mods = defaultMods;
+      if (Array.isArray(offer?.packageA?.selectedModules) && offer.packageA.selectedModules.length > 0) {
+        mods = offer.packageA.selectedModules.map(m => typeof m === 'string' ? m : (m.title || m.name || String(m)));
+      } else if (Array.isArray(offer?.packageA?.moduleNames) && offer.packageA.moduleNames.length > 0) {
+        mods = offer.packageA.moduleNames;
+      } else if (typeof offer?.packageA?.moduleNames === 'string' && offer.packageA.moduleNames.trim()) {
+        mods = offer.packageA.moduleNames.split(',').map(s => s.trim());
+      }
 
       bodyText += `
 ✅ Paket A (Komplett-Entwicklung & WebApp):
@@ -445,7 +464,7 @@ Mit der heutigen Übergabe beginnt Ihre 30-tägige kostenlose Garantiefrist, in 
     }
 
     if (hasPkgB) {
-      const intervalText = offer.packageB.interval === 'yearly' ? 'jährlich' : offer.packageB.interval === 'quarterly' ? 'vierteljährlich' : 'monatlich';
+      const intervalText = offer?.packageB?.interval === 'yearly' ? 'jährlich' : offer?.packageB?.interval === 'quarterly' ? 'vierteljährlich' : 'monatlich';
       bodyText += `
 ✅ Paket B (Setup + 7/24 Abo-Betreuung):
 Das Initial-Setup wurde erfolgreich bereitgestellt und die Admin-Zugänge übergeben. Das System geht nahtlos in den laufenden 7/24-Betrieb über (${intervalText} kündbar).
@@ -453,14 +472,19 @@ Das Initial-Setup wurde erfolgreich bereitgestellt und die Admin-Zugänge überg
     }
 
     if (hasPkgC) {
-      const selectedMods = (offer.packageC.selectedModules || []).filter(m => m.selected !== false);
-      const modNames = selectedMods.length > 0 
-        ? selectedMods.map(m => `  - ${m.title || m.name || m}`).join('\n')
-        : `  - ${offer.packageC.moduleName || 'Individuelle Erweiterungsmodule'}`;
+      let modNames = [];
+      if (Array.isArray(offer?.packageC?.selectedModules) && offer.packageC.selectedModules.length > 0) {
+        modNames = offer.packageC.selectedModules
+          .filter(m => m && m.selected !== false)
+          .map(m => `  - ${typeof m === 'string' ? m : (m.title || m.name || String(m))}`);
+      }
+      if (modNames.length === 0) {
+        modNames = [`  - ${offer?.packageC?.moduleName || 'Individuelle Erweiterungsmodule'}`];
+      }
       bodyText += `
 ✅ Paket C (Modulare Funktionserweiterung):
 Die vereinbarten Zusatzmodule wurden erfolgreich in das System integriert und freigegeben:
-${modNames}
+${modNames.join('\n')}
 `;
     }
 
@@ -488,7 +512,7 @@ Web: https://team-track.de`;
 
   // Open Outlook for Abnahme
   const handleOpenAbnahmeOutlook = (offer) => {
-    const cust = customers.find(c => c.id === offer?.customerId) || { email: offer?.customerEmail || '' };
+    const cust = safeCustomers.find(c => c && c.id === offer?.customerId) || { email: offer?.customerEmail || '' };
     const abnNumber = `ABN-${new Date().getFullYear()}-${String(offer?.id || Date.now()).slice(-4)}`;
     const subject = `Software-Abnahmeprotokoll ${abnNumber} – ${offer?.customerName || 'Ihr Unternehmen'} – TeamTrack`;
     const body = getAbnahmeEmailBody(offer);
@@ -667,7 +691,7 @@ Web: https://team-track.de`;
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none"
                   >
                     <option value="">-- Kunde auswählen --</option>
-                    {customers.map(c => (
+                    {safeCustomers.map(c => (
                       <option key={c.id} value={c.id}>
                         {c.companyName} {c.contactPerson ? `(${c.contactPerson})` : ''}
                       </option>
@@ -1603,5 +1627,55 @@ Web: https://team-track.de`;
         </div>
       )}
     </div>
+  );
+}
+
+export class OffersErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('PricingOffersPage ErrorBoundary caught:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="w-full max-w-4xl mx-auto p-8 bg-rose-50 border border-rose-200 rounded-3xl text-rose-950 my-8 space-y-4 shadow-xl">
+          <div className="flex items-center gap-3 text-rose-700">
+            <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center font-bold text-lg">⚠️</div>
+            <h2 className="text-xl font-black">Preise & Angebote konnte nicht geladen werden</h2>
+          </div>
+          <p className="text-sm text-slate-700">
+            Beim Rendern der Seite ist ein Fehler aufgetreten: <code className="bg-rose-100 text-rose-800 px-2 py-1 rounded font-mono text-xs font-bold">{this.state.error?.message || 'Unbekannter Fehler'}</code>
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              this.setState({ hasError: false, error: null });
+              window.location.reload();
+            }}
+            className="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-rose-600/30 cursor-pointer"
+          >
+            Seite neu laden
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function PricingOffersPage(props) {
+  return (
+    <OffersErrorBoundary>
+      <PricingOffersContent {...props} />
+    </OffersErrorBoundary>
   );
 }
