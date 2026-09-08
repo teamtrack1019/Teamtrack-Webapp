@@ -835,8 +835,12 @@ export function createOfferDoc(offer, companySettings = {}) {
   const recurringSum = Number(offer.totalRecurring || 0);
   const recInterval = offer.recurringInterval || 'monthly';
   const recLabel = recInterval === 'yearly' ? 'pro Jahr' : recInterval === 'quarterly' ? 'pro Quartal' : 'pro Monat';
+  const grandTotal = Number(offer.totalAmount || (oneTimeSum + recurringSum));
 
-  doc.text('Einmalige Entwicklung:', totalsX + 4, finalY + 6);
+  const hasOnlyB = Boolean(offer.packageB && offer.packageB.included && !offer.packageA?.included && !offer.packageC?.included);
+  const oneTimeLabel = hasOnlyB ? 'Einmalige Einrichtung (Setup):' : 'Einmalige Entwicklung:';
+
+  doc.text(oneTimeLabel, totalsX + 4, finalY + 6);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
   doc.text(`${docPrefix}${formatCurrency(oneTimeSum)}`, totalsX + totalsWidth - 4, finalY + 6, { align: 'right' });
@@ -858,7 +862,7 @@ export function createOfferDoc(offer, companySettings = {}) {
   doc.setTextColor(15, 23, 42);
   doc.text('Gesamtsumme:', totalsX + 4, finalY + 20.5);
   doc.setTextColor(0, 130, 203);
-  doc.text(`${docPrefix}${formatCurrency(offer.totalAmount || oneTimeSum)}`, totalsX + totalsWidth - 4, finalY + 20.5, { align: 'right' });
+  doc.text(`${docPrefix}${formatCurrency(grandTotal)}`, totalsX + totalsWidth - 4, finalY + 20.5, { align: 'right' });
 
   // Tax note
   doc.setFontSize(7.5);

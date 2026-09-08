@@ -245,7 +245,7 @@ export default function PricingOffersPage({
       totalOneTime,
       totalRecurring: currentPkgBRecurringPrice,
       recurringInterval: pkgBInterval,
-      totalAmount: totalOneTime,
+      totalAmount: totalOneTime + (pkgBIncluded ? currentPkgBRecurringPrice : 0),
       notes: customNotes
     };
   };
@@ -289,7 +289,10 @@ ${isKV ? 'Wie besprochen haben wir für Sie einen unverbindlichen Kostenvoransch
 
 📋 ${isKV ? 'KOSTENVORANSCHLAG' : 'ANGEBOT'} ${offerNumber}
 ${pkgAIncluded ? `• Paket A (Komplett-Entwicklung & WebApp): ${pricePrefix}${formatCurrency(pkgAPrice)} (einmalig)\n` : ''}${pkgBIncluded ? `• Paket B (Setup + 7/24 Abo-Betreuung): Setup ${pricePrefix}${formatCurrency(pkgBSetupPrice)} + ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)} / ${intervalText}\n` : ''}${pkgCIncluded && selectedModulesCount > 0 ? `• Paket C (Modulare Funktionserweiterung - ${selectedModulesCount} Modul${selectedModulesCount > 1 ? 'e' : ''} zu je ${pricePrefix}${formatCurrency(pkgCUnitPrice)} = ${pricePrefix}${formatCurrency(pkgCTotal)}):\n  Ausgewählte Funktionsbereiche:\n${selectedModsFormatted}\n` : ''}
-Gesamtsumme Einmalig: ${pricePrefix}${formatCurrency(totalOneTime)}
+${currentPkgBRecurringPrice > 0 
+  ? `Einmalige Investition (Setup): ${pricePrefix}${formatCurrency(totalOneTime)}\nLaufende Betreuung (${intervalText}): ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)}\nGesamtsumme (Erstabwicklung inkl. 1. ${pkgBInterval === 'yearly' ? 'Jahr' : pkgBInterval === 'quarterly' ? 'Quartal' : 'Monat'}): ${pricePrefix}${formatCurrency(totalOneTime + currentPkgBRecurringPrice)}\n`
+  : `Gesamtsumme: ${pricePrefix}${formatCurrency(totalOneTime)}\n`
+}
 ${pkgBIncluded && !pkgAIncluded && !pkgCIncluded 
   ? `ℹ️ Leistungsumfang & Abo-Service:\nDas System wird mit einer initialen Einrichtung schlüsselfertig bereitgestellt. Die laufende 7/24-Betreuung beinhaltet vorrangigen Notfall-Support, sicheren Cloud-Betrieb mit täglichen Backups, kontinuierliche DSGVO- & Sicherheitsupdates sowie laufende Feature-Erweiterungen (${intervalText} kündbar und flexibel anpassbar).\n`
   : `⚠️ Wichtiger Hinweis zum Leistungsumfang:\nDer Leistungsumfang beschränkt sich ausschließlich auf die oben explizit ausgewählten und aufgeführten Module. Nicht ausgewählte Bereiche sind nicht Bestandteil dieses Angebots.\n`
@@ -990,16 +993,16 @@ Web: https://team-track.de`;
 
                 <div className="pt-3 border-t border-slate-700 flex items-center justify-between">
                   <div>
-                    <span className="text-xs text-slate-400 block font-medium">Gesamt-Investition:</span>
+                    <span className="text-xs text-slate-400 block font-medium">Gesamtsumme (Erstabwicklung):</span>
                     <span className="text-[10px] text-slate-500 italic">Gemäß § 19 UStG ohne MwSt.</span>
                   </div>
                   <div className="text-right">
                     <span className="text-2xl font-black text-sky-400">
-                      {pricePrefix}{formatCurrency(totalOneTime)}
+                      {pricePrefix}{formatCurrency(totalOneTime + (pkgBIncluded ? currentPkgBRecurringPrice : 0))}
                     </span>
                     {currentPkgBRecurringPrice > 0 && (
                       <span className="text-[11px] text-slate-400 block font-semibold">
-                        + {pricePrefix}{formatCurrency(currentPkgBRecurringPrice)} / {pkgBInterval === 'yearly' ? 'Jahr' : pkgBInterval === 'quarterly' ? 'Quartal' : 'Monat'}
+                        (Setup {pricePrefix}{formatCurrency(totalOneTime)} + 1. {pkgBInterval === 'yearly' ? 'Jahr' : pkgBInterval === 'quarterly' ? 'Quartal' : 'Monat'} Abo {pricePrefix}{formatCurrency(currentPkgBRecurringPrice)})
                       </span>
                     )}
                   </div>
