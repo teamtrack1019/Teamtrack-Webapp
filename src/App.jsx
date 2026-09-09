@@ -304,7 +304,7 @@ export default function App() {
           companySettings={companySettings}
         />
 
-        <main className="flex-1 overflow-y-auto pb-20 md:pb-6">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 pb-20 md:pb-6">
           {activeTab === 'dashboard' && (
             <DashboardPage
               stats={stats}

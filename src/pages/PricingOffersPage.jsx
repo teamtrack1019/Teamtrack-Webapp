@@ -564,15 +564,15 @@ Web: https://team-track.de`;
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-4 md:p-6 lg:p-8 space-y-6 animate-fadeIn">
+    <div className="w-full max-w-7xl mx-auto p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 sm:space-y-6 animate-fadeIn overflow-x-hidden min-w-0">
       {/* Top Banner Header */}
-      <div className="w-full bg-gradient-to-r from-slate-900 via-slate-800 to-sky-950 p-6 md:p-8 rounded-3xl text-white shadow-xl border border-slate-700/50 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2">
+      <div className="w-full bg-gradient-to-r from-slate-900 via-slate-800 to-sky-950 p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl text-white shadow-xl border border-slate-700/50 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 min-w-0">
+        <div className="space-y-1.5 sm:space-y-2 min-w-0">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 text-xs font-bold border border-sky-500/30">
-            <Tag className="w-3.5 h-3.5 text-sky-400" />
-            <span>Preise & Angebots-Generator</span>
+            <Tag className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+            <span className="truncate">Preise & Angebots-Generator</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight break-words">
             Paketpreise, Angebote & Kostenvoranschläge
           </h1>
           <p className="text-slate-300 text-xs md:text-sm leading-relaxed max-w-2xl">
@@ -582,84 +582,84 @@ Web: https://team-track.de`;
         </div>
 
         {/* View Switcher Tabs */}
-        <div className="flex bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700 shrink-0 self-start md:self-auto gap-1">
+        <div className="w-full md:w-auto grid grid-cols-3 sm:flex bg-slate-800/80 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-slate-700 gap-1 min-w-0 shrink-0">
           <button
             onClick={() => setActiveTab('creator')}
-            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 px-2 py-2 sm:px-3.5 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'creator'
                 ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Calculator className="w-4 h-4" />
-            <span>Angebote & KV</span>
+            <Calculator className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">Angebote</span>
           </button>
           <button
             onClick={() => setActiveTab('abnahme')}
-            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 px-2 py-2 sm:px-3.5 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'abnahme'
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <ShieldCheck className="w-4 h-4 text-emerald-300" />
-            <span>Abnahmeprotokolle</span>
+            <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-300 shrink-0" />
+            <span className="truncate">Abnahme</span>
           </button>
           <button
             onClick={() => setActiveTab('history')}
-            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-1.5 px-2 py-2 sm:px-3.5 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'history'
                 ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <FileSpreadsheet className="w-4 h-4" />
-            <span>Gespeicherte ({offersList.length})</span>
+            <FileSpreadsheet className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">Gespeichert ({offersList.length})</span>
           </button>
         </div>
       </div>
 
       {activeTab === 'creator' ? (
         /* ================= CREATOR / CALCULATOR TAB ================= */
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 min-w-0">
           {/* Left Column: Form & Package Selector (7 Cols) */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7 space-y-4 sm:space-y-6 min-w-0">
             {/* 1. Header Settings Card: Type & Customer */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-sm space-y-4 sm:space-y-5 min-w-0">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-4">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-xs sm:text-sm shrink-0">
                     1
                   </div>
-                  <div>
-                    <h2 className="text-base font-black text-slate-900">Dokument-Typ & Kunde wählen</h2>
-                    <p className="text-xs text-slate-500">Wählen Sie zwischen Festpreis-Angebot und unverbindlichem Kostenvoranschlag</p>
+                  <div className="min-w-0">
+                    <h2 className="text-sm sm:text-base font-black text-slate-900 truncate">Dokument-Typ & Kunde wählen</h2>
+                    <p className="text-[11px] sm:text-xs text-slate-500 truncate">Wählen Sie zwischen Festpreis-Angebot und unverbindlichem Kostenvoranschlag</p>
                   </div>
                 </div>
               </div>
 
               {/* Mode Toggle: Angebot vs Kostenvoranschlag */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                <label className="block text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
                   Art des Dokuments (Modus):
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                   <button
                     type="button"
                     onClick={() => setDocType('angebot')}
-                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                    className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                       docType === 'angebot'
                         ? 'border-sky-500 bg-sky-50/70 text-sky-950 ring-2 ring-sky-500/20 shadow-sm'
                         : 'border-slate-200 hover:border-slate-300 text-slate-700 bg-white'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-black text-sm">Angebot</span>
-                      <span className="text-[10px] uppercase font-bold bg-sky-600 text-white px-2 py-0.5 rounded-full">
+                      <span className="font-black text-xs sm:text-sm">Angebot</span>
+                      <span className="text-[9px] sm:text-[10px] uppercase font-bold bg-sky-600 text-white px-2 py-0.5 rounded-full">
                         Festpreis
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-[10.5px] sm:text-[11px] text-slate-500 leading-snug">
                       Verbindliche Preise (ohne "ab"), für konkrete Kundenbeauftragungen.
                     </p>
                   </button>
@@ -667,19 +667,19 @@ Web: https://team-track.de`;
                   <button
                     type="button"
                     onClick={() => setDocType('kostenvoranschlag')}
-                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                    className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                       docType === 'kostenvoranschlag'
                         ? 'border-amber-500 bg-amber-50/70 text-amber-950 ring-2 ring-amber-500/20 shadow-sm'
                         : 'border-slate-200 hover:border-slate-300 text-slate-700 bg-white'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-black text-sm">Kostenvoranschlag</span>
-                      <span className="text-[10px] uppercase font-bold bg-amber-600 text-white px-2 py-0.5 rounded-full">
+                      <span className="font-black text-xs sm:text-sm">Kostenvoranschlag</span>
+                      <span className="text-[9px] sm:text-[10px] uppercase font-bold bg-amber-600 text-white px-2 py-0.5 rounded-full">
                         Mit "ab" Preisen
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-[10.5px] sm:text-[11px] text-slate-500 leading-snug">
                       Unverbindliche Kostenschätzung (mit "ab" Preisen) für Erstkontakte.
                     </p>
                   </button>
@@ -687,7 +687,7 @@ Web: https://team-track.de`;
               </div>
 
               {/* Customer Dropdown */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-1 sm:pt-2">
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-bold text-slate-700">Kunde / Interessent</label>
@@ -704,7 +704,7 @@ Web: https://team-track.de`;
                   <select
                     value={selectedCustomerId}
                     onChange={(e) => setSelectedCustomerId(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                    className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none"
                   >
                     <option value="">-- Kunde auswählen --</option>
                     {safeCustomers.map(c => (
@@ -720,7 +720,7 @@ Web: https://team-track.de`;
                   <select
                     value={validDays}
                     onChange={(e) => setValidDays(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                    className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none"
                   >
                     <option value={14}>14 Tage (bis {formatDate(new Date(Date.now() + 14 * 86400000))})</option>
                     <option value={30}>30 Tage (Standard - bis {formatDate(new Date(Date.now() + 30 * 86400000))})</option>
@@ -731,15 +731,15 @@ Web: https://team-track.de`;
 
               {/* Customer Details Pill Box */}
               {selectedCustomer && (
-                <div className="bg-sky-50/60 border border-sky-100 rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                  <div>
+                <div className="bg-sky-50/60 border border-sky-100 rounded-xl sm:rounded-2xl p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 text-xs min-w-0">
+                  <div className="min-w-0">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-sky-700 block mb-0.5">Empfänger-Daten:</span>
-                    <span className="font-black text-slate-900">{selectedCustomer.companyName}</span>
+                    <span className="font-black text-slate-900 break-words">{selectedCustomer.companyName}</span>
                     {selectedCustomer.contactPerson && <span className="text-slate-600 ml-1.5">• z.Hd. {selectedCustomer.contactPerson}</span>}
-                    <div className="text-[11px] text-slate-500 mt-0.5">{selectedCustomer.address || 'Keine Adresse hinterlegt'}</div>
+                    <div className="text-[11px] text-slate-500 mt-0.5 break-words">{selectedCustomer.address || 'Keine Adresse hinterlegt'}</div>
                   </div>
-                  <div className="text-right">
-                    <span className="font-mono text-sky-900 bg-white px-2.5 py-1 rounded-lg border border-sky-200 font-bold block sm:inline-block">
+                  <div className="text-left sm:text-right shrink-0">
+                    <span className="font-mono text-sky-900 bg-white px-2.5 py-1 rounded-lg border border-sky-200 font-bold block sm:inline-block text-[11px] break-all">
                       {selectedCustomer.email || 'Keine E-Mail'}
                     </span>
                   </div>
@@ -748,42 +748,42 @@ Web: https://team-track.de`;
             </div>
 
             {/* 2. Package Customizer Cards */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-6">
-              <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4">
-                <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-sm space-y-4 sm:space-y-6 min-w-0">
+              <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3 sm:pb-4 min-w-0">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-xs sm:text-sm shrink-0">
                   2
                 </div>
-                <div>
-                  <h2 className="text-base font-black text-slate-900">Pakete & Preise zusammenstellen</h2>
-                  <p className="text-xs text-slate-500">Alle Preise sind frei anpassbar und werden in Echtzeit kalkuliert</p>
+                <div className="min-w-0">
+                  <h2 className="text-sm sm:text-base font-black text-slate-900 truncate">Pakete & Preise zusammenstellen</h2>
+                  <p className="text-[11px] sm:text-xs text-slate-500 truncate">Alle Preise sind frei anpassbar und werden in Echtzeit kalkuliert</p>
                 </div>
               </div>
 
               {/* PAKET A */}
-              <div className={`p-5 rounded-2xl border transition-all ${
+              <div className={`p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border transition-all min-w-0 ${
                 pkgAIncluded ? 'border-sky-300 bg-sky-50/30 shadow-xs' : 'border-slate-200 bg-slate-50/50 opacity-70'
               }`}>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3 flex-1">
+                <div className="flex items-start justify-between gap-3 sm:gap-4 min-w-0">
+                  <div className="flex items-start gap-2.5 sm:gap-3 flex-1 min-w-0">
                     <input
                       type="checkbox"
                       id="pkgA"
                       checked={pkgAIncluded}
                       onChange={(e) => setPkgAIncluded(e.target.checked)}
-                      className="mt-1 w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer"
+                      className="mt-1 w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer shrink-0"
                     />
-                    <div className="flex-1">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <label htmlFor="pkgA" className="font-black text-slate-900 text-sm cursor-pointer flex items-center gap-2">
-                          Paket A: Komplett-Entwicklung & WebApp
-                          <span className="text-[10px] font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 min-w-0">
+                        <label htmlFor="pkgA" className="font-black text-slate-900 text-xs sm:text-sm cursor-pointer flex flex-wrap items-center gap-1.5 sm:gap-2">
+                          <span>Paket A: Komplett-Entwicklung & WebApp</span>
+                          <span className="text-[9px] sm:text-[10px] font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full whitespace-nowrap">
                             {pkgASelectedModuleIds.length} Modul(e) gewählt
                           </span>
                         </label>
 
                         {/* Price Input */}
-                        <div className="flex items-center gap-1.5 self-start sm:self-auto">
-                          <span className="text-xs font-semibold text-slate-600">Gesamtpreis Paket A:</span>
+                        <div className="flex items-center gap-1.5 self-start sm:self-auto shrink-0">
+                          <span className="text-xs font-semibold text-slate-600">Gesamtpreis:</span>
                           <span className="text-xs text-slate-500">{pricePrefix}</span>
                           <input
                             type="number"
@@ -792,22 +792,22 @@ Web: https://team-track.de`;
                             disabled={!pkgAIncluded}
                             value={pkgAPrice}
                             onChange={(e) => setPkgAPrice(Number(e.target.value))}
-                            className="w-28 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-right text-sm font-black text-slate-900 focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                            className="w-24 sm:w-28 px-2.5 sm:px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-right text-xs sm:text-sm font-black text-slate-900 focus:ring-2 focus:ring-sky-500 focus:outline-none"
                           />
                           <span className="text-xs font-bold text-slate-700">€</span>
                         </div>
                       </div>
 
-                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                      <p className="text-[11px] sm:text-xs text-slate-500 mt-1 leading-relaxed">
                         Maßgeschneiderte WebApp, Benutzer- & Rollenverwaltung, Cloud-Datenbank, SSL-Verschlüsselung & 30 Tage kostenlose Garantie.
                       </p>
 
                       {pkgAIncluded && (
-                        <div className="mt-4 pt-3 border-t border-sky-100/80 space-y-2">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 block">
-                            2. Vereinbarter Modulumfang ({pkgASelectedModuleIds.length} von {PAKET_A_MODULES.length} Modulen aktiv):
+                        <div className="mt-3 sm:mt-4 pt-3 border-t border-sky-100/80 space-y-2 min-w-0">
+                          <span className="text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-700 block">
+                            Vereinbarter Modulumfang ({pkgASelectedModuleIds.length} von {PAKET_A_MODULES.length} Modulen aktiv):
                           </span>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-white/80 p-3 rounded-xl border border-sky-100">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-white/80 p-2.5 sm:p-3 rounded-xl border border-sky-100 min-w-0">
                             {PAKET_A_MODULES.map((mod) => {
                               const isChecked = pkgASelectedModuleIds.includes(mod.id);
                               return (
@@ -817,7 +817,7 @@ Web: https://team-track.de`;
                                     e.preventDefault();
                                     togglePkgAModule(mod.id);
                                   }}
-                                  className={`flex items-center gap-2.5 p-2 rounded-lg text-xs font-semibold transition cursor-pointer select-none ${
+                                  className={`flex items-center gap-2 p-2 rounded-lg text-xs font-semibold transition cursor-pointer select-none min-w-0 ${
                                     isChecked
                                       ? 'bg-sky-50 text-sky-950 font-bold border border-sky-200/80 shadow-2xs'
                                       : 'text-slate-500 hover:bg-slate-50 border border-transparent opacity-60'
@@ -827,9 +827,9 @@ Web: https://team-track.de`;
                                     type="checkbox"
                                     checked={isChecked}
                                     onChange={() => {}}
-                                    className="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer"
+                                    className="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer shrink-0"
                                   />
-                                  <span className="leading-tight">{mod.title}</span>
+                                  <span className="leading-tight break-words min-w-0 text-[11.5px]">{mod.title}</span>
                                 </label>
                               );
                             })}
@@ -842,33 +842,33 @@ Web: https://team-track.de`;
               </div>
 
               {/* PAKET B */}
-              <div className={`p-5 rounded-2xl border transition-all ${
+              <div className={`p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border transition-all min-w-0 ${
                 pkgBIncluded ? 'border-indigo-300 bg-indigo-50/30 shadow-xs' : 'border-slate-200 bg-slate-50/50 opacity-70'
               }`}>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3 flex-1">
+                <div className="flex items-start justify-between gap-3 sm:gap-4 min-w-0">
+                  <div className="flex items-start gap-2.5 sm:gap-3 flex-1 min-w-0">
                     <input
                       type="checkbox"
                       id="pkgB"
                       checked={pkgBIncluded}
                       onChange={(e) => setPkgBIncluded(e.target.checked)}
-                      className="mt-1 w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                      className="mt-1 w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer shrink-0"
                     />
-                    <div className="flex-1">
-                      <label htmlFor="pkgB" className="font-black text-slate-900 text-sm cursor-pointer flex items-center gap-2">
-                        Paket B: Setup + 7/24 Abo-Betreuung (Laufender Service)
-                        <span className="text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">Abo</span>
+                    <div className="flex-1 min-w-0">
+                      <label htmlFor="pkgB" className="font-black text-slate-900 text-xs sm:text-sm cursor-pointer flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <span>Paket B: Setup + 7/24 Abo-Betreuung</span>
+                        <span className="text-[9px] sm:text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full whitespace-nowrap">Abo</span>
                       </label>
-                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                      <p className="text-[11px] sm:text-xs text-slate-500 mt-1 leading-relaxed">
                         Einmalige schlüsselfertige Implementierung plus flexibles 7/24-Abo für Notfall-Support, DSGVO-Updates, Datensicherungs-Tools & laufende Weiterentwicklung.
                       </p>
 
                       {pkgBIncluded && (
-                        <div className="mt-4 pt-3 border-t border-indigo-100/80 space-y-3">
+                        <div className="mt-3 sm:mt-4 pt-3 border-t border-indigo-100/80 space-y-3 min-w-0">
                           {/* Setup Price Input */}
-                          <div className="flex items-center justify-between gap-2 text-xs">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                             <span className="font-semibold text-slate-700">Einmalige Einrichtung (Setup):</span>
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1 self-start sm:self-auto">
                               <span className="text-slate-500">{pricePrefix}</span>
                               <input
                                 type="number"
@@ -884,10 +884,10 @@ Web: https://team-track.de`;
 
                           {/* Interval Selector Buttons */}
                           <div>
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5">
+                            <span className="text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5">
                               Laufendes Wartungsintervall:
                             </span>
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                               <button
                                 type="button"
                                 onClick={() => setPkgBInterval('monthly')}
@@ -930,7 +930,7 @@ Web: https://team-track.de`;
                           </div>
 
                           {/* Editable Interval Price Inputs */}
-                          <div className="grid grid-cols-3 gap-2 pt-1 text-xs">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-xs">
                             <div>
                               <span className="text-[10px] text-slate-500 block mb-0.5">Preis Monat (€):</span>
                               <input
@@ -966,31 +966,31 @@ Web: https://team-track.de`;
                 </div>
               </div>
 
-              {/* PAKET C: MODUL-SYSTEM (SELECTABLE MODULES WITH CHECKBOXES) */}
-              <div className={`p-5 rounded-2xl border transition-all ${
+              {/* PAKET C: MODUL-SYSTEM */}
+              <div className={`p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border transition-all min-w-0 ${
                 pkgCIncluded ? 'border-emerald-300 bg-emerald-50/30 shadow-xs' : 'border-slate-200 bg-slate-50/50 opacity-70'
               }`}>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3 flex-1">
+                <div className="flex items-start justify-between gap-3 sm:gap-4 min-w-0">
+                  <div className="flex items-start gap-2.5 sm:gap-3 flex-1 min-w-0">
                     <input
                       type="checkbox"
                       id="pkgC"
                       checked={pkgCIncluded}
                       onChange={(e) => setPkgCIncluded(e.target.checked)}
-                      className="mt-1 w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                      className="mt-1 w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer shrink-0"
                     />
-                    <div className="flex-1">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <label htmlFor="pkgC" className="font-black text-slate-900 text-sm cursor-pointer flex items-center gap-2">
-                          Paket C: Modulare Funktionserweiterung
-                          <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 min-w-0">
+                        <label htmlFor="pkgC" className="font-black text-slate-900 text-xs sm:text-sm cursor-pointer flex flex-wrap items-center gap-1.5 sm:gap-2">
+                          <span>Paket C: Modulare Erweiterung</span>
+                          <span className="text-[9px] sm:text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full whitespace-nowrap">
                             {selectedModulesCount} Modul(e) gewählt
                           </span>
                         </label>
 
                         {/* Price per Module Input */}
-                        <div className="flex items-center gap-1.5 self-start sm:self-auto">
-                          <span className="text-xs font-semibold text-slate-600">Preis pro Modul:</span>
+                        <div className="flex items-center gap-1.5 self-start sm:self-auto shrink-0">
+                          <span className="text-xs font-semibold text-slate-600">Preis/Modul:</span>
                           <span className="text-xs text-slate-500">{pricePrefix}</span>
                           <input
                             type="number"
@@ -999,45 +999,45 @@ Web: https://team-track.de`;
                             disabled={!pkgCIncluded}
                             value={pkgCUnitPrice}
                             onChange={(e) => setPkgCUnitPrice(Number(e.target.value))}
-                            className="w-24 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-right font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs"
+                            className="w-20 sm:w-24 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-right font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-xs"
                           />
                           <span className="text-xs font-bold text-slate-700">€</span>
                         </div>
                       </div>
 
-                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                      <p className="text-[11px] sm:text-xs text-slate-500 mt-1 leading-relaxed">
                         Wählen Sie die gewünschten Funktionsmodule per Checkbox aus. Im PDF und Angebot werden <strong>nur die ausgewählten Module</strong> aufgeführt.
                       </p>
 
                       {pkgCIncluded && (
-                        <div className="mt-4 pt-3 border-t border-emerald-100/80 space-y-3">
+                        <div className="mt-3 sm:mt-4 pt-3 border-t border-emerald-100/80 space-y-3 min-w-0">
                           {/* Predefined Core Modules List */}
-                          <div className="space-y-2">
+                          <div className="space-y-2 min-w-0">
                             {PREDEFINED_MODULES.map((mod) => {
                               const isChecked = selectedModuleIds.includes(mod.id);
                               return (
                                 <div
                                   key={mod.id}
                                   onClick={() => toggleModuleSelection(mod.id)}
-                                  className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
+                                  className={`p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-2.5 sm:gap-3 min-w-0 ${
                                     isChecked
                                       ? 'bg-white border-emerald-400 shadow-2xs ring-1 ring-emerald-400/30'
                                       : 'bg-slate-50/60 border-slate-200 hover:bg-white hover:border-slate-300'
                                   }`}
                                 >
-                                  <div className="flex items-start gap-2.5">
-                                    <div className="mt-0.5">
+                                  <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                                    <div className="mt-0.5 shrink-0">
                                       {isChecked ? (
                                         <CheckSquare className="w-4 h-4 text-emerald-600" />
                                       ) : (
                                         <Square className="w-4 h-4 text-slate-400" />
                                       )}
                                     </div>
-                                    <div>
-                                      <span className={`text-xs font-bold ${isChecked ? 'text-slate-900' : 'text-slate-600'}`}>
+                                    <div className="min-w-0 flex-1">
+                                      <span className={`text-xs font-bold block break-words ${isChecked ? 'text-slate-900' : 'text-slate-600'}`}>
                                         {mod.title}
                                       </span>
-                                      <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                                      <p className="text-[10.5px] sm:text-[11px] text-slate-500 mt-0.5 leading-snug break-words">
                                         {mod.desc}
                                       </p>
                                     </div>
@@ -1058,7 +1058,7 @@ Web: https://team-track.de`;
                               return (
                                 <div
                                   key={cMod.id}
-                                  className={`p-3 rounded-xl border transition-all flex items-start justify-between gap-3 ${
+                                  className={`p-2.5 sm:p-3 rounded-xl border transition-all flex items-start justify-between gap-2.5 sm:gap-3 min-w-0 ${
                                     isChecked
                                       ? 'bg-white border-emerald-400 shadow-2xs ring-1 ring-emerald-400/30'
                                       : 'bg-slate-50/60 border-slate-200'
@@ -1066,24 +1066,24 @@ Web: https://team-track.de`;
                                 >
                                   <div 
                                     onClick={() => toggleModuleSelection(cMod.id)}
-                                    className="flex items-start gap-2.5 flex-1 cursor-pointer"
+                                    className="flex items-start gap-2.5 flex-1 cursor-pointer min-w-0"
                                   >
-                                    <div className="mt-0.5">
+                                    <div className="mt-0.5 shrink-0">
                                       {isChecked ? (
                                         <CheckSquare className="w-4 h-4 text-emerald-600" />
                                       ) : (
                                         <Square className="w-4 h-4 text-slate-400" />
                                       )}
                                     </div>
-                                    <div>
-                                      <span className={`text-xs font-bold ${isChecked ? 'text-slate-900' : 'text-slate-600'}`}>
+                                    <div className="min-w-0 flex-1">
+                                      <span className={`text-xs font-bold block break-words ${isChecked ? 'text-slate-900' : 'text-slate-600'}`}>
                                         {cMod.title}
                                       </span>
-                                      <p className="text-[11px] text-slate-500 mt-0.5">Individuell hinzugefügt</p>
+                                      <p className="text-[10.5px] sm:text-[11px] text-slate-500 mt-0.5">Individuell hinzugefügt</p>
                                     </div>
                                   </div>
 
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-2 shrink-0">
                                     <span className={`text-xs font-black ${isChecked ? 'text-emerald-700' : 'text-slate-400'}`}>
                                       {pricePrefix}{formatCurrency(pkgCUnitPrice)}
                                     </span>
@@ -1101,40 +1101,40 @@ Web: https://team-track.de`;
                           </div>
 
                           {/* Add Custom Module Input */}
-                          <div className="flex items-center gap-2 pt-1">
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1 min-w-0">
                             <input
                               type="text"
-                              placeholder="+ Weiteres individuelles Modul hinzufügen (z.B. Baustellen-Fotodokumentation)..."
+                              placeholder="+ Weiteres Modul hinzufügen..."
                               value={newCustomModuleName}
                               onChange={(e) => setNewCustomModuleName(e.target.value)}
                               onKeyDown={(e) => e.key === 'Enter' && handleAddCustomModule()}
-                              className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                              className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none min-w-0"
                             />
                             <button
                               type="button"
                               onClick={handleAddCustomModule}
-                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer shrink-0"
                             >
                               <Plus className="w-3.5 h-3.5" /> Hinzufügen
                             </button>
                           </div>
 
                           {/* Live Multiplier Result Box */}
-                          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                            <div className="text-emerald-900">
+                          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs min-w-0">
+                            <div className="text-emerald-900 min-w-0">
                               <span className="font-bold">Ausgewählt: </span>
                               <span className="font-black text-emerald-800">{selectedModulesCount} Modul(e)</span>
-                              <span className="text-slate-500 ml-1.5">({selectedModulesCount} × {pricePrefix}{formatCurrency(pkgCUnitPrice)})</span>
+                              <span className="text-slate-500 ml-1.5 block sm:inline">({selectedModulesCount} × {pricePrefix}{formatCurrency(pkgCUnitPrice)})</span>
                             </div>
-                            <div className="text-emerald-700 font-black text-sm sm:text-right">
+                            <div className="text-emerald-700 font-black text-sm sm:text-right shrink-0">
                               Gesamt Paket C = {pricePrefix}{formatCurrency(pkgCTotal)}
                             </div>
                           </div>
 
                           {/* Scope Legal Disclaimer Notice */}
-                          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2.5 text-amber-900 text-xs">
+                          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2.5 text-amber-900 text-xs min-w-0">
                             <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                            <p className="leading-relaxed text-[11.5px]">
+                            <p className="leading-relaxed text-[11px] sm:text-[11.5px] min-w-0 break-words">
                               <strong>Hinweis zum Leistungsumfang:</strong> Im generierten PDF und Angebot werden ausschließlich die oben angehakten Module aufgeführt. Es wird automatisch vermerkt, dass weitere Funktionsbereiche nicht im Leistungsumfang enthalten sind.
                             </p>
                           </div>
@@ -1146,7 +1146,7 @@ Web: https://team-track.de`;
               </div>
 
               {/* CUSTOM EXTRA ITEMS */}
-              <div className="pt-2">
+              <div className="pt-2 min-w-0">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-600">
                     Individuelle Zusatzpositionen ({customItems.length})
@@ -1161,43 +1161,45 @@ Web: https://team-track.de`;
                 </div>
 
                 {customItems.length > 0 && (
-                  <div className="space-y-2">
+                  <div className="space-y-2 min-w-0">
                     {customItems.map((item) => (
-                      <div key={item.id} className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-2 text-xs">
+                      <div key={item.id} className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-xs min-w-0">
                         <input
                           type="text"
                           placeholder="Beschreibung der Zusatzleistung..."
                           value={item.description}
                           onChange={(e) => handleUpdateCustomItem(item.id, 'description', e.target.value)}
-                          className="flex-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-medium"
+                          className="flex-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg font-medium min-w-0"
                         />
-                        <input
-                          type="number"
-                          min="1"
-                          placeholder="Menge"
-                          value={item.quantity}
-                          onChange={(e) => handleUpdateCustomItem(item.id, 'quantity', Number(e.target.value))}
-                          className="w-16 px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-center font-bold"
-                        />
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2">
                           <input
                             type="number"
-                            min="0"
-                            step="10"
-                            placeholder="Preis €"
-                            value={item.unitPrice}
-                            onChange={(e) => handleUpdateCustomItem(item.id, 'unitPrice', Number(e.target.value))}
-                            className="w-24 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-right font-bold"
+                            min="1"
+                            placeholder="Menge"
+                            value={item.quantity}
+                            onChange={(e) => handleUpdateCustomItem(item.id, 'quantity', Number(e.target.value))}
+                            className="w-16 px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-center font-bold"
                           />
-                          <span className="text-slate-500">€</span>
+                          <div className="flex items-center gap-1 flex-1 sm:flex-initial">
+                            <input
+                              type="number"
+                              min="0"
+                              step="10"
+                              placeholder="Preis €"
+                              value={item.unitPrice}
+                              onChange={(e) => handleUpdateCustomItem(item.id, 'unitPrice', Number(e.target.value))}
+                              className="w-full sm:w-24 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-right font-bold"
+                            />
+                            <span className="text-slate-500">€</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveCustomItem(item.id)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 transition cursor-pointer shrink-0"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveCustomItem(item.id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 transition cursor-pointer"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </div>
                     ))}
                   </div>
@@ -1207,48 +1209,48 @@ Web: https://team-track.de`;
           </div>
 
           {/* Right Column: Live Document Preview & Actions (5 Cols) */}
-          <div className="lg:col-span-5 space-y-6">
+          <div className="lg:col-span-5 space-y-4 sm:space-y-6 min-w-0">
             {/* Live Pricing Summary Box */}
-            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 text-white shadow-xl border border-slate-700/60 space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-sky-400">
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-white shadow-xl border border-slate-700/60 space-y-4 sm:space-y-5 min-w-0">
+              <div className="flex items-center justify-between border-b border-slate-700/80 pb-3 min-w-0">
+                <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-sky-400 truncate">
                   Kalkulation & Gesamtsumme
                 </span>
-                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase ${
+                <span className={`text-[9px] sm:text-[10px] font-black px-2 sm:px-2.5 py-0.5 rounded-full uppercase shrink-0 ${
                   isKV ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
                 }`}>
                   {isKV ? 'Kostenvoranschlag' : 'Verbindl. Angebot'}
                 </span>
               </div>
 
-              <div className="space-y-3 text-xs">
-                <div className="flex items-center justify-between text-slate-300">
-                  <span>Einmalige Entwicklung & Setup:</span>
-                  <span className="font-bold text-white text-sm">
+              <div className="space-y-2.5 sm:space-y-3 text-xs min-w-0">
+                <div className="flex items-center justify-between text-slate-300 gap-2">
+                  <span className="truncate">Einmalige Entwicklung & Setup:</span>
+                  <span className="font-bold text-white text-sm shrink-0">
                     {pricePrefix}{formatCurrency(totalOneTime)}
                   </span>
                 </div>
 
                 {currentPkgBRecurringPrice > 0 && (
-                  <div className="flex items-center justify-between text-slate-300">
-                    <span>Laufende Betreuung ({pkgBInterval === 'yearly' ? 'Jährlich' : pkgBInterval === 'quarterly' ? 'Vierteljährlich' : 'Monatlich'}):</span>
-                    <span className="font-bold text-sky-300 text-sm">
+                  <div className="flex items-center justify-between text-slate-300 gap-2">
+                    <span className="truncate">Laufende Betreuung ({pkgBInterval === 'yearly' ? 'Jährlich' : pkgBInterval === 'quarterly' ? 'Vierteljährlich' : 'Monatlich'}):</span>
+                    <span className="font-bold text-sky-300 text-sm shrink-0">
                       {pricePrefix}{formatCurrency(currentPkgBRecurringPrice)}
                     </span>
                   </div>
                 )}
 
-                <div className="pt-3 border-t border-slate-700 flex items-center justify-between">
+                <div className="pt-3 border-t border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
                     <span className="text-xs text-slate-400 block font-medium">Gesamtsumme (Erstabwicklung):</span>
                     <span className="text-[10px] text-slate-500 italic">Gemäß § 19 UStG ohne MwSt.</span>
                   </div>
-                  <div className="text-right">
-                    <span className="text-2xl font-black text-sky-400">
+                  <div className="text-left sm:text-right">
+                    <span className="text-xl sm:text-2xl font-black text-sky-400 block">
                       {pricePrefix}{formatCurrency(totalOneTime + (pkgBIncluded ? currentPkgBRecurringPrice : 0))}
                     </span>
                     {currentPkgBRecurringPrice > 0 && (
-                      <span className="text-[11px] text-slate-400 block font-semibold">
+                      <span className="text-[10.5px] sm:text-[11px] text-slate-400 block font-semibold leading-tight mt-0.5">
                         (Setup {pricePrefix}{formatCurrency(totalOneTime)} + 1. {pkgBInterval === 'yearly' ? 'Jahr' : pkgBInterval === 'quarterly' ? 'Quartal' : 'Monat'} Abo {pricePrefix}{formatCurrency(currentPkgBRecurringPrice)})
                       </span>
                     )}
@@ -1257,32 +1259,32 @@ Web: https://team-track.de`;
               </div>
 
               {/* Action Buttons */}
-              <div className="space-y-2.5 pt-2">
+              <div className="space-y-2 sm:space-y-2.5 pt-1 sm:pt-2">
                 <button
                   type="button"
                   onClick={handleDownloadPDF}
-                  className="w-full py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-black transition flex items-center justify-center gap-2 shadow-lg shadow-sky-600/30 cursor-pointer"
+                  className="w-full py-2.5 sm:py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-black transition flex items-center justify-center gap-2 shadow-lg shadow-sky-600/30 cursor-pointer"
                 >
-                  <Download className="w-4 h-4" />
-                  <span>PDF herunterladen ({isKV ? 'Kostenvoranschlag' : 'Angebot'})</span>
+                  <Download className="w-4 h-4 shrink-0" />
+                  <span className="truncate">PDF herunterladen ({isKV ? 'Kostenvoranschlag' : 'Angebot'})</span>
                 </button>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={handleOpenOutlook}
-                    className="py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="py-2 sm:py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <Send className="w-3.5 h-3.5 text-sky-300" />
-                    <span>In Outlook App öffnen</span>
+                    <Send className="w-3.5 h-3.5 text-sky-300 shrink-0" />
+                    <span>In Outlook öffnen</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={handleCopyText}
-                    className="py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="py-2 sm:py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> : <Copy className="w-3.5 h-3.5 shrink-0" />}
                     <span>{copied ? 'Kopiert!' : 'Text kopieren'}</span>
                   </button>
                 </div>
@@ -1293,7 +1295,7 @@ Web: https://team-track.de`;
                   onClick={() => setActiveTab('abnahme')}
                   className="w-full py-2.5 bg-emerald-800/90 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer border border-emerald-600/40 shadow-xs"
                 >
-                  <ShieldCheck className="w-4 h-4 text-emerald-300" />
+                  <ShieldCheck className="w-4 h-4 text-emerald-300 shrink-0" />
                   <span>Zum Abnahmeprotokoll Studio</span>
                 </button>
 
@@ -1306,46 +1308,46 @@ Web: https://team-track.de`;
                       : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700'
                   }`}
                 >
-                  {saveSuccess ? <CheckCircle2 className="w-4 h-4 text-white" /> : <FileCheck className="w-4 h-4" />}
+                  {saveSuccess ? <CheckCircle2 className="w-4 h-4 text-white shrink-0" /> : <FileCheck className="w-4 h-4 shrink-0" />}
                   <span>{saveSuccess ? 'Erfolgreich gespeichert!' : 'In Verlauf speichern'}</span>
                 </button>
               </div>
             </div>
 
             {/* Document Visual Card Preview */}
-            <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <span className="text-xs font-black text-slate-900">Vorschau Dokument-Kopf</span>
-                <span className="text-xs font-mono text-sky-600 font-bold">{offerNumber}</span>
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-sm space-y-3 sm:space-y-4 min-w-0">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3 min-w-0">
+                <span className="text-xs font-black text-slate-900 truncate">Vorschau Dokument-Kopf</span>
+                <span className="text-xs font-mono text-sky-600 font-bold shrink-0">{offerNumber}</span>
               </div>
 
               {/* Visual TeamTrack Corporate Header Card */}
-              <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-white rounded-xl shadow-xs border border-slate-200 p-1 flex items-center justify-center shrink-0">
+              <div className="bg-slate-50 border border-slate-200/80 rounded-xl sm:rounded-2xl p-3 sm:p-4 space-y-3 min-w-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-xl shadow-xs border border-slate-200 p-1 flex items-center justify-center shrink-0">
                     <img src="/logo.jpg" alt="Logo" className="w-full h-full object-contain rounded-lg" />
                   </div>
-                  <div>
-                    <div className="text-lg font-black tracking-tight leading-none">
+                  <div className="min-w-0">
+                    <div className="text-base sm:text-lg font-black tracking-tight leading-none">
                       <span className="text-[#000a1f]">Team</span><span className="text-[#0082cb]">Track</span>
                     </div>
-                    <div className="text-[9px] font-black uppercase tracking-[0.14em] text-[#64748b] mt-1 leading-none">
+                    <div className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.14em] text-[#64748b] mt-1 leading-none truncate">
                       SOFTWAREENTWICKLUNG
                     </div>
                   </div>
                 </div>
 
-                <div className="text-[11px] text-slate-600 border-t border-slate-200 pt-2 space-y-1">
-                  <div className="font-bold text-slate-900">{isKV ? 'Unverbindlicher Kostenvoranschlag' : 'Verbindliches Angebot'}</div>
-                  <div>Empfänger: <span className="font-semibold text-slate-800">{selectedCustomer?.companyName || 'Interessent'}</span></div>
+                <div className="text-[11px] text-slate-600 border-t border-slate-200 pt-2 space-y-1 min-w-0">
+                  <div className="font-bold text-slate-900 break-words">{isKV ? 'Unverbindlicher Kostenvoranschlag' : 'Verbindliches Angebot'}</div>
+                  <div className="break-words">Empfänger: <span className="font-semibold text-slate-800">{selectedCustomer?.companyName || 'Interessent'}</span></div>
                   <div>Gültig bis: <span className="font-semibold text-slate-800">{formatDate(validUntilDate)}</span></div>
 
                   {pkgAIncluded && (
-                    <div className="mt-2 pt-2 border-t border-slate-200">
+                    <div className="mt-2 pt-2 border-t border-slate-200 min-w-0">
                       <span className="font-bold text-sky-800 block mb-1">
                         Paket A Modulumfang ({pkgASelectedModuleIds.length}):
                       </span>
-                      <ul className="list-disc list-inside space-y-0.5 text-[10.5px] text-slate-700">
+                      <ul className="list-disc list-inside space-y-0.5 text-[10.5px] text-slate-700 min-w-0">
                         {PAKET_A_MODULES.filter(m => pkgASelectedModuleIds.includes(m.id)).map(m => (
                           <li key={m.id} className="truncate">{m.title}</li>
                         ))}
@@ -1354,11 +1356,11 @@ Web: https://team-track.de`;
                   )}
 
                   {pkgCIncluded && (
-                    <div className="mt-2 pt-2 border-t border-slate-200">
+                    <div className="mt-2 pt-2 border-t border-slate-200 min-w-0">
                       <span className="font-bold text-emerald-800 block mb-1">
                         Paket C Module ({selectedModulesCount}):
                       </span>
-                      <ul className="list-disc list-inside space-y-0.5 text-[10.5px] text-slate-700">
+                      <ul className="list-disc list-inside space-y-0.5 text-[10.5px] text-slate-700 min-w-0">
                         {activeSelectedModules.map(m => (
                           <li key={m.id} className="truncate">{m.title}</li>
                         ))}
@@ -1366,7 +1368,7 @@ Web: https://team-track.de`;
                     </div>
                   )}
 
-                  <div className="mt-2 pt-2 border-t border-slate-200 text-[10px] text-slate-500 italic bg-amber-50/60 p-2 rounded-lg border border-amber-200/60">
+                  <div className="mt-2 pt-2 border-t border-slate-200 text-[10px] text-slate-500 italic bg-amber-50/60 p-2 rounded-lg border border-amber-200/60 min-w-0 break-words">
                     <span className="font-bold text-amber-900 not-italic block mb-0.5">Leistungsumfang im PDF:</span>
                     {pkgBIncluded && !pkgAIncluded && !pkgCIncluded
                       ? 'Schlüsselfertige Implementierung inkl. 7/24-Abo-Betreuung, Notfall-Support, DSGVO-Updates, Backups & Feature-Erweiterungen.'
@@ -1379,34 +1381,34 @@ Web: https://team-track.de`;
         </div>
       ) : activeTab === 'abnahme' ? (
         /* ================= DEDICATED ABNAHMEPROTOKOLL STUDIO TAB ================= */
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fadeIn">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 animate-fadeIn min-w-0">
           {/* Left Column: Handover Scope & Legal Clauses (7 Cols) */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7 space-y-4 sm:space-y-6 min-w-0">
             {/* Customer & Document Info Card */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                    <ShieldCheck className="w-5 h-5" />
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-sm space-y-4 sm:space-y-5 min-w-0">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-4 gap-2">
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0">
+                    <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <div>
-                    <h2 className="text-base font-black text-slate-900">Abnahmeprotokoll & Garantieerklärung</h2>
-                    <p className="text-xs text-slate-500">Rechtssichere Softwareübergabe für Paket A, Paket B und Paket C</p>
+                  <div className="min-w-0">
+                    <h2 className="text-sm sm:text-base font-black text-slate-900 truncate">Abnahmeprotokoll & Garantie</h2>
+                    <p className="text-[11px] sm:text-xs text-slate-500 truncate">Rechtssichere Softwareübergabe für alle Pakete</p>
                   </div>
                 </div>
-                <span className="text-xs font-mono font-bold bg-emerald-50 text-emerald-800 px-3 py-1 rounded-full border border-emerald-200">
+                <span className="text-[10px] sm:text-xs font-mono font-bold bg-emerald-50 text-emerald-800 px-2 sm:px-3 py-1 rounded-full border border-emerald-200 shrink-0">
                   ABN-{new Date().getFullYear()}
                 </span>
               </div>
 
               {/* Customer Selector */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">Auftraggeber (Kunde)</label>
                   <select
                     value={selectedCustomerId}
                     onChange={(e) => setSelectedCustomerId(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   >
                     <option value="">-- Kunde auswählen --</option>
                     {safeCustomers.map(c => (
@@ -1418,24 +1420,25 @@ Web: https://team-track.de`;
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Übergabedatum / Abnahmedatum</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Übergabe- / Abnahmedatum</label>
                   <input
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  />
+                    className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  >
+                  </input>
                 </div>
               </div>
 
               {selectedCustomer && (
-                <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                  <div>
+                <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-xl sm:rounded-2xl p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 text-xs min-w-0">
+                  <div className="min-w-0">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block mb-0.5">Empfänger:</span>
-                    <span className="font-black text-slate-900">{selectedCustomer.companyName}</span>
+                    <span className="font-black text-slate-900 break-words">{selectedCustomer.companyName}</span>
                     {selectedCustomer.contactPerson && <span className="text-slate-600 ml-1.5">• z.Hd. {selectedCustomer.contactPerson}</span>}
                   </div>
-                  <span className="font-mono text-emerald-900 bg-white px-2.5 py-1 rounded-lg border border-emerald-200 font-bold">
+                  <span className="font-mono text-emerald-900 bg-white px-2.5 py-1 rounded-lg border border-emerald-200 font-bold text-[11px] shrink-0 self-start sm:self-auto break-all">
                     {selectedCustomer.email || 'Keine E-Mail'}
                   </span>
                 </div>
@@ -1443,35 +1446,35 @@ Web: https://team-track.de`;
             </div>
 
             {/* Package Selection for Abnahme */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-5">
-              <div className="border-b border-slate-100 pb-3">
-                <h3 className="text-sm font-black text-slate-900">Zu übergebende Pakete & Module</h3>
-                <p className="text-xs text-slate-500">Wählen Sie an, welche Leistungspakete und Modulbestandteile abgenommen werden</p>
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-sm space-y-4 sm:space-y-5 min-w-0">
+              <div className="border-b border-slate-100 pb-3 min-w-0">
+                <h3 className="text-xs sm:text-sm font-black text-slate-900 truncate">Zu übergebende Pakete & Module</h3>
+                <p className="text-[11px] sm:text-xs text-slate-500 truncate">Wählen Sie an, welche Leistungspakete abgenommen werden</p>
               </div>
 
               {/* Paket A Abnahme */}
-              <div className={`p-4 rounded-2xl border transition-all ${
+              <div className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all min-w-0 ${
                 pkgAIncluded ? 'border-sky-300 bg-sky-50/40' : 'border-slate-200 bg-slate-50/50 opacity-60'
               }`}>
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2.5 cursor-pointer">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 min-w-0">
+                  <label className="flex items-center gap-2.5 cursor-pointer min-w-0">
                     <input
                       type="checkbox"
                       checked={pkgAIncluded}
                       onChange={(e) => setPkgAIncluded(e.target.checked)}
-                      className="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500"
+                      className="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 shrink-0"
                     />
-                    <span className="font-black text-sm text-slate-900">Paket A: Komplett-Entwicklung & WebApp</span>
+                    <span className="font-black text-xs sm:text-sm text-slate-900 break-words">Paket A: Komplett-Entwicklung & WebApp</span>
                   </label>
-                  <span className="text-[10px] font-bold bg-sky-100 text-sky-800 px-2.5 py-0.5 rounded-full">
+                  <span className="text-[9px] sm:text-[10px] font-bold bg-sky-100 text-sky-800 px-2.5 py-0.5 rounded-full whitespace-nowrap self-start sm:self-auto">
                     {pkgASelectedModuleIds.length} Modul(e)
                   </span>
                 </div>
 
                 {pkgAIncluded && (
-                  <div className="mt-3 pt-3 border-t border-sky-100 space-y-2">
-                    <span className="text-[11px] font-bold text-slate-700 block">Übergebene Modulbestandteile:</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-white p-3 rounded-xl border border-sky-100">
+                  <div className="mt-3 pt-3 border-t border-sky-100 space-y-2 min-w-0">
+                    <span className="text-[10.5px] sm:text-[11px] font-bold text-slate-700 block">Übergebene Modulbestandteile:</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-white p-2.5 sm:p-3 rounded-xl border border-sky-100 min-w-0">
                       {PAKET_A_MODULES.map((mod) => {
                         const isChecked = pkgASelectedModuleIds.includes(mod.id);
                         return (
@@ -1481,7 +1484,7 @@ Web: https://team-track.de`;
                               e.preventDefault();
                               togglePkgAModule(mod.id);
                             }}
-                            className={`flex items-center gap-2 p-1.5 rounded-lg text-xs transition cursor-pointer select-none ${
+                            className={`flex items-center gap-2 p-1.5 rounded-lg text-xs transition cursor-pointer select-none min-w-0 ${
                               isChecked ? 'bg-sky-50 text-sky-950 font-bold' : 'text-slate-400 opacity-60'
                             }`}
                           >
@@ -1489,9 +1492,9 @@ Web: https://team-track.de`;
                               type="checkbox"
                               checked={isChecked}
                               onChange={() => {}}
-                              className="w-3.5 h-3.5 text-sky-600 rounded"
+                              className="w-3.5 h-3.5 text-sky-600 rounded shrink-0"
                             />
-                            <span className="leading-tight text-[11.5px]">{mod.title}</span>
+                            <span className="leading-tight text-[11px] sm:text-[11.5px] break-words min-w-0">{mod.title}</span>
                           </label>
                         );
                       })}
@@ -1501,43 +1504,43 @@ Web: https://team-track.de`;
               </div>
 
               {/* Paket B Abnahme */}
-              <div className={`p-4 rounded-2xl border transition-all ${
+              <div className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all min-w-0 ${
                 pkgBIncluded ? 'border-indigo-300 bg-indigo-50/40' : 'border-slate-200 bg-slate-50/50 opacity-60'
               }`}>
-                <label className="flex items-center gap-2.5 cursor-pointer">
+                <label className="flex items-start gap-2.5 cursor-pointer min-w-0">
                   <input
                     type="checkbox"
                     checked={pkgBIncluded}
                     onChange={(e) => setPkgBIncluded(e.target.checked)}
-                    className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                    className="mt-0.5 w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 shrink-0"
                   />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-black text-sm text-slate-900">Paket B: Setup + 7/24 Abo-Betreuung</span>
-                      <span className="text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-full">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 min-w-0">
+                      <span className="font-black text-xs sm:text-sm text-slate-900 break-words">Paket B: Setup + 7/24 Abo-Betreuung</span>
+                      <span className="text-[9px] sm:text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-full whitespace-nowrap self-start sm:self-auto">
                         {pkgBInterval === 'yearly' ? 'Jährlich' : pkgBInterval === 'quarterly' ? 'Vierteljährlich' : 'Monatlich'}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5">Initial-Setup übergeben, Admin-Zugänge freigeschaltet und in laufenden Support überführt.</p>
+                    <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-relaxed">Initial-Setup übergeben, Admin-Zugänge freigeschaltet und in laufenden Support überführt.</p>
                   </div>
                 </label>
               </div>
 
               {/* Paket C Abnahme */}
-              <div className={`p-4 rounded-2xl border transition-all ${
+              <div className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all min-w-0 ${
                 pkgCIncluded ? 'border-emerald-300 bg-emerald-50/40' : 'border-slate-200 bg-slate-50/50 opacity-60'
               }`}>
-                <label className="flex items-center gap-2.5 cursor-pointer">
+                <label className="flex items-start gap-2.5 cursor-pointer min-w-0">
                   <input
                     type="checkbox"
                     checked={pkgCIncluded}
                     onChange={(e) => setPkgCIncluded(e.target.checked)}
-                    className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
+                    className="mt-0.5 w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 shrink-0"
                   />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-black text-sm text-slate-900">Paket C: Modulare Funktionserweiterung</span>
-                      <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 min-w-0">
+                      <span className="font-black text-xs sm:text-sm text-slate-900 break-words">Paket C: Modulare Funktionserweiterung</span>
+                      <span className="text-[9px] sm:text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full whitespace-nowrap self-start sm:self-auto">
                         {selectedModulesCount} Zusatzmodul(e)
                       </span>
                     </div>
@@ -1545,11 +1548,11 @@ Web: https://team-track.de`;
                 </label>
 
                 {pkgCIncluded && (
-                  <div className="mt-3 pt-3 border-t border-emerald-100 space-y-1 text-xs">
+                  <div className="mt-3 pt-3 border-t border-emerald-100 space-y-1.5 text-xs min-w-0">
                     {activeSelectedModules.map(m => (
-                      <div key={m.id} className="flex items-center gap-2 text-slate-700 bg-white p-2 rounded-lg border border-emerald-100">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        <span className="font-bold">{m.title}</span>
+                      <div key={m.id} className="flex items-center gap-2 text-slate-700 bg-white p-2 rounded-lg border border-emerald-100 min-w-0">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span className="font-bold text-[11.5px] break-words min-w-0">{m.title}</span>
                       </div>
                     ))}
                   </div>
@@ -1558,31 +1561,31 @@ Web: https://team-track.de`;
             </div>
 
             {/* Legal Protection Card */}
-            <div className="bg-emerald-950 text-emerald-100 rounded-3xl p-6 border border-emerald-800 shadow-xl space-y-4">
-              <div className="flex items-center gap-2.5 text-white">
-                <FileCheck2 className="w-5 h-5 text-emerald-400" />
-                <h3 className="text-sm font-black tracking-tight">Rechtliche Vereinbarungen & Schutzklauseln im Protokoll</h3>
+            <div className="bg-emerald-950 text-emerald-100 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-emerald-800 shadow-xl space-y-3 sm:space-y-4 min-w-0">
+              <div className="flex items-center gap-2.5 text-white min-w-0">
+                <FileCheck2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 shrink-0" />
+                <h3 className="text-xs sm:text-sm font-black tracking-tight truncate">Rechtliche Schutzklauseln im Protokoll</h3>
               </div>
 
-              <div className="space-y-3 text-xs leading-relaxed">
-                <div className="bg-emerald-900/60 p-3 rounded-2xl border border-emerald-700/60 space-y-1">
+              <div className="space-y-2.5 sm:space-y-3 text-[11px] sm:text-xs leading-relaxed min-w-0">
+                <div className="bg-emerald-900/60 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-emerald-700/60 space-y-1">
                   <strong className="text-white block font-bold">1. Förmliche Abnahmeerklärung:</strong>
                   <span>Der Auftraggeber bestätigt die vollständige, betriebsbereite Übergabe und den erfolgreichen Abschluss der Funktionsprüfung ohne wesentliche Mängel.</span>
                 </div>
 
                 {pkgAIncluded && (
-                  <div className="bg-emerald-900/60 p-3 rounded-2xl border border-emerald-700/60 space-y-1">
+                  <div className="bg-emerald-900/60 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-emerald-700/60 space-y-1">
                     <strong className="text-white block font-bold">2. Beginn der 30-Tage-Garantie & Ausschluss unentgeltlicher Wartung:</strong>
                     <span>30 Tage kostenlose Fehlerbehebung reproduzierbarer Bugs ab heute. Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenfreie Serviceleistungen (Zukünftige Arbeiten: 85,- € / Std. oder Wartungsvertrag).</span>
                   </div>
                 )}
 
-                <div className="bg-emerald-900/60 p-3 rounded-2xl border border-emerald-700/60 space-y-1">
+                <div className="bg-emerald-900/60 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-emerald-700/60 space-y-1">
                   <strong className="text-white block font-bold">3. Eigenverantwortung Datensicherung (Backups):</strong>
                   <span>Ausdrücklicher Haftungsausschluss bei Datenverlust; die regelmäßige Datensicherung erfolgt eigenverantwortlich durch den Kunden über die integrierte 1-Klick Backup-Funktion im System.</span>
                 </div>
 
-                <div className="bg-emerald-900/60 p-3 rounded-2xl border border-emerald-700/60 space-y-1">
+                <div className="bg-emerald-900/60 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-emerald-700/60 space-y-1">
                   <strong className="text-white block font-bold">4. Ausschluss nicht vereinbarter Sonderleistungen:</strong>
                   <span>Funktionen, die nicht explizit in diesem Protokoll aufgeführt sind, sind nicht Bestandteil dieser Abnahme und bedürfen gesonderter Beauftragung.</span>
                 </div>
@@ -1591,44 +1594,44 @@ Web: https://team-track.de`;
           </div>
 
           {/* Right Column: Actions & E-Mail Live Preview (5 Cols) */}
-          <div className="lg:col-span-5 space-y-6">
+          <div className="lg:col-span-5 space-y-4 sm:space-y-6 min-w-0">
             {/* Quick Action Panel */}
-            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 text-white shadow-xl border border-slate-700/60 space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-white shadow-xl border border-slate-700/60 space-y-4 sm:space-y-5 min-w-0">
+              <div className="flex items-center justify-between border-b border-slate-700/80 pb-3 min-w-0">
+                <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-emerald-400 truncate">
                   Abnahmeprotokoll Aktionen
                 </span>
-                <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="text-[9px] sm:text-[10px] font-black px-2 sm:px-2.5 py-0.5 rounded-full uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
                   Rechtsverbindlich
                 </span>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2.5 sm:space-y-3">
                 <button
                   type="button"
                   onClick={() => handleDownloadAbnahmePDF(getCurrentOfferPayload())}
-                  className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-black transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 cursor-pointer"
+                  className="w-full py-2.5 sm:py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl sm:rounded-2xl text-xs font-black transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 cursor-pointer"
                 >
-                  <Download className="w-4 h-4" />
-                  <span>Abnahmeprotokoll als PDF herunterladen</span>
+                  <Download className="w-4 h-4 shrink-0" />
+                  <span className="truncate">Abnahmeprotokoll als PDF herunterladen</span>
                 </button>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => handleOpenAbnahmeOutlook(getCurrentOfferPayload())}
-                    className="py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="py-2 sm:py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <Send className="w-3.5 h-3.5 text-sky-300" />
-                    <span>In Outlook App öffnen</span>
+                    <Send className="w-3.5 h-3.5 text-sky-300 shrink-0" />
+                    <span>In Outlook öffnen</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleCopyAbnahmeText(getCurrentOfferPayload())}
-                    className="py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="py-2 sm:py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    {abnahmeCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    {abnahmeCopied ? <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> : <Copy className="w-3.5 h-3.5 shrink-0" />}
                     <span>{abnahmeCopied ? 'Kopiert!' : 'Text kopieren'}</span>
                   </button>
                 </div>
@@ -1636,13 +1639,13 @@ Web: https://team-track.de`;
             </div>
 
             {/* Live E-Mail Text Box */}
-            <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm space-y-3 text-xs">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <span className="text-xs font-black text-slate-900">Vorschau E-Mail an den Kunden</span>
-                <span className="text-[11px] text-slate-400 font-mono">{selectedCustomer?.email || 'kontakt@kunde.de'}</span>
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-sm space-y-2.5 sm:space-y-3 text-xs min-w-0">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 min-w-0 gap-2">
+                <span className="text-xs font-black text-slate-900 truncate">Vorschau E-Mail an den Kunden</span>
+                <span className="text-[10px] sm:text-[11px] text-slate-400 font-mono truncate">{selectedCustomer?.email || 'kontakt@kunde.de'}</span>
               </div>
 
-              <pre className="text-[11px] font-mono text-slate-700 bg-slate-50 p-4 rounded-2xl border border-slate-200/80 max-h-96 overflow-y-auto whitespace-pre-wrap leading-relaxed">
+              <pre className="text-[10.5px] sm:text-[11px] font-mono text-slate-700 bg-slate-50 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 max-h-96 overflow-y-auto whitespace-pre-wrap leading-relaxed break-words break-all max-w-full">
                 {getAbnahmeEmailBody(getCurrentOfferPayload())}
               </pre>
             </div>
@@ -1650,14 +1653,14 @@ Web: https://team-track.de`;
         </div>
       ) : (
         /* ================= HISTORY / SAVED OFFERS TAB ================= */
-        <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-            <div>
-              <h2 className="text-lg font-black text-slate-900">Gespeicherte Angebote & Kostenvoranschläge</h2>
-              <p className="text-xs text-slate-500">Übersicht aller erstellten Offerten, Status-Tracking & PDF-Export</p>
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-sm space-y-4 sm:space-y-6 min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-slate-100 pb-3 sm:pb-4 min-w-0">
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-black text-slate-900 truncate">Gespeicherte Angebote & Kostenvoranschläge</h2>
+              <p className="text-[11px] sm:text-xs text-slate-500 truncate">Übersicht aller erstellten Offerten, Status-Tracking & PDF-Export</p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <select
                 value={historyFilter}
                 onChange={(e) => setHistoryFilter(e.target.value)}
@@ -1683,8 +1686,8 @@ Web: https://team-track.de`;
               </button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+            <div className="w-full max-w-full overflow-x-auto min-w-0">
+              <table className="w-full text-left text-xs min-w-[640px]">
                 <thead>
                   <tr className="border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                     <th className="pb-3">Nr. / Typ</th>
@@ -1793,67 +1796,67 @@ Web: https://team-track.de`;
 
       {/* ================= ABNAHMEPROTOKOLL MODAL ================= */}
       {abnahmeModalOffer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-2xl rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col max-h-[92vh] min-w-0">
             {/* Modal Header */}
-            <div className="px-6 py-4.5 bg-slate-900 text-white flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                  <ShieldCheck className="w-5 h-5" />
+            <div className="px-4 sm:px-6 py-3 sm:py-4.5 bg-slate-900 text-white flex items-center justify-between gap-2 min-w-0">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <div>
-                  <h3 className="text-sm font-black tracking-tight">Software-Abnahmeprotokoll & Erklärung</h3>
-                  <p className="text-[11px] text-slate-400">Rechtssichere Abnahme & 30-Tage-Garantieerklärung</p>
+                <div className="min-w-0">
+                  <h3 className="text-xs sm:text-sm font-black tracking-tight truncate">Software-Abnahmeprotokoll & Erklärung</h3>
+                  <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">Rechtssichere Abnahme & 30-Tage-Garantieerklärung</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setAbnahmeModalOffer(null)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-4 text-xs">
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-3.5 sm:space-y-4 text-xs min-w-0">
               {/* Meta Pill Box */}
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 grid grid-cols-2 gap-3 text-slate-700">
-                <div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-slate-700 min-w-0">
+                <div className="min-w-0">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Auftraggeber:</span>
-                  <span className="font-black text-slate-900 text-sm block">{abnahmeModalOffer.customerName || 'Kunde'}</span>
+                  <span className="font-black text-slate-900 text-xs sm:text-sm block break-words">{abnahmeModalOffer.customerName || 'Kunde'}</span>
                   {abnahmeModalOffer.customerContact && (
-                    <span className="text-[11px] text-slate-500">z.Hd. {abnahmeModalOffer.customerContact}</span>
+                    <span className="text-[11px] text-slate-500 break-words">z.Hd. {abnahmeModalOffer.customerContact}</span>
                   )}
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right min-w-0">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Referenz-Angebot:</span>
-                  <span className="font-mono font-bold text-sky-600 block">{abnahmeModalOffer.offerNumber || 'Entwurf'}</span>
+                  <span className="font-mono font-bold text-sky-600 block truncate">{abnahmeModalOffer.offerNumber || 'Entwurf'}</span>
                   <span className="text-[11px] text-slate-500">Datum: {formatDate(new Date())}</span>
                 </div>
               </div>
 
               {/* Legal Protection Summary Card */}
-              <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-2xl p-4 space-y-2.5">
-                <div className="flex items-center gap-2 text-emerald-900 font-bold text-xs">
-                  <FileCheck2 className="w-4 h-4 text-emerald-600" />
-                  <span>Enthaltene rechtliche Schutzklauseln im Protokoll & E-Mail:</span>
+              <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-xl sm:rounded-2xl p-3 sm:p-4 space-y-2 sm:space-y-2.5 min-w-0">
+                <div className="flex items-center gap-2 text-emerald-900 font-bold text-xs min-w-0">
+                  <FileCheck2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="truncate">Enthaltene Schutzklauseln:</span>
                 </div>
 
-                <div className="space-y-2 text-[11.5px] text-slate-700 leading-relaxed">
-                  <div className="bg-white p-3 rounded-xl border border-emerald-100 space-y-1">
+                <div className="space-y-2 text-[11px] sm:text-[11.5px] text-slate-700 leading-relaxed min-w-0">
+                  <div className="bg-white p-2.5 sm:p-3 rounded-xl border border-emerald-100 space-y-1">
                     <strong className="text-slate-900 block font-bold">1. Förmliche Abnahmeerklärung:</strong>
                     Bestätigt die vollständige, betriebsbereite Übergabe und den erfolgreichen Abschluss der Funktionsprüfung ohne wesentliche Mängel.
                   </div>
 
                   {abnahmeModalOffer.packageA && abnahmeModalOffer.packageA.included && (
-                    <div className="bg-white p-3 rounded-xl border border-emerald-100 space-y-1">
+                    <div className="bg-white p-2.5 sm:p-3 rounded-xl border border-emerald-100 space-y-1">
                       <strong className="text-slate-900 block font-bold">2. Beginn der 30-Tage-Garantie & Ausschluss:</strong>
                       30 Tage kostenlose Behebung reproduzierbarer Fehler ab heute. Nach 30 Tagen erlischt jeglicher Anspruch auf kostenfreie Services (Zukünftige Arbeiten: 85 €/Std. oder Wartungsvertrag).
                     </div>
                   )}
 
-                  <div className="bg-white p-3 rounded-xl border border-emerald-100 space-y-1">
+                  <div className="bg-white p-2.5 sm:p-3 rounded-xl border border-emerald-100 space-y-1">
                     <strong className="text-slate-900 block font-bold">3. Eigenverantwortung Datensicherung (Backups):</strong>
                     Ausdrücklicher Ausschluss von Haftungsansprüchen bei Datenverlust; regelmäßige Datensicherung erfolgt eigenverantwortlich durch den Kunden über die 1-Klick Backup-Funktion.
                   </div>
@@ -1861,31 +1864,31 @@ Web: https://team-track.de`;
               </div>
 
               {/* E-Mail Preview Accordion */}
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl sm:rounded-2xl p-3 sm:p-3.5 space-y-1.5 min-w-0">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block truncate">
                   Vorschau E-Mail-Text für den Kunden:
                 </span>
-                <pre className="text-[11px] font-mono text-slate-700 bg-white p-3 rounded-xl border border-slate-200 max-h-40 overflow-y-auto whitespace-pre-wrap">
+                <pre className="text-[10.5px] sm:text-[11px] font-mono text-slate-700 bg-white p-2.5 sm:p-3 rounded-xl border border-slate-200 max-h-40 overflow-y-auto whitespace-pre-wrap break-words break-all max-w-full">
                   {getAbnahmeEmailBody(abnahmeModalOffer)}
                 </pre>
               </div>
             </div>
 
             {/* Modal Footer Actions */}
-            <div className="p-4 bg-slate-50 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="p-3 sm:p-4 bg-slate-50 border-t border-slate-200/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 min-w-0">
               <button
                 type="button"
                 onClick={() => setAbnahmeModalOffer(null)}
-                className="w-full sm:w-auto px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer text-center"
               >
                 Schließen
               </button>
 
-              <div className="w-full sm:w-auto flex items-center gap-2">
+              <div className="w-full sm:w-auto grid grid-cols-1 sm:flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => handleCopyAbnahmeText(abnahmeModalOffer)}
-                  className="flex-1 sm:flex-initial px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                  className="w-full sm:w-auto px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                 >
                   {abnahmeCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{abnahmeCopied ? 'Kopiert!' : 'Text kopieren'}</span>
@@ -1894,7 +1897,7 @@ Web: https://team-track.de`;
                 <button
                   type="button"
                   onClick={() => handleOpenAbnahmeOutlook(abnahmeModalOffer)}
-                  className="flex-1 sm:flex-initial px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                  className="w-full sm:w-auto px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                 >
                   <Send className="w-3.5 h-3.5 text-sky-300" />
                   <span>In Outlook öffnen</span>
@@ -1903,7 +1906,7 @@ Web: https://team-track.de`;
                 <button
                   type="button"
                   onClick={() => handleDownloadAbnahmePDF(abnahmeModalOffer)}
-                  className="flex-1 sm:flex-initial px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-emerald-600/30"
+                  className="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-emerald-600/30"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>PDF herunterladen</span>
