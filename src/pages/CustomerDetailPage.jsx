@@ -30,8 +30,9 @@ import {
   Trello
 } from 'lucide-react';
 import { api } from '../api';
-import { formatCurrency, formatDate, formatDateTime, getOfferReminderStatus, getLeadSourceBadge } from '../utils/formatters';
+import { formatCurrency, formatDate, formatDateTime, getOfferReminderStatus, getLeadSourceBadge, getStatusBadge } from '../utils/formatters';
 import { generateOfferPDF } from '../utils/pdfGenerator';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function CustomerDetailPage({
   customerId,
@@ -47,6 +48,7 @@ export default function CustomerDetailPage({
   onEditCustomer,
   onReloadAllData
 }) {
+  const { t, isTR } = useLanguage();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeSubTab, setActiveSubTab] = useState('services'); // 'services', 'invoices', 'mileage', 'emails'
@@ -73,7 +75,7 @@ export default function CustomerDetailPage({
   if (loading || !data) {
     return (
       <div className="p-8 text-center text-slate-500">
-        Kundenprofil wird geladen...
+        {isTR ? 'Müşteri profili yükleniyor...' : 'Kundenprofil wird geladen...'}
       </div>
     );
   }
@@ -124,7 +126,7 @@ export default function CustomerDetailPage({
         className="flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-xl transition shadow-sm w-fit cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" />
-        <span>Zurück zur Kundenübersicht</span>
+        <span>{isTR ? 'Müşteri Listesine Dön' : 'Zurück zur Kundenübersicht'}</span>
       </button>
 
       {/* Top Header Card */}
@@ -193,14 +195,14 @@ export default function CustomerDetailPage({
               {customer.taxNumber && (
                 <div className="flex items-center space-x-2 sm:col-span-2">
                   <Hash className="w-4 h-4 text-slate-400 shrink-0" />
-                  <span>Steuer-Nr. / USt-IdNr.: <strong className="text-slate-800">{customer.taxNumber}</strong></span>
+                  <span>{isTR ? 'Vergi No / KDV No:' : 'Steuer-Nr. / USt-IdNr.:'} <strong className="text-slate-800">{customer.taxNumber}</strong></span>
                 </div>
               )}
             </div>
 
             {customer.notes && (
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-700 mt-2">
-                <span className="font-semibold text-slate-900">Notiz: </span>
+                <span className="font-semibold text-slate-900">{isTR ? 'Not:' : 'Notiz:'} </span>
                 {customer.notes}
               </div>
             )}
@@ -226,11 +228,11 @@ export default function CustomerDetailPage({
                         <div className="space-y-0.5">
                           <span className="text-rose-900 font-black block text-xs">
                             {reminder.isExpired 
-                              ? `Frist abgelaufen (${formatDate(reminder.validUntilDate)})`
-                              : `Gültigkeit endet in ${reminder.diffDays === 0 ? 'heute' : reminder.diffDays === 1 ? '1 Tag' : `${reminder.diffDays} Tagen`}!`}
+                              ? (isTR ? `Süre doldu (${formatDate(reminder.validUntilDate)})` : `Frist abgelaufen (${formatDate(reminder.validUntilDate)})`)
+                              : (isTR ? `Geçerlilik ${reminder.diffDays === 0 ? 'bugün' : `${reminder.diffDays} gün içinde`} bitiyor!` : `Gültigkeit endet in ${reminder.diffDays === 0 ? 'heute' : reminder.diffDays === 1 ? '1 Tag' : `${reminder.diffDays} Tagen`}!`)}
                           </span>
                           <p className="text-[11px] font-medium text-rose-700 leading-tight">
-                            Noch keine Rückmeldung erhalten. Bitte Erinnerungs-Mail senden oder Kunde anrufen.
+                            {isTR ? 'Henüz geri dönüş alınmadı. Lütfen hatırlatma e-postası gönderin veya arayın.' : 'Noch keine Rückmeldung erhalten. Bitte Erinnerungs-Mail senden oder Kunde anrufen.'}
                           </p>
                         </div>
                       </div>
@@ -242,7 +244,7 @@ export default function CustomerDetailPage({
                           className="flex-1 py-2 px-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer"
                         >
                           <Mail className="w-3.5 h-3.5" />
-                          <span>Erinnerung senden (Vorlage 4)</span>
+                          <span>{isTR ? 'Hatırlatma Gönder (Şablon 4)' : 'Erinnerung senden (Vorlage 4)'}</span>
                         </button>
                         <button
                           type="button"
@@ -258,7 +260,7 @@ export default function CustomerDetailPage({
                           className="py-2 px-3 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition cursor-pointer"
                         >
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>Kunde hat sich gemeldet</span>
+                          <span>{isTR ? 'Müşteri geri döndü' : 'Kunde hat sich gemeldet'}</span>
                         </button>
                       </div>
                     </div>
@@ -269,7 +271,7 @@ export default function CustomerDetailPage({
                     <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex items-center justify-between text-xs font-semibold text-emerald-950">
                       <span className="flex items-center gap-2">
                         <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>Kunde hat sich gemeldet {reminder.respondedAt ? `(${formatDate(reminder.respondedAt)})` : ''}</span>
+                        <span>{isTR ? 'Müşteri geri döndü' : 'Kunde hat sich gemeldet'} {reminder.respondedAt ? `(${formatDate(reminder.respondedAt)})` : ''}</span>
                       </span>
                       <button
                         type="button"
@@ -284,7 +286,7 @@ export default function CustomerDetailPage({
                         }}
                         className="text-[11px] text-emerald-700 hover:text-emerald-900 underline font-normal cursor-pointer"
                       >
-                        Status ändern
+                        {isTR ? 'Durumu Değiştir' : 'Status ändern'}
                       </button>
                     </div>
                   )}
@@ -296,29 +298,29 @@ export default function CustomerDetailPage({
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                         <FileSpreadsheet className={`w-4 h-4 ${isKV ? 'text-amber-600' : 'text-sky-600'}`} />
-                        <span>{isKV ? 'Kostenvoranschlag' : 'Angebot'} Status</span>
+                        <span>{isTR ? (isKV ? 'Maliyet Tahmini Durumu' : 'Teklif Durumu') : (isKV ? 'Kostenvoranschlag Status' : 'Angebot Status')}</span>
                       </span>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                         isKV ? 'bg-amber-200/80 text-amber-900' : 'bg-sky-200/80 text-sky-900'
                       }`}>
-                        Gesendet
+                        {isTR ? 'Gönderildi' : 'Gesendet'}
                       </span>
                     </div>
                     <div className="text-xs text-slate-800 space-y-1">
                       <div className="font-bold text-slate-900">
-                        {customer.offerEmailNumber || customer.lastOffer?.offerNumber || offers[0]?.offerNumber || 'Dokument'}
+                        {customer.offerEmailNumber || customer.lastOffer?.offerNumber || offers[0]?.offerNumber || (isTR ? 'Belge' : 'Dokument')}
                       </div>
                       <div className="text-[11px] text-slate-600">
-                        Gesendet am: <span className="font-semibold text-slate-900">{formatDateTime(customer.offerEmailSentAt || customer.lastOffer?.sentAt || offers[0]?.createdAt)}</span>
+                        {isTR ? 'Gönderilme:' : 'Gesendet am:'} <span className="font-semibold text-slate-900">{formatDateTime(customer.offerEmailSentAt || customer.lastOffer?.sentAt || offers[0]?.createdAt)}</span>
                       </div>
                       {(customer.lastOffer?.validUntilDate || customer.offerValidUntilDate) && (
                         <div className="text-[11px] text-slate-600">
-                          Gültig bis: <span className="font-semibold text-slate-900">{formatDate(customer.lastOffer?.validUntilDate || customer.offerValidUntilDate)}</span>
+                          {isTR ? 'Geçerlilik:' : 'Gültig bis:'} <span className="font-semibold text-slate-900">{formatDate(customer.lastOffer?.validUntilDate || customer.offerValidUntilDate)}</span>
                         </div>
                       )}
                       {(customer.lastOffer?.totalAmount || offers[0]?.totalAmount) && (
                         <div className="text-[11px] text-slate-600">
-                          Investition: <span className="font-bold text-slate-900">{formatCurrency(customer.lastOffer?.totalAmount || offers[0]?.totalAmount)}</span>
+                          {isTR ? 'Tutar / Yatırım:' : 'Investition:'} <span className="font-bold text-slate-900">{formatCurrency(customer.lastOffer?.totalAmount || offers[0]?.totalAmount)}</span>
                         </div>
                       )}
                     </div>
@@ -332,7 +334,7 @@ export default function CustomerDetailPage({
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                   <Mail className="w-4 h-4 text-emerald-600" />
-                  Vorstellungs-E-Mail Status
+                  {isTR ? 'Tanıtım E-Postası Durumu' : 'Vorstellungs-E-Mail Status'}
                 </span>
               </div>
 
@@ -341,9 +343,9 @@ export default function CustomerDetailPage({
                   <div className="flex items-start space-x-2 text-xs text-emerald-900 font-semibold">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
-                      <div>Vorstellungs-E-Mail gesendet</div>
+                      <div>{isTR ? 'Tanıtım E-Postası Gönderildi' : 'Vorstellungs-E-Mail gesendet'}</div>
                       <div className="text-[11px] text-emerald-700 font-normal">
-                        Datum: {formatDateTime(customer.demoEmailSentAt)}
+                        {isTR ? 'Tarih:' : 'Datum:'} {formatDateTime(customer.demoEmailSentAt)}
                       </div>
                     </div>
                   </div>
@@ -351,20 +353,20 @@ export default function CustomerDetailPage({
                     onClick={() => onOpenDemoEmailModal(customer)}
                     className="w-full mt-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition cursor-pointer"
                   >
-                    Weitere E-Mail senden / erfassen
+                    {isTR ? 'Yeni E-Posta Gönder / Kaydet' : 'Weitere E-Mail senden / erfassen'}
                   </button>
                 </div>
               ) : (
                 <div className="space-y-2">
                   <p className="text-xs text-slate-600">
-                    Noch keine Vorstellungs-E-Mail versendet.
+                    {isTR ? 'Henüz tanıtım e-postası gönderilmedi.' : 'Noch keine Vorstellungs-E-Mail versendet.'}
                   </p>
                   <button
                     onClick={() => onOpenDemoEmailModal(customer)}
                     className="w-full py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Mail className="w-3.5 h-3.5" />
-                    <span>Vorstellungs-E-Mail senden</span>
+                    <span>{isTR ? 'Tanıtım E-Postası Gönder' : 'Vorstellungs-E-Mail senden'}</span>
                   </button>
                 </div>
               )}
@@ -377,14 +379,14 @@ export default function CustomerDetailPage({
                 className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Edit3 className="w-3.5 h-3.5" />
-                <span>Bearbeiten</span>
+                <span>{isTR ? 'Düzenle' : 'Bearbeiten'}</span>
               </button>
               <button
                 onClick={() => onOpenInvoiceModal(customer.id)}
                 className="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <FileText className="w-3.5 h-3.5 text-sky-400" />
-                <span>+ Rechnung</span>
+                <span>{isTR ? '+ Fatura' : '+ Rechnung'}</span>
               </button>
             </div>
           </div>
@@ -395,17 +397,17 @@ export default function CustomerDetailPage({
           <div className="bg-sky-50/60 p-3 rounded-2xl border border-sky-100">
             <div className="text-[11px] text-sky-700 font-semibold uppercase flex items-center gap-1">
               <Repeat className="w-3.5 h-3.5" />
-              Laufendes Abo (MRR)
+              {isTR ? 'Aktif Abonelik (MRR)' : 'Laufendes Abo (MRR)'}
             </div>
             <div className="text-lg font-extrabold text-sky-950 mt-1">
-              {formatCurrency(totalMonthlyMRR)} <span className="text-xs font-medium text-sky-700">/ Monat</span>
+              {formatCurrency(totalMonthlyMRR)} <span className="text-xs font-medium text-sky-700">{isTR ? '/ Ay' : '/ Monat'}</span>
             </div>
           </div>
 
           <div className="bg-emerald-50/60 p-3 rounded-2xl border border-emerald-100">
             <div className="text-[11px] text-emerald-700 font-semibold uppercase flex items-center gap-1">
               <Zap className="w-3.5 h-3.5" />
-              Einmalige Leistungen
+              {isTR ? 'Tek Seferlik Hizmetler' : 'Einmalige Leistungen'}
             </div>
             <div className="text-lg font-extrabold text-emerald-950 mt-1">
               {formatCurrency(totalOneTimeRevenue)}
@@ -415,17 +417,17 @@ export default function CustomerDetailPage({
           <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
             <div className="text-[11px] text-slate-500 font-semibold uppercase flex items-center gap-1">
               <FileText className="w-3.5 h-3.5" />
-              Rechnungen
+              {isTR ? 'Faturalar' : 'Rechnungen'}
             </div>
             <div className="text-lg font-extrabold text-slate-800 mt-1">
-              {invoices.length} <span className="text-xs font-medium text-slate-500">gestellt</span>
+              {invoices.length} <span className="text-xs font-medium text-slate-500">{isTR ? 'kesildi' : 'gestellt'}</span>
             </div>
           </div>
 
           <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
             <div className="text-[11px] text-slate-500 font-semibold uppercase flex items-center gap-1">
               <Car className="w-3.5 h-3.5" />
-              Gefahrene KM
+              {isTR ? 'İş Seyahati (KM)' : 'Gefahrene KM'}
             </div>
             <div className="text-lg font-extrabold text-slate-800 mt-1">
               {mileage.reduce((s, m) => s + Number(m.kilometers || 0), 0).toFixed(1)} <span className="text-xs font-medium text-slate-500">km</span>
@@ -445,7 +447,7 @@ export default function CustomerDetailPage({
           }`}
         >
           <Repeat className="w-4 h-4" />
-          <span>Leistungen & Verträge ({services.length})</span>
+          <span>{isTR ? `Hizmetler & Sözleşmeler (${services.length})` : `Leistungen & Verträge (${services.length})`}</span>
         </button>
 
         <button
@@ -457,7 +459,7 @@ export default function CustomerDetailPage({
           }`}
         >
           <FileText className="w-4 h-4" />
-          <span>Ausgangsrechnungen ({invoices.length})</span>
+          <span>{isTR ? `Giden Faturalar (${invoices.length})` : `Ausgangsrechnungen (${invoices.length})`}</span>
         </button>
 
         <button
@@ -469,7 +471,7 @@ export default function CustomerDetailPage({
           }`}
         >
           <FileSpreadsheet className="w-4 h-4" />
-          <span>Angebote & KV ({offers.length})</span>
+          <span>{isTR ? `Teklifler & KV (${offers.length})` : `Angebote & KV (${offers.length})`}</span>
         </button>
 
         <button
@@ -481,7 +483,7 @@ export default function CustomerDetailPage({
           }`}
         >
           <Trello className="w-4 h-4" />
-          <span>Aufträge & Kanban ({dispositions.length})</span>
+          <span>{isTR ? `İşler & Kanban (${dispositions.length})` : `Aufträge & Kanban (${dispositions.length})`}</span>
         </button>
 
         <button
@@ -493,7 +495,7 @@ export default function CustomerDetailPage({
           }`}
         >
           <Car className="w-4 h-4" />
-          <span>Dienstfahrten / KM ({mileage.length})</span>
+          <span>{isTR ? `İş Seyahatleri / KM (${mileage.length})` : `Dienstfahrten / KM (${mileage.length})`}</span>
         </button>
 
         <button
@@ -505,7 +507,7 @@ export default function CustomerDetailPage({
           }`}
         >
           <Mail className="w-4 h-4" />
-          <span>E-Mail Historie ({emailLogs.length})</span>
+          <span>{isTR ? `E-Posta Geçmişi (${emailLogs.length})` : `E-Mail Historie (${emailLogs.length})`}</span>
         </button>
       </div>
 
@@ -514,15 +516,15 @@ export default function CustomerDetailPage({
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-lg font-extrabold text-slate-900">Leistungen & Preismodelle</h3>
-              <p className="text-xs text-slate-500">Monatliche Abonnements und einmalige Optimierungsprojekte</p>
+              <h3 className="text-lg font-extrabold text-slate-900">{isTR ? 'Hizmetler & Fiyat Modelleri' : 'Leistungen & Preismodelle'}</h3>
+              <p className="text-xs text-slate-500">{isTR ? 'Aylık abonelikler ve tek seferlik optimizasyon projeleri' : 'Monatliche Abonnements und einmalige Optimierungsprojekte'}</p>
             </div>
             <button
               onClick={() => onOpenServiceModal(customer.id, customer.companyName)}
               className="flex items-center space-x-1.5 px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition cursor-pointer self-start sm:self-auto"
             >
               <Plus className="w-4 h-4" />
-              <span>+ Neue Leistung / Abo hinzufügen</span>
+              <span>{isTR ? '+ Yeni Hizmet / Abonelik Ekle' : '+ Neue Leistung / Abo hinzufügen'}</span>
             </button>
           </div>
 
@@ -535,12 +537,12 @@ export default function CustomerDetailPage({
                     <Repeat className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900 text-sm">Monatliche Abonnements (Abos)</h4>
-                    <p className="text-xs text-slate-500">Laufende Wartung, Cloud-Hosting & WebApp Lizenzen</p>
+                    <h4 className="font-bold text-slate-900 text-sm">{isTR ? 'Aylık Abonelikler (Abos)' : 'Monatliche Abonnements (Abos)'}</h4>
+                    <p className="text-xs text-slate-500">{isTR ? 'Sürekli bakım, bulut barındırma & WebApp lisansları' : 'Laufende Wartung, Cloud-Hosting & WebApp Lizenzen'}</p>
                   </div>
                 </div>
                 <span className="text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-200">
-                  {abos.length} Abo(s)
+                  {abos.length} {isTR ? 'Abonelik' : 'Abo(s)'}
                 </span>
               </div>
 
@@ -562,9 +564,9 @@ export default function CustomerDetailPage({
                                 : 'bg-rose-50 text-rose-800 border-rose-300'
                             }`}
                           >
-                            <option value="active">🟢 Aktiv</option>
-                            <option value="paused">⏸️ Pausiert</option>
-                            <option value="cancelled">🚫 Gekündigt</option>
+                            <option value="active">{isTR ? '🟢 Aktif' : '🟢 Aktiv'}</option>
+                            <option value="paused">{isTR ? '⏸️ Duraklatıldı' : '⏸️ Pausiert'}</option>
+                            <option value="cancelled">{isTR ? '🚫 İptal Edildi' : '🚫 Gekündigt'}</option>
                           </select>
                         </div>
 
@@ -583,7 +585,7 @@ export default function CustomerDetailPage({
                           {formatCurrency(abo.price)}
                         </div>
                         <div className="text-[10px] text-slate-400 font-semibold uppercase">
-                          pro {abo.billingInterval === 'monthly' ? 'Monat' : abo.billingInterval}
+                          {isTR ? 'Aylık' : `pro ${abo.billingInterval === 'monthly' ? 'Monat' : abo.billingInterval}`}
                         </div>
                       </div>
                     </div>
@@ -591,7 +593,7 @@ export default function CustomerDetailPage({
                     <div className="flex flex-wrap items-center justify-between pt-2.5 border-t border-slate-200/80 text-[11px] text-slate-500 gap-2">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Vertragsbeginn: <strong>{formatDate(abo.startDate)}</strong></span>
+                        <span>{isTR ? 'Sözleşme Başlangıcı:' : 'Vertragsbeginn:'} <strong>{formatDate(abo.startDate)}</strong></span>
                       </div>
 
                       <div className="flex items-center space-x-1.5">
@@ -599,37 +601,37 @@ export default function CustomerDetailPage({
                           type="button"
                           onClick={() => onOpenInvoiceModal(customer.id, null, abo)}
                           className="px-2.5 py-1 bg-sky-50 hover:bg-sky-100 text-sky-700 font-semibold rounded-lg border border-sky-200 transition flex items-center gap-1 cursor-pointer"
-                          title="Für dieses Abo eine Rechnung erstellen"
+                          title={isTR ? 'Bu abonelik için fatura oluştur' : 'Für dieses Abo eine Rechnung erstellen'}
                         >
                           <Receipt className="w-3 h-3 text-sky-600" />
-                          <span>Rechnung erstellen</span>
+                          <span>{isTR ? 'Fatura Oluştur' : 'Rechnung erstellen'}</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => onEditService && onEditService(abo)}
                           className="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition cursor-pointer"
-                          title="Abo bearbeiten (Status / Preis)"
+                          title={isTR ? 'Aboneliği düzenle' : 'Abo bearbeiten (Status / Preis)'}
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
 
                         {deletingServiceId === abo.id ? (
                           <div className="flex items-center space-x-1 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-lg">
-                            <span className="text-[10px] text-rose-700 font-bold">Löschen?</span>
+                            <span className="text-[10px] text-rose-700 font-bold">{isTR ? 'Silinsin mi?' : 'Löschen?'}</span>
                             <button
                               type="button"
                               onClick={() => handleDeleteService(abo.id)}
                               className="text-[10px] bg-rose-600 text-white font-bold px-1.5 py-0.5 rounded hover:bg-rose-700 cursor-pointer"
                             >
-                              Ja
+                              {isTR ? 'Evet' : 'Ja'}
                             </button>
                             <button
                               type="button"
                               onClick={() => setDeletingServiceId(null)}
                               className="text-[10px] text-slate-600 px-1 py-0.5 hover:bg-slate-200 rounded cursor-pointer"
                             >
-                              Nein
+                              {isTR ? 'Hayır' : 'Nein'}
                             </button>
                           </div>
                         ) : (
@@ -637,7 +639,7 @@ export default function CustomerDetailPage({
                             type="button"
                             onClick={() => setDeletingServiceId(abo.id)}
                             className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
-                            title="Abo löschen"
+                            title={isTR ? 'Aboneliği sil' : 'Abo löschen'}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -649,7 +651,7 @@ export default function CustomerDetailPage({
 
                 {abos.length === 0 && (
                   <div className="text-center py-8 text-xs text-slate-400">
-                    Keine aktiven Abonnements eingetragen.
+                    {isTR ? 'Kayıtlı aktif abonelik bulunmuyor.' : 'Keine aktiven Abonnements eingetragen.'}
                   </div>
                 )}
               </div>
@@ -663,12 +665,12 @@ export default function CustomerDetailPage({
                     <Zap className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900 text-sm">Einmalige Leistungen</h4>
-                    <p className="text-xs text-slate-500">Digitalisierungs-Setup, Prozess-Optimierung, Initial-Entwicklung</p>
+                    <h4 className="font-bold text-slate-900 text-sm">{isTR ? 'Tek Seferlik Hizmetler' : 'Einmalige Leistungen'}</h4>
+                    <p className="text-xs text-slate-500">{isTR ? 'Dijitalleştirme kurulumu, süreç optimizasyonu, ilk geliştirme' : 'Digitalisierungs-Setup, Prozess-Optimierung, Initial-Entwicklung'}</p>
                   </div>
                 </div>
                 <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                  {einmalige.length} Leistung(en)
+                  {einmalige.length} {isTR ? 'Hizmet' : 'Leistung(en)'}
                 </span>
               </div>
 
@@ -690,9 +692,9 @@ export default function CustomerDetailPage({
                                 : 'bg-amber-50 text-amber-800 border-amber-300'
                             }`}
                           >
-                            <option value="active">⏳ In Arbeit</option>
-                            <option value="completed">✓ Erledigt</option>
-                            <option value="cancelled">🚫 Storniert</option>
+                            <option value="active">{isTR ? '⏳ Devam Ediyor' : '⏳ In Arbeit'}</option>
+                            <option value="completed">{isTR ? '✓ Tamamlandı' : '✓ Erledigt'}</option>
+                            <option value="cancelled">{isTR ? '🚫 İptal Edildi' : '🚫 Storniert'}</option>
                           </select>
                         </div>
 
@@ -711,7 +713,7 @@ export default function CustomerDetailPage({
                           {formatCurrency(srv.price)}
                         </div>
                         <div className="text-[10px] text-slate-400 font-semibold uppercase">
-                          Einmalig
+                          {isTR ? 'Tek Seferlik' : 'Einmalig'}
                         </div>
                       </div>
                     </div>
@@ -719,7 +721,7 @@ export default function CustomerDetailPage({
                     <div className="flex flex-wrap items-center justify-between pt-2.5 border-t border-slate-200/80 text-[11px] text-slate-500 gap-2">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Datum / Erledigt: <strong>{formatDate(srv.startDate)}</strong></span>
+                        <span>{isTR ? 'Tarih / Tamamlanma:' : 'Datum / Erledigt:'} <strong>{formatDate(srv.startDate)}</strong></span>
                       </div>
 
                       <div className="flex items-center space-x-1.5">
@@ -727,37 +729,37 @@ export default function CustomerDetailPage({
                           type="button"
                           onClick={() => onOpenInvoiceModal(customer.id, null, srv)}
                           className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold rounded-lg border border-emerald-200 transition flex items-center gap-1 cursor-pointer"
-                          title="Aus dieser Leistung eine Rechnung erstellen"
+                          title={isTR ? 'Bu hizmetten fatura oluştur' : 'Aus dieser Leistung eine Rechnung erstellen'}
                         >
                           <Receipt className="w-3 h-3 text-emerald-600" />
-                          <span>Rechnung erstellen</span>
+                          <span>{isTR ? 'Fatura Oluştur' : 'Rechnung erstellen'}</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => onEditService && onEditService(srv)}
                           className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition cursor-pointer"
-                          title="Leistung bearbeiten (Status auf Erledigt setzen / Preis ändern)"
+                          title={isTR ? 'Hizmeti düzenle' : 'Leistung bearbeiten (Status auf Erledigt setzen / Preis ändern)'}
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
 
                         {deletingServiceId === srv.id ? (
                           <div className="flex items-center space-x-1 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-lg">
-                            <span className="text-[10px] text-rose-700 font-bold">Löschen?</span>
+                            <span className="text-[10px] text-rose-700 font-bold">{isTR ? 'Silinsin mi?' : 'Löschen?'}</span>
                             <button
                               type="button"
                               onClick={() => handleDeleteService(srv.id)}
                               className="text-[10px] bg-rose-600 text-white font-bold px-1.5 py-0.5 rounded hover:bg-rose-700 cursor-pointer"
                             >
-                              Ja
+                              {isTR ? 'Evet' : 'Ja'}
                             </button>
                             <button
                               type="button"
                               onClick={() => setDeletingServiceId(null)}
                               className="text-[10px] text-slate-600 px-1 py-0.5 hover:bg-slate-200 rounded cursor-pointer"
                             >
-                              Nein
+                              {isTR ? 'Hayır' : 'Nein'}
                             </button>
                           </div>
                         ) : (
@@ -765,7 +767,7 @@ export default function CustomerDetailPage({
                             type="button"
                             onClick={() => setDeletingServiceId(srv.id)}
                             className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
-                            title="Leistung löschen"
+                            title={isTR ? 'Hizmeti sil' : 'Leistung löschen'}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -777,7 +779,7 @@ export default function CustomerDetailPage({
 
                 {einmalige.length === 0 && (
                   <div className="text-center py-8 text-xs text-slate-400">
-                    Keine einmaligen Leistungen eingetragen.
+                    {isTR ? 'Kayıtlı tek seferlik hizmet bulunmuyor.' : 'Keine einmaligen Leistungen eingetragen.'}
                   </div>
                 )}
               </div>
@@ -791,15 +793,15 @@ export default function CustomerDetailPage({
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-bold text-slate-900">Ausgangsrechnungen für {customer.companyName}</h3>
-              <p className="text-xs text-slate-500">Alle gestellten Rechnungen mit Status und PDF-Druck</p>
+              <h3 className="text-base font-bold text-slate-900">{isTR ? `${customer.companyName} İçin Kesilen Faturalar` : `Ausgangsrechnungen für ${customer.companyName}`}</h3>
+              <p className="text-xs text-slate-500">{isTR ? 'Durum ve PDF baskısı ile düzenlenen tüm faturalar' : 'Alle gestellten Rechnungen mit Status und PDF-Druck'}</p>
             </div>
             <button
               onClick={() => onOpenInvoiceModal(customer.id)}
               className="flex items-center space-x-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow transition cursor-pointer"
             >
               <Plus className="w-4 h-4 text-sky-400" />
-              <span>+ Neue Rechnung</span>
+              <span>{isTR ? '+ Yeni Fatura' : '+ Neue Rechnung'}</span>
             </button>
           </div>
 
@@ -812,11 +814,11 @@ export default function CustomerDetailPage({
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                       inv.status === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                     }`}>
-                      {inv.status === 'paid' ? 'Bezahlt' : 'Offen / Versendet'}
+                      {inv.status === 'paid' ? (isTR ? 'Ödendi' : 'Bezahlt') : (isTR ? 'Açık / Gönderildi' : 'Offen / Versendet')}
                     </span>
                   </div>
                   <div className="text-xs text-slate-500">
-                    Rechnungsdatum: {formatDate(inv.date)} • Fällig am: {formatDate(inv.dueDate)}
+                    {isTR ? 'Fatura Tarihi:' : 'Rechnungsdatum:'} {formatDate(inv.date)} • {isTR ? 'Vade:' : 'Fällig am:'} {formatDate(inv.dueDate)}
                   </div>
                 </div>
 
@@ -830,7 +832,7 @@ export default function CustomerDetailPage({
                   <button
                     onClick={() => onViewInvoice(inv)}
                     className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer"
-                    title="Rechnung anzeigen / drucken"
+                    title={isTR ? 'Faturayı görüntüle / yazdır' : 'Rechnung anzeigen / drucken'}
                   >
                     <Eye className="w-4 h-4" />
                   </button>
@@ -840,7 +842,7 @@ export default function CustomerDetailPage({
 
             {invoices.length === 0 && (
               <div className="text-center py-8 text-xs text-slate-400">
-                Noch keine Rechnungen für diesen Kunden vorhanden.
+                {isTR ? 'Bu müşteri için henüz fatura bulunmuyor.' : 'Noch keine Rechnungen für diesen Kunden vorhanden.'}
               </div>
             )}
           </div>
@@ -852,18 +854,18 @@ export default function CustomerDetailPage({
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold text-slate-900">Erstellte Angebote & Kostenvoranschläge</h3>
-              <p className="text-xs text-slate-500">Übersicht aller für diesen Kunden kalkulierten Offerten & PDF-Exporte</p>
+              <h3 className="text-base font-bold text-slate-900">{isTR ? 'Oluşturulan Teklifler & Maliyet Tahminleri' : 'Erstellte Angebote & Kostenvoranschläge'}</h3>
+              <p className="text-xs text-slate-500">{isTR ? 'Bu müşteri için hesaplanan tüm tekliflerin & PDF dışa aktarımlarının özeti' : 'Übersicht aller für diesen Kunden kalkulierten Offerten & PDF-Exporte'}</p>
             </div>
             <span className="text-xs font-bold text-sky-700 bg-sky-50 px-3 py-1 rounded-full border border-sky-200 self-start sm:self-auto">
-              {offers.length} Dokument(e)
+              {offers.length} {isTR ? 'Belge' : 'Dokument(e)'}
             </span>
           </div>
 
           <div className="space-y-3">
             {offers.map((off) => {
               const isKV = off.type === 'kostenvoranschlag';
-              const prefix = isKV ? 'ab ' : '';
+              const prefix = isKV ? (isTR ? 'en az ' : 'ab ') : '';
               return (
                 <div key={off.id} className="p-4 rounded-xl border border-slate-200 hover:border-sky-300 bg-slate-50/60 transition flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="space-y-1.5">
@@ -872,36 +874,36 @@ export default function CustomerDetailPage({
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                         isKV ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800'
                       }`}>
-                        {isKV ? 'Kostenvoranschlag' : 'Angebot'}
+                        {isKV ? (isTR ? 'Maliyet Tahmini' : 'Kostenvoranschlag') : (isTR ? 'Teklif' : 'Angebot')}
                       </span>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                         off.status === 'accepted' ? 'bg-emerald-100 text-emerald-800' : off.status === 'sent' ? 'bg-sky-100 text-sky-800' : 'bg-slate-200 text-slate-700'
                       }`}>
-                        {off.status === 'accepted' ? 'Angenommen' : off.status === 'sent' ? 'Versendet' : 'Entwurf'}
+                        {off.status === 'accepted' ? (isTR ? 'Kabul Edildi' : 'Angenommen') : off.status === 'sent' ? (isTR ? 'Gönderildi' : 'Versendet') : (isTR ? 'Taslak' : 'Entwurf')}
                       </span>
                     </div>
 
                     <div className="text-xs text-slate-600 flex flex-wrap items-center gap-x-4 gap-y-1">
-                      <span>Erstellt: <strong>{formatDate(off.date || off.createdAt)}</strong></span>
-                      <span>Gültig bis: <strong>{formatDate(off.validUntilDate)}</strong></span>
+                      <span>{isTR ? 'Oluşturulma:' : 'Erstellt:'} <strong>{formatDate(off.date || off.createdAt)}</strong></span>
+                      <span>{isTR ? 'Geçerlilik:' : 'Gültig bis:'} <strong>{formatDate(off.validUntilDate)}</strong></span>
                     </div>
 
                     {off.packageC && off.packageC.selectedModules && off.packageC.selectedModules.length > 0 && (
                       <div className="text-[11px] text-emerald-800 bg-emerald-50 px-2 py-1 rounded-md inline-block">
-                        Module: {off.packageC.selectedModules.map(m => m.title || m).join(', ')}
+                        {isTR ? 'Modüller:' : 'Module:'} {off.packageC.selectedModules.map(m => m.title || m).join(', ')}
                       </div>
                     )}
                   </div>
 
                   <div className="flex items-center justify-between md:justify-end gap-4 border-t md:border-t-0 pt-2 md:pt-0 border-slate-200">
                     <div className="text-right">
-                      <div className="text-xs text-slate-400 font-medium">Investition</div>
+                      <div className="text-xs text-slate-400 font-medium">{isTR ? 'Tutar / Yatırım' : 'Investition'}</div>
                       <div className="text-base font-black text-slate-900">
                         {prefix}{formatCurrency(off.totalOneTime || off.totalAmount || 0)}
                       </div>
                       {off.totalRecurring > 0 && (
                         <div className="text-[11px] font-semibold text-sky-700">
-                          + {prefix}{formatCurrency(off.totalRecurring)} / {off.recurringInterval === 'yearly' ? 'Jahr' : off.recurringInterval === 'quarterly' ? 'Quartal' : 'Monat'}
+                          + {prefix}{formatCurrency(off.totalRecurring)} / {off.recurringInterval === 'yearly' ? (isTR ? 'Yıl' : 'Jahr') : off.recurringInterval === 'quarterly' ? (isTR ? 'Çeyrek' : 'Quartal') : (isTR ? 'Ay' : 'Monat')}
                         </div>
                       )}
                     </div>
@@ -922,7 +924,7 @@ export default function CustomerDetailPage({
 
             {offers.length === 0 && (
               <div className="text-center py-8 text-xs text-slate-400">
-                Noch keine Angebote oder Kostenvoranschläge für diesen Kunden erstellt.
+                {isTR ? 'Bu müşteri için henüz teklif veya maliyet tahmini oluşturulmadı.' : 'Noch keine Angebote oder Kostenvoranschläge für diesen Kunden erstellt.'}
               </div>
             )}
           </div>
@@ -934,15 +936,15 @@ export default function CustomerDetailPage({
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-bold text-slate-900">Dienstfahrten & KM-Erfassung</h3>
-              <p className="text-xs text-slate-500">Fahrtenbuch-Einträge für Kundentermine und Baustellen</p>
+              <h3 className="text-base font-bold text-slate-900">{isTR ? 'İş Seyahatleri & KM Takibi' : 'Dienstfahrten & KM-Erfassung'}</h3>
+              <p className="text-xs text-slate-500">{isTR ? 'Müşteri randevuları ve saha çalışmaları için sürüş kayıtları' : 'Fahrtenbuch-Einträge für Kundentermine und Baustellen'}</p>
             </div>
             <button
               onClick={() => onOpenMileageModal(customer.id)}
               className="flex items-center space-x-1.5 px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow transition cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>+ Fahrt erfassen</span>
+              <span>{isTR ? '+ Seyahat Kaydet' : '+ Fahrt erfassen'}</span>
             </button>
           </div>
 
@@ -957,14 +959,14 @@ export default function CustomerDetailPage({
                 </div>
                 <div className="text-right">
                   <div className="text-xs font-bold text-slate-900">{m.kilometers} km</div>
-                  <div className="text-[10px] text-emerald-600 font-semibold">{formatCurrency(m.totalDeduction)} Abzug</div>
+                  <div className="text-[10px] text-emerald-600 font-semibold">{formatCurrency(m.totalDeduction)} {isTR ? 'İndirim' : 'Abzug'}</div>
                 </div>
               </div>
             ))}
 
             {mileage.length === 0 && (
               <div className="text-center py-8 text-xs text-slate-400">
-                Keine Fahrten für diesen Kunden erfasst.
+                {isTR ? 'Bu müşteri için kayıtlı sürüş bulunmuyor.' : 'Keine Fahrten für diesen Kunden erfasst.'}
               </div>
             )}
           </div>
@@ -976,8 +978,8 @@ export default function CustomerDetailPage({
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold text-slate-900">Auftragsdispositionen & Baustellen-Aufgaben</h3>
-              <p className="text-xs text-slate-500">Alle geplanten, laufenden und abgeschlossenen Aufgaben für {customer.companyName}</p>
+              <h3 className="text-base font-bold text-slate-900">{isTR ? 'İş Dağıtımları & Saha Görevleri' : 'Auftragsdispositionen & Baustellen-Aufgaben'}</h3>
+              <p className="text-xs text-slate-500">{isTR ? `${customer.companyName} için planlanan, devam eden ve tamamlanan tüm görevler` : `Alle geplanten, laufenden und abgeschlossenen Aufgaben für ${customer.companyName}`}</p>
             </div>
             <button
               onClick={() => {
@@ -988,17 +990,17 @@ export default function CustomerDetailPage({
               className="flex items-center space-x-1.5 px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition cursor-pointer self-start sm:self-auto"
             >
               <Plus className="w-4 h-4" />
-              <span>+ Auftrag im Kanban anlegen</span>
+              <span>{isTR ? '+ Kanban Panosunda İş Oluştur' : '+ Auftrag im Kanban anlegen'}</span>
             </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
             {dispositions.map((disp) => {
               const statusLabels = {
-                geplant: { label: 'Geplant & Vorbereitung', bg: 'bg-sky-50 text-sky-800 border-sky-200' },
-                in_progress: { label: 'In Bearbeitung', bg: 'bg-blue-50 text-blue-800 border-blue-200' },
-                review: { label: 'Qualitätskontrolle / Abnahme', bg: 'bg-amber-50 text-amber-800 border-amber-200' },
-                completed: { label: 'Abgeschlossen & Abrechenbar', bg: 'bg-emerald-50 text-emerald-800 border-emerald-200' }
+                geplant: { label: isTR ? 'Planlandı & Hazırlık' : 'Geplant & Vorbereitung', bg: 'bg-sky-50 text-sky-800 border-sky-200' },
+                in_progress: { label: isTR ? 'İşlemde / Yapılıyor' : 'In Bearbeitung', bg: 'bg-blue-50 text-blue-800 border-blue-200' },
+                review: { label: isTR ? 'Kalite Kontrol / Onay' : 'Qualitätskontrolle / Abnahme', bg: 'bg-amber-50 text-amber-800 border-amber-200' },
+                completed: { label: isTR ? 'Tamamlandı & Faturalanabilir' : 'Abgeschlossen & Abrechenbar', bg: 'bg-emerald-50 text-emerald-800 border-emerald-200' }
               };
               const st = statusLabels[disp.status] || { label: disp.status, bg: 'bg-slate-100 text-slate-700 border-slate-200' };
 
@@ -1030,7 +1032,7 @@ export default function CustomerDetailPage({
                   <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-200/80">
                     <div className="flex items-center gap-1">
                       <User className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{disp.assignee || 'Unzugewiesen'}</span>
+                      <span>{disp.assignee || (isTR ? 'Atanmadı' : 'Unzugewiesen')}</span>
                     </div>
                     <div className="flex items-center gap-1 font-mono">
                       <Calendar className="w-3.5 h-3.5 text-slate-400" />
@@ -1043,7 +1045,7 @@ export default function CustomerDetailPage({
 
             {dispositions.length === 0 && (
               <div className="col-span-full text-center py-10 text-xs text-slate-400 border border-dashed border-slate-200 rounded-2xl">
-                Noch keine Aufträge für diesen Kunden im Kanban erfasst.
+                {isTR ? 'Bu müşteri için henüz Kanban panosunda görev bulunmuyor.' : 'Noch keine Aufträge für diesen Kunden im Kanban erfasst.'}
               </div>
             )}
           </div>
@@ -1055,15 +1057,15 @@ export default function CustomerDetailPage({
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-bold text-slate-900">E-Mail Historie</h3>
-              <p className="text-xs text-slate-500">Protokoll aller versendeten Demo- & Akquise-Mails</p>
+              <h3 className="text-base font-bold text-slate-900">{isTR ? 'E-Posta Geçmişi' : 'E-Mail Historie'}</h3>
+              <p className="text-xs text-slate-500">{isTR ? 'Gönderilen tüm tanıtım & teklif e-postalarının günlüğü' : 'Protokoll aller versendeten Demo- & Akquise-Mails'}</p>
             </div>
             <button
               onClick={() => onOpenDemoEmailModal(customer)}
               className="flex items-center space-x-1.5 px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow transition cursor-pointer"
             >
               <Send className="w-4 h-4" />
-              <span>+ E-Mail senden</span>
+              <span>{isTR ? '+ E-Posta Gönder' : '+ E-Mail senden'}</span>
             </button>
           </div>
 
@@ -1082,7 +1084,7 @@ export default function CustomerDetailPage({
 
             {emailLogs.length === 0 && (
               <div className="text-center py-8 text-xs text-slate-400">
-                Noch keine E-Mails in der Historie erfasst.
+                {isTR ? 'Geçmişte henüz kayıtlı e-posta bulunmuyor.' : 'Noch keine E-Mails in der Historie erfasst.'}
               </div>
             )}
           </div>
@@ -1090,17 +1092,4 @@ export default function CustomerDetailPage({
       )}
     </div>
   );
-}
-
-function getStatusBadge(status) {
-  switch (status) {
-    case 'active':
-      return { label: 'Aktiv', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' };
-    case 'lead':
-      return { label: 'Interessent / Lead', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' };
-    case 'inactive':
-      return { label: 'Inaktiv', bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200' };
-    default:
-      return { label: status, bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200' };
-  }
 }

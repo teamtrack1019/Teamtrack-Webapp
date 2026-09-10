@@ -38,26 +38,29 @@ export function formatDateTime(dateString) {
   }
 }
 
-export function getStatusBadge(status) {
+export function getStatusBadge(status, customLang = null) {
+  const lang = customLang || (typeof window !== 'undefined' ? localStorage.getItem('teamtrack_lang') || 'de' : 'de');
+  const isTR = lang === 'tr';
+
   switch (status) {
     case 'active':
-      return { label: 'Aktiv', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' };
+      return { label: isTR ? 'Aktif' : 'Aktiv', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' };
     case 'lead':
-      return { label: 'Interessent', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' };
+      return { label: isTR ? 'Aday (Lead)' : 'Interessent', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' };
     case 'archived':
-      return { label: 'Archiviert', bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200' };
+      return { label: isTR ? 'Arşivlendi' : 'Archiviert', bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200' };
     case 'paid':
-      return { label: 'Bezahlt', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' };
+      return { label: isTR ? 'Ödendi' : 'Bezahlt', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' };
     case 'sent':
-      return { label: 'Versendet / Offen', bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' };
+      return { label: isTR ? 'Gönderildi / Açık' : 'Versendet / Offen', bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' };
     case 'draft':
-      return { label: 'Entwurf', bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200' };
+      return { label: isTR ? 'Taslak' : 'Entwurf', bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200' };
     case 'overdue':
-      return { label: 'Überfällig', bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' };
+      return { label: isTR ? 'Vadesi Geçti' : 'Überfällig', bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' };
     case 'completed':
-      return { label: 'Erledigt', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' };
+      return { label: isTR ? 'Tamamlandı' : 'Erledigt', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' };
     case 'cancelled':
-      return { label: 'Storniert / Gekündigt', bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' };
+      return { label: isTR ? 'İptal / Fesih' : 'Storniert / Gekündigt', bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' };
     default:
       return { label: status, bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200' };
   }
@@ -101,8 +104,10 @@ export function getOfferReminderStatus(customer) {
   }
 }
 
-export function getLeadSourceBadge(source) {
+export function getLeadSourceBadge(source, customLang = null) {
   if (!source) return null;
+  const lang = customLang || (typeof window !== 'undefined' ? localStorage.getItem('teamtrack_lang') || 'de' : 'de');
+  const isTR = lang === 'tr';
   const s = String(source).toUpperCase().trim();
   switch (s) {
     case 'XING':
@@ -115,12 +120,12 @@ export function getLeadSourceBadge(source) {
     case 'DIRECKT E-MAIL':
     case 'DIREKT EMAIL':
     case 'E-MAIL':
-      return { label: 'DIREKT E-MAIL', bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200', icon: '✉️' };
+      return { label: isTR ? 'DİREKT E-POSTA' : 'DIREKT E-MAIL', bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200', icon: '✉️' };
     case 'WEBSITE ANFRAGE':
     case 'WEBSITE':
-      return { label: 'WEBSITE ANFRAGE', bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', icon: '🌐' };
+      return { label: isTR ? 'WEBSITE TALEBİ' : 'WEBSITE ANFRAGE', bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', icon: '🌐' };
     case 'EMPFEHLUNG':
-      return { label: 'EMPFEHLUNG', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: '⭐' };
+      return { label: isTR ? 'TAVSİYE / REFERANS' : 'EMPFEHLUNG', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: '⭐' };
     default:
       return { label: source, bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200', icon: '📌' };
   }

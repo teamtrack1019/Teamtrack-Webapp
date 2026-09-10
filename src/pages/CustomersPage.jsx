@@ -395,7 +395,7 @@ export default function CustomersPage({
                   {selectedCustomer.contactPerson && (
                     <div className="flex items-center gap-2 text-slate-700 font-medium">
                       <User className="w-4 h-4 text-slate-400 shrink-0" />
-                      <span>Ansprechpartner: <strong>{selectedCustomer.contactPerson}</strong></span>
+                      <span>{isTR ? 'Yetkili:' : 'Ansprechpartner:'} <strong>{selectedCustomer.contactPerson}</strong></span>
                     </div>
                   )}
 
@@ -427,7 +427,7 @@ export default function CustomersPage({
                   {selectedCustomer.taxNumber && (
                     <div className="flex items-center gap-2 text-slate-600">
                       <Hash className="w-4 h-4 text-slate-400 shrink-0" />
-                      <span>St.-Nr: {selectedCustomer.taxNumber}</span>
+                      <span>{isTR ? 'Vergi No:' : 'St.-Nr:'} {selectedCustomer.taxNumber}</span>
                     </div>
                   )}
                 </div>
@@ -435,7 +435,7 @@ export default function CustomersPage({
                 {/* Optional Notes */}
                 {selectedCustomer.notes && (
                   <div className="p-3 bg-amber-50/40 rounded-xl border border-amber-200/60 text-xs text-amber-950">
-                    <span className="font-bold text-[11px] uppercase tracking-wider text-amber-900 block mb-0.5">Notizen & Details:</span>
+                    <span className="font-bold text-[11px] uppercase tracking-wider text-amber-900 block mb-0.5">{isTR ? 'Notlar & Detaylar:' : 'Notizen & Details:'}</span>
                     <p className="leading-relaxed">{selectedCustomer.notes}</p>
                   </div>
                 )}
@@ -446,7 +446,7 @@ export default function CustomersPage({
                   className="w-full bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-800 rounded-xl p-3 flex items-center justify-center space-x-2 text-xs sm:text-sm font-bold transition shadow-xs cursor-pointer"
                 >
                   <Mail className="w-4 h-4 text-sky-600" />
-                  <span>E-Mail senden (Outlook / Vorlage)</span>
+                  <span>{isTR ? 'E-Posta Gönder (Outlook / Şablon)' : 'E-Mail senden (Outlook / Vorlage)'}</span>
                 </button>
 
                 {/* 3-DAY REMINDER ALERT (RED) OR RESPONDED CONFIRMATION (GREEN) */}
@@ -462,11 +462,13 @@ export default function CustomersPage({
                           <div className="space-y-0.5 flex-1">
                             <span className="text-rose-900 font-black block text-xs sm:text-sm">
                               {reminder.isExpired 
-                                ? `Frist abgelaufen (${formatDate(reminder.validUntilDate)})`
-                                : `Gültigkeit endet in ${reminder.diffDays === 0 ? 'heute' : reminder.diffDays === 1 ? '1 Tag' : `${reminder.diffDays} Tagen`}!`}
+                                ? (isTR ? `Süre doldu (${formatDate(reminder.validUntilDate)})` : `Frist abgelaufen (${formatDate(reminder.validUntilDate)})`)
+                                : (isTR ? `Geçerlilik süresi ${reminder.diffDays === 0 ? 'bugün' : `${reminder.diffDays} gün içinde`} bitiyor!` : `Gültigkeit endet in ${reminder.diffDays === 0 ? 'heute' : reminder.diffDays === 1 ? '1 Tag' : `${reminder.diffDays} Tagen`}!`)}
                             </span>
                             <p className="text-xs font-medium text-rose-700 leading-relaxed">
-                              Keine Rückmeldung zu {reminder.type === 'kostenvoranschlag' ? 'Kostenvoranschlag' : 'Angebot'} {reminder.offerNumber}. Bitte nachfassen!
+                              {isTR 
+                                ? `${reminder.type === 'kostenvoranschlag' ? 'Maliyet tahmini' : 'Teklif'} ${reminder.offerNumber} için henüz geri dönüş yok. Lütfen hatırlatın!`
+                                : `Keine Rückmeldung zu ${reminder.type === 'kostenvoranschlag' ? 'Kostenvoranschlag' : 'Angebot'} ${reminder.offerNumber}. Bitte nachfassen!`}
                             </p>
                           </div>
                         </div>
@@ -476,10 +478,10 @@ export default function CustomersPage({
                             type="button"
                             onClick={() => onOpenDemoEmailModal(selectedCustomer, 'offer_reminder')}
                             className="flex-1 py-2 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer"
-                            title="Erinnerungs-Vorlage 4 öffnen"
+                            title={isTR ? 'Hatırlatma şablonunu aç' : 'Erinnerungs-Vorlage 4 öffnen'}
                           >
                             <Mail className="w-3.5 h-3.5" />
-                            <span>Erinnerung senden (V4)</span>
+                            <span>{isTR ? 'Hatırlatma Gönder (Şablon 4)' : 'Erinnerung senden (V4)'}</span>
                           </button>
                           <button
                             type="button"
@@ -492,10 +494,10 @@ export default function CustomersPage({
                               }
                             }}
                             className="py-2 px-3 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
-                            title="Kunde hat sich gemeldet"
+                            title={isTR ? 'Müşteri geri dönüş yaptı olarak işaretle' : 'Kunde hat sich gemeldet'}
                           >
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>Kunde hat sich gemeldet</span>
+                            <span>{isTR ? 'Müşteri geri döndü' : 'Kunde hat sich gemeldet'}</span>
                           </button>
                         </div>
                       </div>
@@ -507,7 +509,7 @@ export default function CustomersPage({
                       <div className="bg-emerald-50 border border-emerald-200/90 rounded-xl px-3.5 py-2 flex items-center justify-between text-xs font-semibold text-emerald-950">
                         <span className="flex items-center gap-2 truncate">
                           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                          <span className="truncate">Kunde hat sich gemeldet {reminder.respondedAt ? `(${formatDate(reminder.respondedAt)})` : ''}</span>
+                          <span className="truncate">{isTR ? 'Müşteri geri döndü' : 'Kunde hat sich gemeldet'} {reminder.respondedAt ? `(${formatDate(reminder.respondedAt)})` : ''}</span>
                         </span>
                         <button
                           type="button"
@@ -521,7 +523,7 @@ export default function CustomersPage({
                           }}
                           className="text-xs text-emerald-700 hover:text-emerald-900 underline font-normal cursor-pointer ml-2"
                         >
-                          Zurücksetzen
+                          {isTR ? 'Sıfırla' : 'Zurücksetzen'}
                         </button>
                       </div>
                     );
@@ -542,7 +544,7 @@ export default function CustomersPage({
                         (selectedCustomer.offerEmailType || selectedCustomer.lastOffer?.type) === 'kostenvoranschlag' ? 'text-amber-600' : 'text-sky-600'
                       }`} />
                       <span className="truncate">
-                        {(selectedCustomer.offerEmailType || selectedCustomer.lastOffer?.type) === 'kostenvoranschlag' ? 'Kostenvoranschlag' : 'Angebot'} ({selectedCustomer.offerEmailNumber || selectedCustomer.lastOffer?.offerNumber}): {formatDate(selectedCustomer.offerEmailSentAt || selectedCustomer.lastOffer?.sentAt)}
+                        {(selectedCustomer.offerEmailType || selectedCustomer.lastOffer?.type) === 'kostenvoranschlag' ? (isTR ? 'Maliyet Tahmini' : 'Kostenvoranschlag') : (isTR ? 'Teklif' : 'Angebot')} ({selectedCustomer.offerEmailNumber || selectedCustomer.lastOffer?.offerNumber}): {formatDate(selectedCustomer.offerEmailSentAt || selectedCustomer.lastOffer?.sentAt)}
                       </span>
                     </span>
                     <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded shrink-0 ${
@@ -550,7 +552,7 @@ export default function CustomersPage({
                         ? 'bg-amber-200/80 text-amber-900'
                         : 'bg-sky-200/80 text-sky-900'
                     }`}>
-                      Gesendet
+                      {isTR ? 'Gönderildi' : 'Gesendet'}
                     </span>
                   </div>
                 )}
@@ -560,9 +562,9 @@ export default function CustomersPage({
                   <div className="bg-emerald-50 border border-emerald-200/80 rounded-xl px-3 py-2 flex items-center justify-between text-xs text-emerald-800 font-medium">
                     <span className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      <span>Vorstellung: {formatDate(selectedCustomer.demoEmailSentAt)}</span>
+                      <span>{isTR ? 'Tanıtım Maili:' : 'Vorstellung:'} {formatDate(selectedCustomer.demoEmailSentAt)}</span>
                     </span>
-                    <span className="text-[10px] text-emerald-600 font-bold bg-emerald-100/80 px-2 py-0.5 rounded">Erfasst</span>
+                    <span className="text-[10px] text-emerald-600 font-bold bg-emerald-100/80 px-2 py-0.5 rounded">{isTR ? 'Kayıtlı' : 'Erfasst'}</span>
                   </div>
                 )}
 
@@ -571,13 +573,13 @@ export default function CustomersPage({
                   <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
                     <div className="text-xs text-slate-400 font-bold uppercase flex items-center gap-1.5">
                       <Repeat className="w-3.5 h-3.5 text-sky-500" />
-                      Monatl. Abo
+                      {isTR ? 'Aylık Abonelik' : 'Monatl. Abo'}
                     </div>
                     <div className="text-sm sm:text-base font-black text-slate-800 mt-1">
                       {selectedCustomer.totalAboMonthly > 0 ? (
-                        <span className="text-sky-600">{formatCurrency(selectedCustomer.totalAboMonthly)} / Mo</span>
+                        <span className="text-sky-600">{formatCurrency(selectedCustomer.totalAboMonthly)} {isTR ? '/ Ay' : '/ Mo'}</span>
                       ) : (
-                        <span className="text-slate-400 font-normal">Kein Abo</span>
+                        <span className="text-slate-400 font-normal">{isTR ? 'Abonelik Yok' : 'Kein Abo'}</span>
                       )}
                     </div>
                   </div>
@@ -585,11 +587,11 @@ export default function CustomersPage({
                   <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
                     <div className="text-xs text-slate-400 font-bold uppercase flex items-center gap-1.5">
                       <Zap className="w-3.5 h-3.5 text-emerald-500" />
-                      Einmalleistung
+                      {isTR ? 'Tek Seferlik İş' : 'Einmalleistung'}
                     </div>
                     <div className="text-sm sm:text-base font-black text-slate-800 mt-1">
                       {selectedCustomer.einmaligeCount > 0 ? (
-                        <span>{selectedCustomer.einmaligeCount} Projekt(e)</span>
+                        <span>{selectedCustomer.einmaligeCount} {isTR ? 'Proje' : 'Projekt(e)'}</span>
                       ) : (
                         <span className="text-slate-400 font-normal">-</span>
                       )}
@@ -605,16 +607,16 @@ export default function CustomersPage({
                       className="text-xs sm:text-sm font-bold text-slate-700 hover:text-sky-600 flex items-center gap-1.5 bg-white border border-slate-200 px-3.5 py-2 rounded-xl shadow-2xs transition cursor-pointer"
                     >
                       <FileText className="w-4 h-4 text-sky-600" />
-                      <span>+ Rechnung</span>
+                      <span>{isTR ? '+ Fatura' : '+ Rechnung'}</span>
                     </button>
 
                     <button
                       onClick={() => onNavigateToDisposition && onNavigateToDisposition(selectedCustomer.id)}
                       className="text-xs sm:text-sm font-bold text-slate-700 hover:text-sky-600 flex items-center gap-1.5 bg-white border border-slate-200 px-3.5 py-2 rounded-xl shadow-2xs transition cursor-pointer"
-                      title="Auftrag im Kanban anlegen"
+                      title={isTR ? 'Kanban panosuna görev ekle' : 'Auftrag im Kanban anlegen'}
                     >
                       <Trello className="w-4 h-4 text-indigo-600" />
-                      <span>+ Auftrag (Kanban)</span>
+                      <span>{isTR ? '+ İş / Görev (Kanban)' : '+ Auftrag (Kanban)'}</span>
                     </button>
                   </div>
 
@@ -622,7 +624,7 @@ export default function CustomersPage({
                     onClick={() => onSelectCustomer(selectedCustomer.id)}
                     className="text-xs sm:text-sm font-black text-sky-600 hover:text-sky-700 flex items-center gap-1.5 bg-sky-50 hover:bg-sky-100 border border-sky-200/80 px-4 py-2 rounded-xl transition cursor-pointer"
                   >
-                    <span>Kundenprofil öffnen</span>
+                    <span>{isTR ? 'Müşteri Profilini Aç' : 'Kundenprofil öffnen'}</span>
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -701,7 +703,7 @@ export default function CustomersPage({
                     {customer.contactPerson && (
                       <div className="flex items-center gap-1.5 text-slate-700 font-medium truncate">
                         <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0"></span>
-                        <span className="truncate">Ansprechpartner: {customer.contactPerson}</span>
+                        <span className="truncate">{isTR ? 'Yetkili:' : 'Ansprechpartner:'} {customer.contactPerson}</span>
                       </div>
                     )}
                     {customer.email && (
@@ -731,7 +733,7 @@ export default function CustomersPage({
                       className="w-full bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-800 rounded-xl p-2.5 flex items-center justify-center space-x-2 text-xs font-bold transition shadow-xs cursor-pointer"
                     >
                       <Mail className="w-3.5 h-3.5 text-sky-600" />
-                      <span>E-Mail senden (Outlook / Vorlage)</span>
+                      <span>{isTR ? 'E-Posta Gönder (Outlook / Şablon)' : 'E-Mail senden (Outlook / Vorlage)'}</span>
                     </button>
 
                     {/* 3-DAY REMINDER ALERT (RED) OR RESPONDED CONFIRMATION (GREEN) */}
@@ -747,11 +749,13 @@ export default function CustomersPage({
                               <div className="space-y-0.5">
                                 <span className="text-rose-900 font-black block text-[11.5px]">
                                   {reminder.isExpired 
-                                    ? `Frist abgelaufen (${formatDate(reminder.validUntilDate)})`
-                                    : `Gültigkeit endet in ${reminder.diffDays === 0 ? 'heute' : reminder.diffDays === 1 ? '1 Tag' : `${reminder.diffDays} Tagen`}!`}
+                                    ? (isTR ? `Süre doldu (${formatDate(reminder.validUntilDate)})` : `Frist abgelaufen (${formatDate(reminder.validUntilDate)})`)
+                                    : (isTR ? `Geçerlilik ${reminder.diffDays === 0 ? 'bugün' : `${reminder.diffDays} gün içinde`} bitiyor!` : `Gültigkeit endet in ${reminder.diffDays === 0 ? 'heute' : reminder.diffDays === 1 ? '1 Tag' : `${reminder.diffDays} Tagen`}!`)}
                                 </span>
                                 <p className="text-[10.5px] font-medium text-rose-700 leading-tight">
-                                  Keine Rückmeldung zu {reminder.type === 'kostenvoranschlag' ? 'Kostenvoranschlag' : 'Angebot'} {reminder.offerNumber}. Bitte nachfassen!
+                                  {isTR 
+                                    ? `${reminder.type === 'kostenvoranschlag' ? 'Maliyet tahmini' : 'Teklif'} ${reminder.offerNumber} için henüz geri dönüş yok. Lütfen hatırlatın!`
+                                    : `Keine Rückmeldung zu ${reminder.type === 'kostenvoranschlag' ? 'Kostenvoranschlag' : 'Angebot'} ${reminder.offerNumber}. Bitte nachfassen!`}
                                 </p>
                               </div>
                             </div>
@@ -761,10 +765,10 @@ export default function CustomersPage({
                                 type="button"
                                 onClick={() => onOpenDemoEmailModal(customer, 'offer_reminder')}
                                 className="flex-1 py-1 px-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10.5px] font-bold flex items-center justify-center gap-1 transition shadow-xs cursor-pointer"
-                                title="Erinnerungs-Vorlage 4 öffnen"
+                                title={isTR ? 'Hatırlatma şablonunu aç' : 'Erinnerungs-Vorlage 4 öffnen'}
                               >
                                 <Mail className="w-3 h-3" />
-                                <span>Erinnerung senden (V4)</span>
+                                <span>{isTR ? 'Hatırlat (Ş4)' : 'Erinnerung senden (V4)'}</span>
                               </button>
                               <button
                                 type="button"
@@ -777,10 +781,10 @@ export default function CustomersPage({
                                   }
                                 }}
                                 className="py-1 px-2 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-lg text-[10.5px] font-bold flex items-center gap-1 transition cursor-pointer"
-                                title="Kunde hat sich gemeldet"
+                                title={isTR ? 'Müşteri geri döndü' : 'Kunde hat sich gemeldet'}
                               >
                                 <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                <span>Kunde hat sich gemeldet</span>
+                                <span>{isTR ? 'Geri Döndü' : 'Kunde hat sich gemeldet'}</span>
                               </button>
                             </div>
                           </div>
@@ -792,7 +796,7 @@ export default function CustomersPage({
                           <div className="bg-emerald-50 border border-emerald-200/90 rounded-lg px-2.5 py-1.5 flex items-center justify-between text-[11px] font-semibold text-emerald-950">
                             <span className="flex items-center gap-1.5 truncate">
                               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                              <span className="truncate">Kunde hat sich gemeldet {reminder.respondedAt ? `(${formatDate(reminder.respondedAt)})` : ''}</span>
+                              <span className="truncate">{isTR ? 'Müşteri geri döndü' : 'Kunde hat sich gemeldet'} {reminder.respondedAt ? `(${formatDate(reminder.respondedAt)})` : ''}</span>
                             </span>
                             <button
                               type="button"
@@ -806,7 +810,7 @@ export default function CustomersPage({
                               }}
                               className="text-[10px] text-emerald-700 hover:text-emerald-900 underline font-normal cursor-pointer ml-1"
                             >
-                              Zurücksetzen
+                              {isTR ? 'Sıfırla' : 'Zurücksetzen'}
                             </button>
                           </div>
                         );
@@ -827,7 +831,7 @@ export default function CustomersPage({
                             (customer.offerEmailType || customer.lastOffer?.type) === 'kostenvoranschlag' ? 'text-amber-600' : 'text-sky-600'
                           }`} />
                           <span className="truncate">
-                            {(customer.offerEmailType || customer.lastOffer?.type) === 'kostenvoranschlag' ? 'Kostenvoranschlag' : 'Angebot'} ({customer.offerEmailNumber || customer.lastOffer?.offerNumber}): {formatDate(customer.offerEmailSentAt || customer.lastOffer?.sentAt)}
+                            {(customer.offerEmailType || customer.lastOffer?.type) === 'kostenvoranschlag' ? (isTR ? 'Maliyet Tahmini' : 'Kostenvoranschlag') : (isTR ? 'Teklif' : 'Angebot')} ({customer.offerEmailNumber || customer.lastOffer?.offerNumber}): {formatDate(customer.offerEmailSentAt || customer.lastOffer?.sentAt)}
                           </span>
                         </span>
                         <span className={`text-[9.5px] uppercase font-bold px-1.5 py-0.5 rounded shrink-0 ${
@@ -835,7 +839,7 @@ export default function CustomersPage({
                             ? 'bg-amber-200/80 text-amber-900'
                             : 'bg-sky-200/80 text-sky-900'
                         }`}>
-                          Gesendet
+                          {isTR ? 'Gönderildi' : 'Gesendet'}
                         </span>
                       </div>
                     )}
@@ -845,9 +849,9 @@ export default function CustomersPage({
                       <div className="bg-emerald-50 border border-emerald-200/80 rounded-lg px-2.5 py-1 flex items-center justify-between text-[11px] text-emerald-800 font-medium">
                         <span className="flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          <span>Vorstellung: {formatDate(customer.demoEmailSentAt)}</span>
+                          <span>{isTR ? 'Tanıtım:' : 'Vorstellung:'} {formatDate(customer.demoEmailSentAt)}</span>
                         </span>
-                        <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-100/80 px-1.5 py-0.2 rounded">Erfasst</span>
+                        <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-100/80 px-1.5 py-0.2 rounded">{isTR ? 'Kayıtlı' : 'Erfasst'}</span>
                       </div>
                     )}
                   </div>
@@ -857,13 +861,13 @@ export default function CustomersPage({
                     <div className="bg-slate-50 p-2 rounded-xl border border-slate-100">
                       <div className="text-[10px] text-slate-400 font-semibold uppercase flex items-center gap-1">
                         <Repeat className="w-3 h-3 text-sky-500" />
-                        Monatl. Abo
+                        {isTR ? 'Aylık Abonelik' : 'Monatl. Abo'}
                       </div>
                       <div className="text-xs font-bold text-slate-800 mt-0.5">
                         {customer.totalAboMonthly > 0 ? (
-                          <span className="text-sky-600">{formatCurrency(customer.totalAboMonthly)} / Mo</span>
+                          <span className="text-sky-600">{formatCurrency(customer.totalAboMonthly)} {isTR ? '/ Ay' : '/ Mo'}</span>
                         ) : (
-                          <span className="text-slate-400 font-normal">Kein Abo</span>
+                          <span className="text-slate-400 font-normal">{isTR ? 'Abonelik Yok' : 'Kein Abo'}</span>
                         )}
                       </div>
                     </div>
@@ -871,11 +875,11 @@ export default function CustomersPage({
                     <div className="bg-slate-50 p-2 rounded-xl border border-slate-100">
                       <div className="text-[10px] text-slate-400 font-semibold uppercase flex items-center gap-1">
                         <Zap className="w-3 h-3 text-emerald-500" />
-                        Einmalleistung
+                        {isTR ? 'Tek Seferlik' : 'Einmalleistung'}
                       </div>
                       <div className="text-xs font-bold text-slate-800 mt-0.5">
                         {customer.einmaligeCount > 0 ? (
-                          <span>{customer.einmaligeCount} Projekt(e)</span>
+                          <span>{customer.einmaligeCount} {isTR ? 'Proje' : 'Projekt(e)'}</span>
                         ) : (
                           <span className="text-slate-400 font-normal">-</span>
                         )}
@@ -890,18 +894,18 @@ export default function CustomersPage({
                     <button
                       onClick={() => onOpenInvoiceModal(customer.id)}
                       className="text-xs font-semibold text-slate-600 hover:text-sky-600 flex items-center gap-1"
-                      title="Rechnung erstellen"
+                      title={isTR ? 'Fatura oluştur' : 'Rechnung erstellen'}
                     >
                       <FileText className="w-3.5 h-3.5" />
-                      <span>+ RE</span>
+                      <span>{isTR ? '+ Fatura' : '+ RE'}</span>
                     </button>
                     <button
                       onClick={() => onNavigateToDisposition && onNavigateToDisposition(customer.id)}
                       className="text-xs font-semibold text-slate-600 hover:text-indigo-600 flex items-center gap-1"
-                      title="Auftrag im Kanban anlegen"
+                      title={isTR ? 'Kanban panosuna görev ekle' : 'Auftrag im Kanban anlegen'}
                     >
                       <Trello className="w-3.5 h-3.5 text-indigo-500" />
-                      <span>+ Auftrag</span>
+                      <span>{isTR ? '+ İş' : '+ Auftrag'}</span>
                     </button>
                   </div>
 
@@ -909,7 +913,7 @@ export default function CustomersPage({
                     onClick={() => onSelectCustomer(customer.id)}
                     className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1 group-hover:translate-x-0.5 transition"
                   >
-                    <span>Profil</span>
+                    <span>{isTR ? 'Müşteri Profili' : 'Profil'}</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
