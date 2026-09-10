@@ -347,9 +347,8 @@ ${(() => {
   if (pkgBIncluded) {
     cond += `\nℹ️ Leistungsumfang & Abo-Bedingungen (Paket B):
 • Schlüsselfertige Implementierung: Das System wird mit einer einmaligen Initial-Einrichtung betriebsbereit übergeben.
-• 7/24-Abo-Betreuung: Umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, hochverfügbaren Cloud-Server-Betrieb in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- & Sicherheitsupdates sowie laufende Feature-Erweiterungen.
+• 7/24-Abo-Betreuung: Umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, hochverfügbaren Cloud-Server-Betrieb in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- & Sicherheitsupdates sowie laufende Feature-Erweiterungen (Mindestlaufzeit 12 Monate, monatlich zahlbar und flexibel erweiterbar).
 • Datensicherung: Integrierte 1-Klick Backup-Funktion zur eigenständigen Datensicherung durch den Kunden.
-• Laufzeit & Kündigung: Der Betreuungsvertrag ist ${intervalText} flexibel anpassbar und kündbar.
 • Zahlungsmodalitäten: Setup bei Bereitstellung; laufende Abo-Betreuung jeweils zu Beginn des Abrechnungszeitraums (${intervalText}).
 `;
   }

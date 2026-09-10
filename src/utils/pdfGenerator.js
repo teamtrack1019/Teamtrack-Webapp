@@ -901,7 +901,7 @@ export function createOfferDoc(offer, companySettings = {}) {
 
   if (hasPkgB && !hasPkgA && !hasPkgC) {
     // Pure Paket B (Abo)
-    condItems.push(`• Leistungsumfang & Abo-Service: Das System wird mit einer initialen Einrichtung schlüsselfertig implementiert. Die laufende 7/24-Abo-Betreuung umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, hochverfügbaren Cloud-Server-Betrieb in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- und Sicherheitsupdates, integrierte Datensicherungs-Tools sowie laufende Feature-Erweiterungen und Funktionsanpassungen (${bIntervalLabel} kündbar und flexibel anpassbar).`);
+    condItems.push(`• Leistungsumfang & Abo-Service: Das System wird mit einer initialen Einrichtung schlüsselfertig implementiert. Die laufende 7/24-Abo-Betreuung umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, hochverfügbaren Cloud-Server-Betrieb in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- und Sicherheitsupdates, integrierte Datensicherungs-Tools sowie laufende Feature-Erweiterungen und Funktionsanpassungen (Mindestlaufzeit 12 Monate, monatlich zahlbar und flexibel erweiterbar).`);
     condItems.push(`• Datensicherung (Backups): Die regelmäßige Datensicherung liegt in der Verantwortung des Auftraggebers und erfolgt eigenständig über die im System integrierte 1-Klick Backup-Funktion.`);
     condItems.push(`• Zahlungsmodalitäten: Einmaliges Setup bei Bereitstellung; laufende Abo-Betreuung jeweils zu Beginn des Abrechnungszeitraums (${bIntervalLabel}).`);
     condItems.push(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`);
