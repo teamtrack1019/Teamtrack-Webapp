@@ -13,6 +13,7 @@ import {
   PieChart
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function ExpensesPage({ 
   expenses, 
@@ -20,10 +21,11 @@ export default function ExpensesPage({
   onEditExpense, 
   onDeleteExpense 
 }) {
+  const { t, isTR } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
 
-  const categories = Array.from(new Set(expenses.map(e => e.category || 'Sonstiges')));
+  const categories = Array.from(new Set(expenses.map(e => e.category || (isTR ? 'Diğer' : 'Sonstiges'))));
 
   const filtered = expenses.filter(exp => {
     const matchesSearch = 
@@ -46,19 +48,19 @@ export default function ExpensesPage({
         <div>
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
             <Receipt className="w-7 h-7 text-amber-600" />
-            <span>Eingehende Belege & Ausgaben</span>
+            <span>{t('expenses.title', 'Eingehende Belege & Ausgaben')}</span>
           </h2>
           <p className="text-slate-500 text-sm mt-0.5">
-            Betriebsausgaben, Server, Software, Hardware und Belegerfassung
+            {t('expenses.subtitle', 'Betriebsausgaben, Server, Software, Hardware und Belegerfassung')}
           </p>
         </div>
 
         <button
           onClick={() => onOpenExpenseModal()}
-          className="flex items-center space-x-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-amber-600/20 transition self-start sm:self-auto"
+          className="flex items-center space-x-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-semibold shadow-md shadow-amber-600/20 transition self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          <span>+ Ausgabe erfassen</span>
+          <span>{t('expenses.newExpense', '+ Ausgabe erfassen')}</span>
         </button>
       </div>
 
@@ -69,9 +71,9 @@ export default function ExpensesPage({
             <Euro className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-400 uppercase">Betriebsausgaben Netto</div>
+            <div className="text-xs font-bold text-slate-400 uppercase">{isTR ? 'İşletme Giderleri (Net)' : 'Betriebsausgaben Netto'}</div>
             <div className="text-xl font-extrabold text-slate-900 mt-0.5">{formatCurrency(totalNet)}</div>
-            <div className="text-[11px] text-slate-500">{expenses.length} Belege erfasst</div>
+            <div className="text-[11px] text-slate-500">{expenses.length} {isTR ? 'fiş kaydedildi' : 'Belege erfasst'}</div>
           </div>
         </div>
 
@@ -80,9 +82,9 @@ export default function ExpensesPage({
             <Tag className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-400 uppercase">Abziehbare Vorsteuer</div>
+            <div className="text-xs font-bold text-slate-400 uppercase">{isTR ? 'İndirilecek KDV' : 'Abziehbare Vorsteuer'}</div>
             <div className="text-xl font-extrabold text-emerald-600 mt-0.5">{formatCurrency(totalTax)}</div>
-            <div className="text-[11px] text-emerald-700">Mindert die USt.-Zahllast</div>
+            <div className="text-[11px] text-emerald-700">{isTR ? 'Ödenecek KDV\'den düşülür' : 'Mindert die USt.-Zahllast'}</div>
           </div>
         </div>
 
@@ -91,9 +93,9 @@ export default function ExpensesPage({
             <Receipt className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-400 uppercase">Ausgaben Brutto</div>
+            <div className="text-xs font-bold text-slate-400 uppercase">{isTR ? 'Toplam Gider (Brüt)' : 'Ausgaben Brutto'}</div>
             <div className="text-xl font-extrabold text-slate-900 mt-0.5">{formatCurrency(totalGross)}</div>
-            <div className="text-[11px] text-slate-500">Tatsächlicher Geldabfluss</div>
+            <div className="text-[11px] text-slate-500">{isTR ? 'Toplam nakit çıkışı' : 'Tatsächlicher Geldabfluss'}</div>
           </div>
         </div>
       </div>

@@ -15,6 +15,7 @@ import {
   Zap
 } from 'lucide-react';
 import { formatCurrency, formatDate, getStatusBadge } from '../utils/formatters';
+import { useLanguage } from '../context/LanguageContext';
 
 export const getInvoiceType = (inv) => {
   if (inv.serviceType) return inv.serviceType;
@@ -35,6 +36,7 @@ export default function InvoicesPage({
   onViewInvoice,
   onBulkGenerateAbos 
 }) {
+  const { t, isTR } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -69,14 +71,14 @@ export default function InvoicesPage({
           <div className="flex items-center gap-2">
             <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
               <FileText className="w-7 h-7 text-sky-600" />
-              <span>Ausgehende Rechnungen</span>
+              <span>{t('invoices.title', 'Ausgehende Rechnungen')}</span>
             </h2>
             <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-200">
               § 19 UStG Kleinunternehmer
             </span>
           </div>
           <p className="text-slate-500 text-sm mt-0.5">
-            Automatische Rechnungsstellung für Abos & erledigte Einmalleistungen
+            {t('invoices.subtitle', 'Automatische Rechnungsstellung für Abos & erledigte Einmalleistungen')}
           </p>
         </div>
 
@@ -87,16 +89,16 @@ export default function InvoicesPage({
               className="flex items-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-sky-600/20 cursor-pointer"
             >
               <Repeat className="w-4 h-4" />
-              <span>⚡ Fällige Abrechnungen generieren</span>
+              <span>{isTR ? '⚡ Aylık Faturaları Oluştur' : '⚡ Fällige Abrechnungen generieren'}</span>
             </button>
           )}
 
           <button
             onClick={onOpenInvoiceModal}
-            className="flex items-center space-x-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-md"
+            className="flex items-center space-x-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-md cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>Neue Rechnung</span>
+            <span>{t('invoices.newInvoice', 'Neue Rechnung')}</span>
           </button>
         </div>
       </div>
@@ -108,9 +110,9 @@ export default function InvoicesPage({
             <CheckCircle className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-400 uppercase">Bezahlte Rechnungen</div>
+            <div className="text-xs font-bold text-slate-400 uppercase">{isTR ? 'Ödenen Faturalar' : 'Bezahlte Rechnungen'}</div>
             <div className="text-xl font-extrabold text-slate-900 mt-0.5">{formatCurrency(totalPaid)}</div>
-            <div className="text-[11px] text-emerald-600 font-semibold">{invoices.filter(i => i.status === 'paid').length} Rechnungen bezahlt</div>
+            <div className="text-[11px] text-emerald-600 font-semibold">{invoices.filter(i => i.status === 'paid').length} {isTR ? 'fatura tahsil edildi' : 'Rechnungen bezahlt'}</div>
           </div>
         </div>
 
@@ -119,9 +121,9 @@ export default function InvoicesPage({
             <Clock className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-400 uppercase">Offene Forderungen</div>
+            <div className="text-xs font-bold text-slate-400 uppercase">{isTR ? 'Açık / Bekleyen Alacak' : 'Offene Forderungen'}</div>
             <div className="text-xl font-extrabold text-amber-600 mt-0.5">{formatCurrency(totalOpen)}</div>
-            <div className="text-[11px] text-amber-700 font-semibold">{invoices.filter(i => i.status === 'sent').length} Rechnungen ausstehend</div>
+            <div className="text-[11px] text-amber-700 font-semibold">{invoices.filter(i => i.status === 'sent').length} {isTR ? 'fatura beklemede' : 'Rechnungen ausstehend'}</div>
           </div>
         </div>
 
@@ -130,9 +132,9 @@ export default function InvoicesPage({
             <Repeat className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-400 uppercase">Abo-Rechnungen</div>
+            <div className="text-xs font-bold text-slate-400 uppercase">{isTR ? 'Abonelik Faturaları' : 'Abo-Rechnungen'}</div>
             <div className="text-xl font-extrabold text-sky-700 mt-0.5">{totalAbos}</div>
-            <div className="text-[11px] text-sky-600 font-semibold">Monatliche Betreuung</div>
+            <div className="text-[11px] text-sky-600 font-semibold">{isTR ? 'Aylık Bakım & Hizmet' : 'Monatliche Betreuung'}</div>
           </div>
         </div>
 
@@ -141,9 +143,9 @@ export default function InvoicesPage({
             <Zap className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-400 uppercase">Einmalleistungen</div>
+            <div className="text-xs font-bold text-slate-400 uppercase">{isTR ? 'Tek Seferlik Projeler' : 'Einmalleistungen'}</div>
             <div className="text-xl font-extrabold text-emerald-700 mt-0.5">{totalEinmalig}</div>
-            <div className="text-[11px] text-emerald-600 font-semibold">Projekt-Abrechnungen</div>
+            <div className="text-[11px] text-emerald-600 font-semibold">{isTR ? 'Proje Faturaları' : 'Projekt-Abrechnungen'}</div>
           </div>
         </div>
       </div>

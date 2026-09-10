@@ -30,45 +30,7 @@ import {
 } from 'lucide-react';
 import { api } from '../api';
 import { formatDate, formatDateTime, getLeadSourceBadge, getStatusBadge } from '../utils/formatters';
-
-const COLUMNS = [
-  { 
-    id: 'geplant', 
-    title: 'Geplant & Vorbereitung', 
-    headerColor: 'text-sky-400',
-    borderColor: 'border-sky-500/40',
-    bgColor: 'bg-slate-900/90',
-    columnBg: 'bg-slate-900/60',
-    glowColor: 'shadow-sky-500/10'
-  },
-  { 
-    id: 'in_progress', 
-    title: 'In Bearbeitung', 
-    headerColor: 'text-blue-400',
-    borderColor: 'border-blue-500/40',
-    bgColor: 'bg-slate-900/90',
-    columnBg: 'bg-slate-900/60',
-    glowColor: 'shadow-blue-500/10'
-  },
-  { 
-    id: 'review', 
-    title: 'Qualitätskontrolle / Abnahme', 
-    headerColor: 'text-amber-400',
-    borderColor: 'border-amber-500/40',
-    bgColor: 'bg-slate-900/90',
-    columnBg: 'bg-slate-900/60',
-    glowColor: 'shadow-amber-500/10'
-  },
-  { 
-    id: 'completed', 
-    title: 'Abgeschlossen & Abrechenbar', 
-    headerColor: 'text-emerald-400',
-    borderColor: 'border-emerald-500/40',
-    bgColor: 'bg-slate-900/90',
-    columnBg: 'bg-slate-900/60',
-    glowColor: 'shadow-emerald-500/10'
-  }
-];
+import { useLanguage } from '../context/LanguageContext';
 
 export default function DispositionKanbanPage({
   customers = [],
@@ -79,7 +41,47 @@ export default function DispositionKanbanPage({
   onOpenInvoiceModal,
   onReloadAllData
 }) {
+  const { t, isTR } = useLanguage();
   const defaultOwnerName = companySettings?.ownerName || 'Huriye Ünalsoy';
+
+  const COLUMNS = useMemo(() => [
+    { 
+      id: 'geplant', 
+      title: isTR ? '1. Planlanan & Hazırlık' : '1. Geplant & Vorbereitung', 
+      headerColor: 'text-sky-400',
+      borderColor: 'border-sky-500/40',
+      bgColor: 'bg-slate-900/90',
+      columnBg: 'bg-slate-900/60',
+      glowColor: 'shadow-sky-500/10'
+    },
+    { 
+      id: 'in_progress', 
+      title: isTR ? '2. Devam Eden (İşlemde)' : '2. In Bearbeitung', 
+      headerColor: 'text-blue-400',
+      borderColor: 'border-blue-500/40',
+      bgColor: 'bg-slate-900/90',
+      columnBg: 'bg-slate-900/60',
+      glowColor: 'shadow-blue-500/10'
+    },
+    { 
+      id: 'review', 
+      title: isTR ? '3. Kalite Kontrol / Teslim' : '3. Qualitätskontrolle / Abnahme', 
+      headerColor: 'text-amber-400',
+      borderColor: 'border-amber-500/40',
+      bgColor: 'bg-slate-900/90',
+      columnBg: 'bg-slate-900/60',
+      glowColor: 'shadow-amber-500/10'
+    },
+    { 
+      id: 'completed', 
+      title: isTR ? '4. Tamamlandı & Faturalanabilir' : '4. Abgeschlossen & Abrechenbar', 
+      headerColor: 'text-emerald-400',
+      borderColor: 'border-emerald-500/40',
+      bgColor: 'bg-slate-900/90',
+      columnBg: 'bg-slate-900/60',
+      glowColor: 'shadow-emerald-500/10'
+    }
+  ], [isTR]);
 
   const [dispositions, setDispositions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -310,10 +312,12 @@ export default function DispositionKanbanPage({
             <div className="p-2 bg-slate-900 text-sky-400 rounded-xl shadow-xs">
               <Trello className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <span>Auftragsdisposition & Kanban-Board</span>
+            <span>{t('disposition.title', 'Auftragsdisposition & Kanban-Board')}</span>
           </h2>
           <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
-            Echtzeit-Planung verknüpft mit <strong>{customers.length} registrierten Kunden</strong> aus Ihrer Kundenverwaltung
+            {isTR 
+              ? <>Müşteri yönetiminizdeki <strong>{customers.length} kayıtlı müşteri</strong> ile bağlantılı gerçek zamanlı iş planlaması</> 
+              : <>Echtzeit-Planung verknüpft mit <strong>{customers.length} registrierten Kunden</strong> aus Ihrer Kundenverwaltung</>}
           </p>
         </div>
 
@@ -323,7 +327,7 @@ export default function DispositionKanbanPage({
             className="flex items-center space-x-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-sky-600/20 transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Auftrag für Kunde anlegen</span>
+            <span>{isTR ? '+ Müşteri İçin Görev / İş Ekle' : '+ Auftrag für Kunde anlegen'}</span>
           </button>
         </div>
       </div>
@@ -335,7 +339,7 @@ export default function DispositionKanbanPage({
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
           <input
             type="text"
-            placeholder="Auftrag, DISP-Nr., Kunde oder #Tag suchen..."
+            placeholder={t('disposition.searchPlaceholder', 'Auftrag, DISP-Nr., Kunde oder #Tag suchen...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-9 pr-4 py-2 bg-slate-800/80 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none"
@@ -352,7 +356,7 @@ export default function DispositionKanbanPage({
               onChange={(e) => setFilterCustomer(e.target.value)}
               className="bg-transparent text-xs font-bold text-slate-200 focus:outline-none cursor-pointer"
             >
-              <option value="all" className="bg-slate-900">Alle Kunden ({customers.length})</option>
+              <option value="all" className="bg-slate-900">{isTR ? `Tüm Müşteriler (${customers.length})` : `Alle Kunden (${customers.length})`}</option>
               {customers.map(c => (
                 <option key={c.id} value={c.id} className="bg-slate-900">
                   {c.companyName} {c.contactPerson ? `(${c.contactPerson})` : ''}
@@ -367,10 +371,10 @@ export default function DispositionKanbanPage({
             onChange={(e) => setFilterPriority(e.target.value)}
             className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200 focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer"
           >
-            <option value="all" className="bg-slate-900">Alle Prioritäten</option>
-            <option value="high" className="bg-slate-900">🔴 Hoch</option>
-            <option value="medium" className="bg-slate-900">🟡 Mittel</option>
-            <option value="low" className="bg-slate-900">🟢 Niedrig</option>
+            <option value="all" className="bg-slate-900">{isTR ? 'Tüm Öncelikler' : 'Alle Prioritäten'}</option>
+            <option value="high" className="bg-slate-900">🔴 {isTR ? 'Yüksek' : 'Hoch'}</option>
+            <option value="medium" className="bg-slate-900">🟡 {isTR ? 'Orta' : 'Mittel'}</option>
+            <option value="low" className="bg-slate-900">🟢 {isTR ? 'Düşük' : 'Niedrig'}</option>
           </select>
 
           {/* Assignee Filter */}
@@ -379,7 +383,7 @@ export default function DispositionKanbanPage({
             onChange={(e) => setFilterAssignee(e.target.value)}
             className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200 focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer"
           >
-            <option value="all" className="bg-slate-900">Alle Mitarbeiter</option>
+            <option value="all" className="bg-slate-900">{isTR ? 'Tüm Sorumlular' : 'Alle Mitarbeiter'}</option>
             {assignees.map(a => (
               <option key={a} value={a} className="bg-slate-900">{a}</option>
             ))}
@@ -389,10 +393,10 @@ export default function DispositionKanbanPage({
             <button
               onClick={() => setFilterCustomer('all')}
               className="p-2 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition text-xs font-bold flex items-center gap-1 cursor-pointer"
-              title="Kundenfilter zurücksetzen"
+              title={isTR ? 'Filtreyi Temizle' : 'Kundenfilter zurücksetzen'}
             >
               <X className="w-3.5 h-3.5" />
-              <span>Filter aufheben</span>
+              <span>{isTR ? 'Filtreyi Kaldır' : 'Filter aufheben'}</span>
             </button>
           )}
         </div>

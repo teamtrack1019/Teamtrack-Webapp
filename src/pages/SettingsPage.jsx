@@ -27,8 +27,10 @@ import {
   saveFirebaseConfig, 
   testFirebaseConnection 
 } from '../firebase';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function SettingsPage() {
+  const { t, isTR } = useLanguage();
   const [settings, setSettings] = useState({
     companyName: '',
     ownerName: '',
@@ -191,17 +193,17 @@ export default function SettingsPage() {
       <div>
         <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
           <Settings className="w-7 h-7 text-sky-600" />
-          <span>Unternehmensdaten & Einstellungen</span>
+          <span>{t('settings.title', 'Unternehmensdaten & Einstellungen')}</span>
         </h2>
         <p className="text-slate-500 text-sm mt-0.5">
-          Rechnungsbriefkopf, Steuernummern, Bankverbindung und Firebase Cloud-Echtzeitsynchronisation
+          {t('settings.subtitle', 'Rechnungsbriefkopf, Steuernummern, Bankverbindung und Firebase Cloud-Echtzeitsynchronisation')}
         </p>
       </div>
 
       {saved && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl flex items-center gap-2.5 text-sm font-semibold animate-fadeIn">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-          <span>Einstellungen wurden erfolgreich gespeichert!</span>
+          <span>{t('common.success', 'Einstellungen wurden erfolgreich gespeichert!')}</span>
         </div>
       )}
 

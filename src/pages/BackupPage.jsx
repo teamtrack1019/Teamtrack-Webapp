@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { api } from '../api';
 import { formatDate, formatDateTime } from '../utils/formatters';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function BackupPage({ 
   customers = [], 
@@ -27,6 +28,7 @@ export default function BackupPage({
   mileage = [], 
   onReloadAllData 
 }) {
+  const { t, isTR } = useLanguage();
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [restoreLoading, setRestoreLoading] = useState(false);
   const [restoreSuccessMsg, setRestoreSuccessMsg] = useState('');
@@ -139,14 +141,14 @@ export default function BackupPage({
           <div className="flex items-center gap-2">
             <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
               <ShieldCheck className="w-7 h-7 text-sky-600" />
-              <span>Backup & Datensicherung</span>
+              <span>{t('backup.title', 'Backup & Datensicherung')}</span>
             </h2>
             <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-200">
-              100% Datensicherheit
+              {isTR ? '%100 Veri Güvenliği' : '100% Datensicherheit'}
             </span>
           </div>
           <p className="text-slate-500 text-sm mt-0.5">
-            Laden Sie vollständige Sicherheitskopien herunter oder stellen Sie frühere Datenstände mit einem Klick wieder her.
+            {t('backup.subtitle', 'Laden Sie vollständige Sicherheitskopien herunter oder stellen Sie frühere Datenstände mit einem Klick wieder her.')}
           </p>
         </div>
       </div>

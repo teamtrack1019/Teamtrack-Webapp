@@ -16,8 +16,10 @@ import {
 import { api } from '../api';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { downloadTaxReportPdf } from '../utils/pdfGenerator';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function TaxReportPage() {
+  const { t, isTR } = useLanguage();
   const currentYear = new Date().getFullYear().toString();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [reportData, setReportData] = useState(null);
@@ -61,7 +63,7 @@ export default function TaxReportPage() {
   if (loading || !reportData) {
     return (
       <div className="p-8 text-center text-slate-500">
-        Finanzamt-Jahresbericht wird berechnet...
+        {isTR ? 'Vergi raporu hesaplanıyor...' : 'Finanzamt-Jahresbericht wird berechnet...'}
       </div>
     );
   }
@@ -80,14 +82,14 @@ export default function TaxReportPage() {
           <div className="flex items-center gap-2">
             <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
               <Landmark className="w-7 h-7 text-sky-600" />
-              <span>Finanzamt & EÜR Jahresbericht</span>
+              <span>{t('tax.title', 'Finanzamt & EÜR Jahresbericht')}</span>
             </h2>
             <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-200">
               § 19 UStG Kleinunternehmer
             </span>
           </div>
           <p className="text-slate-500 text-sm mt-0.5">
-            Sene sonu Steuerberater ve Finanzamt için resmi EÜR (Einnahmen-Überschuss-Rechnung) raporu
+            {t('tax.subtitle', 'Automatische Einnahmen-Überschuss-Rechnung, Umsatzsteuer-Voranmeldung und steuerliche Auswertungen.')}
           </p>
         </div>
 

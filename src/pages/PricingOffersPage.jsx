@@ -37,6 +37,7 @@ import {
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { generateOfferPDF, generateAbnahmePDF } from '../utils/pdfGenerator';
 import { api } from '../api';
+import { useLanguage } from '../context/LanguageContext';
 
 export const PAKET_A_MODULES = [
   { id: 'pkgA-1', title: 'Kunden- & Stammdatenverwaltung' },
@@ -64,6 +65,7 @@ function PricingOffersContent({
   onConvertToInvoice,
   onOpenCustomerModal 
 }) {
+  const { t, isTR } = useLanguage();
   const safeCustomers = Array.isArray(customers) ? customers : [];
   const [activeTab, setActiveTab] = useState(initialTab || 'creator'); // 'creator' | 'abnahme' | 'history'
   const [offersList, setOffersList] = useState([]);
@@ -578,14 +580,13 @@ Web: https://team-track.de`;
         <div className="space-y-1.5 sm:space-y-2 min-w-0">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 text-xs font-bold border border-sky-500/30">
             <Tag className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-            <span className="truncate">Preise & Angebots-Generator</span>
+            <span className="truncate">{isTR ? 'Fiyat & Teklif Oluşturucu' : 'Preise & Angebots-Generator'}</span>
           </div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight break-words">
-            Paketpreise, Angebote & Kostenvoranschläge
+            {t('pricing.title', 'Paketpreise, Angebote & Kostenvoranschläge')}
           </h1>
           <p className="text-slate-300 text-xs md:text-sm leading-relaxed max-w-2xl">
-            Erstellen Sie flexible Paketangebote oder Kostenvoranschläge mit anpassbaren Preisen, 
-            wählen Sie Kunden aus und generieren Sie druckfertige PDFs auf Knopfdruck.
+            {t('pricing.subtitle', 'Erstellen Sie flexible Paketangebote oder Kostenvoranschläge mit anpassbaren Preisen, wählen Sie Kunden aus und generieren Sie druckfertige PDFs auf Knopfdruck.')}
           </p>
         </div>
 
@@ -600,7 +601,7 @@ Web: https://team-track.de`;
             }`}
           >
             <Calculator className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span className="truncate">Angebote</span>
+            <span className="truncate">{isTR ? 'Teklifler' : 'Angebote'}</span>
           </button>
           <button
             onClick={() => setActiveTab('abnahme')}
@@ -611,7 +612,7 @@ Web: https://team-track.de`;
             }`}
           >
             <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-300 shrink-0" />
-            <span className="truncate">Abnahme</span>
+            <span className="truncate">{isTR ? 'Teslim Tutanağı' : 'Abnahme'}</span>
           </button>
           <button
             onClick={() => setActiveTab('history')}
@@ -622,7 +623,7 @@ Web: https://team-track.de`;
             }`}
           >
             <FileSpreadsheet className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span className="truncate">Gespeichert ({offersList.length})</span>
+            <span className="truncate">{isTR ? `Kayıtlı (${offersList.length})` : `Gespeichert (${offersList.length})`}</span>
           </button>
         </div>
       </div>

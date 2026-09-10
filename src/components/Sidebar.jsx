@@ -9,25 +9,28 @@ import {
   Settings, 
   Sparkles, 
   Layers, 
-  X,
-  ShieldCheck,
-  Tag,
+  X, 
+  ShieldCheck, 
+  Tag, 
   Trello 
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function Sidebar({ activeTab, setActiveTab, counts = {}, isMobileOpen, setIsMobileOpen }) {
+  const { t } = useLanguage();
+
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'customers', label: 'Kundenverwaltung', icon: Users, badge: counts.customers },
-    { id: 'disposition', label: 'Auftragsdisposition & Kanban', icon: Trello },
-    { id: 'pricing-offers', label: 'Preise & Angebote', icon: Tag },
-    { id: 'abnahme', label: 'Abnahmeprotokolle', icon: ShieldCheck },
-    { id: 'invoices', label: 'Ausgehende Rechnungen', icon: FileText, badge: counts.pendingInvoices, badgeColor: 'bg-amber-100 text-amber-700' },
-    { id: 'expenses', label: 'Eingehende Belege (Ausgaben)', icon: Receipt, badge: counts.expenses },
-    { id: 'mileage', label: 'KM-Tracking / Fahrtenbuch', icon: Car },
-    { id: 'tax-report', label: 'Finanzamt & Jahresbericht', icon: Landmark, highlight: true },
-    { id: 'backup', label: 'Backup & Sicherung', icon: ShieldCheck },
-    { id: 'settings', label: 'Einstellungen', icon: Settings },
+    { id: 'dashboard', label: t('sidebar.dashboard', 'Dashboard'), icon: LayoutDashboard },
+    { id: 'customers', label: t('sidebar.customers', 'Kundenverwaltung'), icon: Users, badge: counts.customers },
+    { id: 'disposition', label: t('sidebar.disposition', 'Auftragsdisposition & Kanban'), icon: Trello },
+    { id: 'pricing-offers', label: t('sidebar.pricingOffers', 'Preise & Angebote'), icon: Tag },
+    { id: 'abnahme', label: t('sidebar.abnahme', 'Abnahmeprotokolle'), icon: ShieldCheck },
+    { id: 'invoices', label: t('sidebar.invoices', 'Ausgehende Rechnungen'), icon: FileText, badge: counts.pendingInvoices, badgeColor: 'bg-amber-100 text-amber-700' },
+    { id: 'expenses', label: t('sidebar.expenses', 'Eingehende Belege (Ausgaben)'), icon: Receipt, badge: counts.expenses },
+    { id: 'mileage', label: t('sidebar.mileage', 'KM-Tracking / Fahrtenbuch'), icon: Car },
+    { id: 'tax-report', label: t('sidebar.taxReport', 'Finanzamt & Jahresbericht'), icon: Landmark, highlight: true },
+    { id: 'backup', label: t('sidebar.backup', 'Backup & Sicherung'), icon: ShieldCheck },
+    { id: 'settings', label: t('sidebar.settings', 'Einstellungen'), icon: Settings },
   ];
 
   const handleSelect = (id) => {
@@ -50,7 +53,7 @@ export default function Sidebar({ activeTab, setActiveTab, counts = {}, isMobile
               TeamTrack
               <span className="text-[10px] uppercase font-bold bg-sky-500/20 text-sky-400 px-1.5 py-0.5 rounded border border-sky-500/30">Pro</span>
             </h1>
-            <p className="text-[11px] text-slate-400 truncate">Softwareentwicklung & IT-Beratung</p>
+            <p className="text-[11px] text-slate-400 truncate">{t('sidebar.subtitle', 'Softwareentwicklung & IT-Beratung')}</p>
           </div>
         </div>
 
@@ -67,7 +70,7 @@ export default function Sidebar({ activeTab, setActiveTab, counts = {}, isMobile
       {/* Navigation */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         <div className="px-3 py-2 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-          Hauptmenü
+          {t('sidebar.mainMenu', 'Hauptmenü')}
         </div>
 
         {menuItems.map((item) => {
@@ -78,7 +81,7 @@ export default function Sidebar({ activeTab, setActiveTab, counts = {}, isMobile
             <button
               key={item.id}
               onClick={() => handleSelect(item.id)}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-xs md:text-sm transition-all duration-150 ${
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-xs md:text-sm transition-all duration-150 cursor-pointer ${
                 isActive
                   ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30 font-semibold'
                   : 'text-slate-300 hover:bg-slate-800 hover:text-white'
@@ -108,10 +111,10 @@ export default function Sidebar({ activeTab, setActiveTab, counts = {}, isMobile
         <div className="bg-slate-800/60 rounded-xl p-3 border border-slate-700/60">
           <div className="flex items-center gap-2 mb-1">
             <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-            <span className="text-xs font-bold text-slate-200">Finanzamt Ready</span>
+            <span className="text-xs font-bold text-slate-200">{t('sidebar.finanzamtReady', 'Finanzamt Ready')}</span>
           </div>
           <p className="text-[11px] text-slate-400 leading-relaxed">
-            EÜR, 0,30 €/km Pauschale & MwSt. jederzeit exportierbar.
+            {t('sidebar.finanzamtReadyDesc', 'EÜR, 0,30 €/km Pauschale & MwSt. jederzeit exportierbar.')}
           </p>
         </div>
       </div>

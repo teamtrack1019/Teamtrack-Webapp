@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { downloadMileagePdf, printMileagePdfDirectly } from '../utils/pdfGenerator';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function MileagePage({ 
   mileage, 
@@ -24,6 +25,7 @@ export default function MileagePage({
   onEditMileage, 
   onDeleteMileage 
 }) {
+  const { t, isTR } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -67,10 +69,10 @@ export default function MileagePage({
         <div>
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
             <Car className="w-7 h-7 text-emerald-600" />
-            <span>KM-Tracking & Finanzamt Fahrtenbuch</span>
+            <span>{t('mileage.title', 'KM-Tracking & Finanzamt Fahrtenbuch')}</span>
           </h2>
           <p className="text-slate-500 text-sm mt-0.5">
-            Fahrtenbuch für Kundenbesuche (0,30 €/km Finanzamt-Pauschale)
+            {t('mileage.subtitle', 'Fahrtenbuch für Kundenbesuche (0,30 €/km Finanzamt-Pauschale)')}
           </p>
         </div>
 
@@ -81,17 +83,17 @@ export default function MileagePage({
             onClick={handleDownloadPdf}
             disabled={isDownloading}
             className="flex items-center space-x-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/30 transition disabled:opacity-50 cursor-pointer"
-            title="Fahrtenbuch direkt als PDF-Datei herunterladen"
+            title={isTR ? 'Yol defterini doğrudan PDF olarak indir' : 'Fahrtenbuch direkt als PDF-Datei herunterladen'}
           >
             {isDownloading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>PDF wird erstellt...</span>
+                <span>{isTR ? 'PDF hazırlanıyor...' : 'PDF wird erstellt...'}</span>
               </>
             ) : (
               <>
                 <Download className="w-4 h-4" />
-                <span>PDF Herunterladen</span>
+                <span>{isTR ? 'PDF İndir' : 'PDF Herunterladen'}</span>
               </>
             )}
           </button>
