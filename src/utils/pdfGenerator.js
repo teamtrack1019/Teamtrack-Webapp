@@ -694,7 +694,7 @@ export function createOfferDoc(offer, companySettings = {}) {
   const tableBody = [];
   let posCounter = 1;
 
-  // Paket A
+  // Paket 1 (ehemals Paket A)
   if (offer.packageA && offer.packageA.included) {
     const pAPrice = Number(offer.packageA.price || 2400);
     const defaultModNames = [
@@ -718,7 +718,7 @@ export function createOfferDoc(offer, companySettings = {}) {
 
     tableBody.push([
       `${posCounter++}`,
-      `Paket A: Komplett-Entwicklung & WebApp\n` +
+      `Paket 1: Komplett-Entwicklung & WebApp\n` +
       `Vereinbarter Modulumfang:\n` +
       `${modBulletList}`,
       '1x Einmalig',
@@ -727,7 +727,7 @@ export function createOfferDoc(offer, companySettings = {}) {
     ]);
   }
 
-  // Paket B
+  // Paket 2 (ehemals Paket B)
   if (offer.packageB && offer.packageB.included) {
     const setupPrice = Number(offer.packageB.setupPrice || 0);
     const interval = offer.packageB.interval || 'monthly';
@@ -749,14 +749,14 @@ export function createOfferDoc(offer, companySettings = {}) {
     // Pos (Abo-Betreuung)
     tableBody.push([
       `${posCounter++}`,
-      `Paket B: 7/24 Abo-Betreuung (${intervalLabel})`,
+      `Paket 2: 7/24 Abo-Betreuung (${intervalLabel})`,
       `${intervalLabel}`,
       `${docPrefix}${formatCurrency(recurringPrice)} / ${intervalUnit}`,
       `${docPrefix}${formatCurrency(recurringPrice)} / ${intervalUnit}`
     ]);
   }
 
-  // Paket C
+  // Paket 3 (ehemals Paket C)
   if (offer.packageC && offer.packageC.included) {
     const unitPrice = Number(offer.packageC.unitPrice || 890);
     const selectedMods = (offer.packageC.selectedModules || []).filter(m => m.selected !== false);
@@ -769,7 +769,7 @@ export function createOfferDoc(offer, companySettings = {}) {
 
     tableBody.push([
       `${posCounter++}`,
-      `Paket C: Modulare Funktionserweiterung (${qty} Modul${qty > 1 ? 'e' : ''} ausgewählt)\n` +
+      `Paket 3: Modulare Funktionserweiterung (${qty} Modul${qty > 1 ? 'e' : ''} ausgewählt)\n` +
       `Ausgewählte(s) Funktionsmodul(e):\n` +
       `${moduleBulletList}\n` +
       `• Nahtlose Integration in die TeamTrack-Systemarchitektur\n` +
@@ -1188,7 +1188,7 @@ export function createAbnahmeDoc(data, companySettings = {}) {
 
     tableBody.push([
       `${pos++}`,
-      `Paket A: Komplett-Entwicklung & WebApp\n` +
+      `Paket 1: Komplett-Entwicklung & WebApp\n` +
       `Abgenommener Modulumfang:\n` +
       selectedModsA.map(m => `• ${m}`).join('\n'),
       'Vollständig bereitgestellt\n& ohne Mängel abgenommen'
@@ -1200,7 +1200,7 @@ export function createAbnahmeDoc(data, companySettings = {}) {
     const intervalLabel = interval === 'yearly' ? 'Jährlich' : interval === 'quarterly' ? 'Vierteljährlich' : 'Monatlich';
     tableBody.push([
       `${pos++}`,
-      `Paket B: Setup + 7/24 Abo-Betreuung (${intervalLabel})\n` +
+      `Paket 2: Setup + 7/24 Abo-Betreuung (${intervalLabel})\n` +
       `• Schlüsselfertige Initial-Einrichtung & Admin-Übergabe\n` +
       `• Übergang in den laufenden 7/24-Support & Serverbetrieb`,
       'Initial-Setup betriebsbereit\nübergeben & freigegeben'
@@ -1214,7 +1214,7 @@ export function createAbnahmeDoc(data, companySettings = {}) {
       : `• ${data.packageC.moduleName || 'Individuelle Erweiterungsmodule'}`;
     tableBody.push([
       `${pos++}`,
-      `Paket C: Modulare Funktionserweiterung\n${modNames}`,
+      `Paket 3: Modulare Funktionserweiterung\n${modNames}`,
       'Funktionsprüfung erfolgreich\nbestanden & integriert'
     ]);
   }

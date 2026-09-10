@@ -340,7 +340,7 @@ function getLocalData() {
         if (!parsed.companySettings.website || parsed.companySettings.website.includes('vercel.app') || parsed.companySettings.website.includes('teamtrack-digital.de') || parsed.companySettings.website.includes('team-trak')) {
           parsed.companySettings.website = 'https://team-track.de';
         }
-        if (!parsed.companySettings.bic || parsed.companySettings.bic.includes('XXX') || parsed.companySettings.bic === '') {
+        if (!parsed.companySettings.bic || parsed.companySettings.bic !== 'PBNKDEFF') {
           parsed.companySettings.bic = 'PBNKDEFF';
         }
         if (!parsed.companySettings.bankName || parsed.companySettings.bankName.includes('Sparkasse')) {

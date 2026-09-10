@@ -329,7 +329,7 @@ vielen Dank für Ihr Interesse an einer Zusammenarbeit mit TeamTrack-Software.
 ${isKV ? 'Wie besprochen haben wir für Sie einen unverbindlichen Kostenvoranschlag' : 'Gerne unterbreiten wir Ihnen nachfolgend unser maßgeschneidertes Angebot'} für die Digitalisierung Ihrer Betriebsabläufe zusammengestellt:
 
 📋 ${isKV ? 'KOSTENVORANSCHLAG' : 'ANGEBOT'} ${offerNumber}
-${pkgAIncluded ? `• Paket A (Komplett-Entwicklung & WebApp): ${pricePrefix}${formatCurrency(pkgAPrice)} (einmalig)\n  Vereinbarter Modulumfang:\n${selectedPkgAModsFormatted}\n` : ''}${pkgBIncluded ? `• Paket B (Setup + 7/24 Abo-Betreuung): Setup ${pricePrefix}${formatCurrency(pkgBSetupPrice)} + ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)} / ${intervalText}\n` : ''}${pkgCIncluded && selectedModulesCount > 0 ? `• Paket C (Modulare Funktionserweiterung - ${selectedModulesCount} Modul${selectedModulesCount > 1 ? 'e' : ''} zu je ${pricePrefix}${formatCurrency(pkgCUnitPrice)} = ${pricePrefix}${formatCurrency(pkgCTotal)}):\n  Ausgewählte Funktionsbereiche:\n${selectedModsFormatted}\n` : ''}
+${pkgAIncluded ? `• Paket 1 (Komplett-Entwicklung & WebApp): ${pricePrefix}${formatCurrency(pkgAPrice)} (einmalig)\n  Vereinbarter Modulumfang:\n${selectedPkgAModsFormatted}\n` : ''}${pkgBIncluded ? `• Paket 2 (Setup + 7/24 Abo-Betreuung): Setup ${pricePrefix}${formatCurrency(pkgBSetupPrice)} + ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)} / ${intervalText}\n` : ''}${pkgCIncluded && selectedModulesCount > 0 ? `• Paket 3 (Modulare Funktionserweiterung - ${selectedModulesCount} Modul${selectedModulesCount > 1 ? 'e' : ''} zu je ${pricePrefix}${formatCurrency(pkgCUnitPrice)} = ${pricePrefix}${formatCurrency(pkgCTotal)}):\n  Ausgewählte Funktionsbereiche:\n${selectedModsFormatted}\n` : ''}
 ${currentPkgBRecurringPrice > 0 
   ? `Einmalige Investition (Setup): ${pricePrefix}${formatCurrency(totalOneTime)}\nLaufende Betreuung (${intervalText}): ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)}\nGesamtsumme (Erstabwicklung inkl. 1. ${pkgBInterval === 'yearly' ? 'Jahr' : pkgBInterval === 'quarterly' ? 'Quartal' : 'Monat'}): ${pricePrefix}${formatCurrency(totalOneTime + currentPkgBRecurringPrice)}\n`
   : `Gesamtsumme: ${pricePrefix}${formatCurrency(totalOneTime)}\n`
@@ -337,15 +337,15 @@ ${currentPkgBRecurringPrice > 0
 ${(() => {
   let cond = '';
   if (pkgAIncluded) {
-    cond += `\n📌 Vereinbarungen & 30-Tage-Garantie (Paket A):
+    cond += `\n📌 Vereinbarungen & 30-Tage-Garantie (Paket 1):
 • Verbindlicher Leistungsumfang: Es werden ausschließlich die oben explizit ausgewählten Module umgesetzt.
 • Abnahme & Prüfung: Nach Übergabe der betriebsbereiten Software hat der Auftraggeber das System innerhalb von 10 Werktagen zu prüfen und schriftlich abzunehmen.
 • Kostenlose 30-Tage-Garantie: Ab dem Tag der Abnahme behebt der Auftragnehmer für einen Zeitraum von 30 Kalendertagen alle reproduzierbaren Fehler (Bugs) der vereinbarten Funktionen kostenlos.
-• Nach Ablauf der 30 Tage (Ausschluss kostenloser Wartung): Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenlose Serviceleistungen. Zukünftige Anpassungen, Sicherheitsupdates oder Betriebssystem-Upgrades erfolgen ausschließlich gegen gesonderte Vergütung zum Stundensatz von 85,- € / Std. oder im Rahmen eines separaten Wartungsvertrags (Paket B).
+• Nach Ablauf der 30 Tage (Ausschluss kostenloser Wartung): Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenlose Serviceleistungen. Zukünftige Anpassungen, Sicherheitsupdates oder Betriebssystem-Upgrades erfolgen ausschließlich gegen gesonderte Vergütung zum Stundensatz von 85,- € / Std. oder im Rahmen eines separaten Wartungsvertrags (Paket 2).
 `;
   }
   if (pkgBIncluded) {
-    cond += `\nℹ️ Leistungsumfang & Abo-Bedingungen (Paket B):
+    cond += `\nℹ️ Leistungsumfang & Abo-Bedingungen (Paket 2):
 • Schlüsselfertige Implementierung: Das System wird mit einer einmaligen Initial-Einrichtung betriebsbereit übergeben.
 • 7/24-Abo-Betreuung: Umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, hochverfügbaren Cloud-Server-Betrieb in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- & Sicherheitsupdates sowie laufende Feature-Erweiterungen (Mindestlaufzeit 12 Monate, monatlich zahlbar und flexibel erweiterbar).
 • Datensicherung: Integrierte 1-Klick Backup-Funktion zur eigenständigen Datensicherung durch den Kunden.
@@ -353,7 +353,7 @@ ${(() => {
 `;
   }
   if (pkgCIncluded && selectedModulesCount > 0) {
-    cond += `\n🧩 Vereinbarungen zu den Erweiterungsmodulen (Paket C):
+    cond += `\n🧩 Vereinbarungen zu den Erweiterungsmodulen (Paket 3):
 • Verbindlicher Leistungsumfang: Der Leistungsumfang beschränkt sich ausschließlich auf die ${selectedModulesCount} oben ausgewählten Module. Zusätzliche oder nicht aufgeführte Funktionsbereiche bedürfen einer gesonderten schriftlichen Beauftragung.
 • Nahtlose Integration: Vollständige technische Anbindung an das bestehende TeamTrack-System inklusive Funktionstest und Einweisung.
 `;
@@ -458,19 +458,19 @@ Datum: ${formatDate(new Date())}
       }
 
       bodyText += `
-✅ Paket A (Komplett-Entwicklung & WebApp):
+✅ Paket 1 (Komplett-Entwicklung & WebApp):
 Das System und die nachfolgend vereinbarten Module wurden vollständig betriebsbereit implementiert und übergeben:
 ${mods.map(m => `  - ${m}`).join('\n')}
 
 📌 Abnahmeerklärung & 30-Tage-Garantie:
-Mit der heutigen Übergabe beginnt Ihre 30-tägige kostenlose Garantiefrist, in welcher reproduzierbare Funktionsfehler (Bugs) kostenlos durch uns behoben werden. Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenfreie Serviceleistungen. Zukünftige Anpassungen, Sicherheitsupdates oder Upgrades erfolgen ausschließlich gegen gesonderte Vergütung (Stundensatz: 85,- € / Std.) oder im Rahmen eines separaten Betreuungsvertrags (Paket B).
+Mit der heutigen Übergabe beginnt Ihre 30-tägige kostenlose Garantiefrist, in welcher reproduzierbare Funktionsfehler (Bugs) kostenlos durch uns behoben werden. Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenfreie Serviceleistungen. Zukünftige Anpassungen, Sicherheitsupdates oder Upgrades erfolgen ausschließlich gegen gesonderte Vergütung (Stundensatz: 85,- € / Std.) oder im Rahmen eines separaten Betreuungsvertrags (Paket 2).
 `;
     }
 
     if (hasPkgB) {
       const intervalText = offer?.packageB?.interval === 'yearly' ? 'jährlich' : offer?.packageB?.interval === 'quarterly' ? 'vierteljährlich' : 'monatlich';
       bodyText += `
-✅ Paket B (Setup + 7/24 Abo-Betreuung):
+✅ Paket 2 (Setup + 7/24 Abo-Betreuung):
 Das Initial-Setup wurde erfolgreich bereitgestellt und die Admin-Zugänge übergeben. Das System geht nahtlos in den laufenden 7/24-Betrieb über (${intervalText} kündbar).
 `;
     }
@@ -486,7 +486,7 @@ Das Initial-Setup wurde erfolgreich bereitgestellt und die Admin-Zugänge überg
         modNames = [`  - ${offer?.packageC?.moduleName || 'Individuelle Erweiterungsmodule'}`];
       }
       bodyText += `
-✅ Paket C (Modulare Funktionserweiterung):
+✅ Paket 3 (Modulare Funktionserweiterung):
 Die vereinbarten Zusatzmodule wurden erfolgreich in das System integriert und freigegeben:
 ${modNames.join('\n')}
 `;
@@ -783,7 +783,7 @@ Web: https://team-track.de`;
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 min-w-0">
                         <label htmlFor="pkgA" className="font-black text-slate-900 text-xs sm:text-sm cursor-pointer flex flex-wrap items-center gap-1.5 sm:gap-2">
-                          <span>Paket A: Komplett-Entwicklung & WebApp</span>
+                          <span>Paket 1: Komplett-Entwicklung & WebApp</span>
                           <span className="text-[9px] sm:text-[10px] font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full whitespace-nowrap">
                             {pkgASelectedModuleIds.length} Modul(e) gewählt
                           </span>
@@ -864,7 +864,7 @@ Web: https://team-track.de`;
                     />
                     <div className="flex-1 min-w-0">
                       <label htmlFor="pkgB" className="font-black text-slate-900 text-xs sm:text-sm cursor-pointer flex flex-wrap items-center gap-1.5 sm:gap-2">
-                        <span>Paket B: Setup + 7/24 Abo-Betreuung</span>
+                        <span>Paket 2: Setup + 7/24 Abo-Betreuung</span>
                         <span className="text-[9px] sm:text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full whitespace-nowrap">Abo</span>
                       </label>
                       <p className="text-[11px] sm:text-xs text-slate-500 mt-1 leading-relaxed">
@@ -990,7 +990,7 @@ Web: https://team-track.de`;
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 min-w-0">
                         <label htmlFor="pkgC" className="font-black text-slate-900 text-xs sm:text-sm cursor-pointer flex flex-wrap items-center gap-1.5 sm:gap-2">
-                          <span>Paket C: Modulare Erweiterung</span>
+                          <span>Paket 3: Modulare Erweiterung</span>
                           <span className="text-[9px] sm:text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full whitespace-nowrap">
                             {selectedModulesCount} Modul(e) gewählt
                           </span>
@@ -1135,7 +1135,7 @@ Web: https://team-track.de`;
                               <span className="text-slate-500 ml-1.5 block sm:inline">({selectedModulesCount} × {pricePrefix}{formatCurrency(pkgCUnitPrice)})</span>
                             </div>
                             <div className="text-emerald-700 font-black text-sm sm:text-right shrink-0">
-                              Gesamt Paket C = {pricePrefix}{formatCurrency(pkgCTotal)}
+                              Gesamt Paket 3 = {pricePrefix}{formatCurrency(pkgCTotal)}
                             </div>
                           </div>
 
@@ -1353,7 +1353,7 @@ Web: https://team-track.de`;
                   {pkgAIncluded && (
                     <div className="mt-2 pt-2 border-t border-slate-200 min-w-0">
                       <span className="font-bold text-sky-800 block mb-1">
-                        Paket A Modulumfang ({pkgASelectedModuleIds.length}):
+                        Paket 1 Modulumfang ({pkgASelectedModuleIds.length}):
                       </span>
                       <ul className="list-disc list-inside space-y-0.5 text-[10.5px] text-slate-700 min-w-0">
                         {PAKET_A_MODULES.filter(m => pkgASelectedModuleIds.includes(m.id)).map(m => (
@@ -1366,7 +1366,7 @@ Web: https://team-track.de`;
                   {pkgCIncluded && (
                     <div className="mt-2 pt-2 border-t border-slate-200 min-w-0">
                       <span className="font-bold text-emerald-800 block mb-1">
-                        Paket C Module ({selectedModulesCount}):
+                        Paket 3 Module ({selectedModulesCount}):
                       </span>
                       <ul className="list-disc list-inside space-y-0.5 text-[10.5px] text-slate-700 min-w-0">
                         {activeSelectedModules.map(m => (
@@ -1460,7 +1460,7 @@ Web: https://team-track.de`;
                 <p className="text-[11px] sm:text-xs text-slate-500 truncate">Wählen Sie an, welche Leistungspakete abgenommen werden</p>
               </div>
 
-              {/* Paket A Abnahme */}
+              {/* Paket 1 Abnahme */}
               <div className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all min-w-0 ${
                 pkgAIncluded ? 'border-sky-300 bg-sky-50/40' : 'border-slate-200 bg-slate-50/50 opacity-60'
               }`}>
@@ -1472,7 +1472,7 @@ Web: https://team-track.de`;
                       onChange={(e) => setPkgAIncluded(e.target.checked)}
                       className="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 shrink-0"
                     />
-                    <span className="font-black text-xs sm:text-sm text-slate-900 break-words">Paket A: Komplett-Entwicklung & WebApp</span>
+                    <span className="font-black text-xs sm:text-sm text-slate-900 break-words">Paket 1: Komplett-Entwicklung & WebApp</span>
                   </label>
                   <span className="text-[9px] sm:text-[10px] font-bold bg-sky-100 text-sky-800 px-2.5 py-0.5 rounded-full whitespace-nowrap self-start sm:self-auto">
                     {pkgASelectedModuleIds.length} Modul(e)
@@ -1511,7 +1511,7 @@ Web: https://team-track.de`;
                 )}
               </div>
 
-              {/* Paket B Abnahme */}
+              {/* Paket 2 Abnahme */}
               <div className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all min-w-0 ${
                 pkgBIncluded ? 'border-indigo-300 bg-indigo-50/40' : 'border-slate-200 bg-slate-50/50 opacity-60'
               }`}>
@@ -1524,7 +1524,7 @@ Web: https://team-track.de`;
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 min-w-0">
-                      <span className="font-black text-xs sm:text-sm text-slate-900 break-words">Paket B: Setup + 7/24 Abo-Betreuung</span>
+                      <span className="font-black text-xs sm:text-sm text-slate-900 break-words">Paket 2: Setup + 7/24 Abo-Betreuung</span>
                       <span className="text-[9px] sm:text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-full whitespace-nowrap self-start sm:self-auto">
                         {pkgBInterval === 'yearly' ? 'Jährlich' : pkgBInterval === 'quarterly' ? 'Vierteljährlich' : 'Monatlich'}
                       </span>
@@ -1534,7 +1534,7 @@ Web: https://team-track.de`;
                 </label>
               </div>
 
-              {/* Paket C Abnahme */}
+              {/* Paket 3 Abnahme */}
               <div className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all min-w-0 ${
                 pkgCIncluded ? 'border-emerald-300 bg-emerald-50/40' : 'border-slate-200 bg-slate-50/50 opacity-60'
               }`}>
@@ -1547,7 +1547,7 @@ Web: https://team-track.de`;
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 min-w-0">
-                      <span className="font-black text-xs sm:text-sm text-slate-900 break-words">Paket C: Modulare Funktionserweiterung</span>
+                      <span className="font-black text-xs sm:text-sm text-slate-900 break-words">Paket 3: Modulare Funktionserweiterung</span>
                       <span className="text-[9px] sm:text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full whitespace-nowrap self-start sm:self-auto">
                         {selectedModulesCount} Zusatzmodul(e)
                       </span>
