@@ -23,10 +23,13 @@ import {
   MapPin,
   Check,
   ShieldCheck,
-  Zap
+  Zap,
+  Users,
+  UserPlus,
+  ExternalLink
 } from 'lucide-react';
 import { api } from '../api';
-import { formatDate, formatDateTime } from '../utils/formatters';
+import { formatDate, formatDateTime, getLeadSourceBadge, getStatusBadge } from '../utils/formatters';
 
 const COLUMNS = [
   { 
@@ -69,14 +72,16 @@ const COLUMNS = [
 
 export default function DispositionKanbanPage({
   customers = [],
+  initialCustomerId = null,
   onSelectCustomer,
+  onOpenCustomerModal,
   onOpenInvoiceModal,
   onReloadAllData
 }) {
   const [dispositions, setDispositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterCustomer, setFilterCustomer] = useState('all');
+  const [filterCustomer, setFilterCustomer] = useState(initialCustomerId || 'all');
   const [filterPriority, setFilterPriority] = useState('all');
   const [filterAssignee, setFilterAssignee] = useState('all');
 
@@ -112,9 +117,27 @@ export default function DispositionKanbanPage({
     loadDispositions();
   }, []);
 
+  useEffect(() => {
+    if (initialCustomerId) {
+      setFilterCustomer(initialCustomerId);
+    }
+  }, [initialCustomerId]);
+
+  // Synchronize Dispositions with real registered customers from Kundenverwaltung
+  const enrichedDispositions = useMemo(() => {
+    return dispositions.map(disp => {
+      const matchedCust = customers.find(c => c.id === disp.customerId);
+      return {
+        ...disp,
+        customerName: matchedCust ? matchedCust.companyName : (disp.customerName || 'Kunde'),
+        customerObj: matchedCust || null
+      };
+    });
+  }, [dispositions, customers]);
+
   // Filtered Dispositions
   const filteredDispositions = useMemo(() => {
-    return dispositions.filter(item => {
+    return enrichedDispositions.filter(item => {
       const matchesSearch = 
         item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.dispNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -122,13 +145,13 @@ export default function DispositionKanbanPage({
         item.project?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (Array.isArray(item.tags) && item.tags.some(t => t.toLowerCase().includes(searchTerm.toLowerCase())));
 
-      const matchesCustomer = filterCustomer === 'all' || item.customerId === filterCustomer || item.customerName === filterCustomer;
+      const matchesCustomer = filterCustomer === 'all' || item.customerId === filterCustomer;
       const matchesPriority = filterPriority === 'all' || item.priority === filterPriority;
       const matchesAssignee = filterAssignee === 'all' || item.assignee === filterAssignee;
 
       return matchesSearch && matchesCustomer && matchesPriority && matchesAssignee;
     });
-  }, [dispositions, searchTerm, filterCustomer, filterPriority, filterAssignee]);
+  }, [enrichedDispositions, searchTerm, filterCustomer, filterPriority, filterAssignee]);
 
   // Unique assignees for filter
   const assignees = useMemo(() => {
@@ -171,13 +194,14 @@ export default function DispositionKanbanPage({
   };
 
   // Handle Open Create / Edit Modal
-  const handleOpenModal = (item = null) => {
+  const handleOpenModal = (item = null, prefillCustId = null) => {
     if (item) {
       setEditingItem(item);
+      const cust = customers.find(c => c.id === item.customerId);
       setFormData({
         title: item.title || '',
         customerId: item.customerId || '',
-        customerName: item.customerName || '',
+        customerName: cust ? cust.companyName : (item.customerName || ''),
         project: item.project || '',
         priority: item.priority || 'medium',
         status: item.status || 'geplant',
@@ -188,15 +212,17 @@ export default function DispositionKanbanPage({
       });
     } else {
       setEditingItem(null);
-      const defaultCust = customers[0] || null;
+      const targetCustId = prefillCustId || (filterCustomer !== 'all' ? filterCustomer : customers[0]?.id || '');
+      const defaultCust = customers.find(c => c.id === targetCustId) || customers[0] || null;
+
       setFormData({
         title: '',
         customerId: defaultCust?.id || '',
         customerName: defaultCust?.companyName || '',
-        project: '',
+        project: defaultCust?.address ? defaultCust.address.split(',')[1]?.trim() || defaultCust.address : (defaultCust?.businessType || ''),
         priority: 'medium',
         status: 'geplant',
-        tags: '#Baustelle, #Material',
+        tags: '#Baustelle, #Digitalisierung',
         assignee: 'Max Mustermann',
         date: new Date().toISOString().split('T')[0],
         notes: ''
@@ -208,13 +234,20 @@ export default function DispositionKanbanPage({
   // Save Modal
   const handleSaveModal = async (e) => {
     e.preventDefault();
+    if (!formData.customerId) {
+      alert('Bitte wählen Sie einen registrierten Kunden aus der Kundenverwaltung aus.');
+      return;
+    }
+
     try {
+      const matchedCust = customers.find(c => c.id === formData.customerId);
       const tagList = formData.tags
         ? formData.tags.split(',').map(t => t.trim()).filter(Boolean).map(t => t.startsWith('#') ? t : `#${t}`)
         : [];
 
       const payload = {
         ...formData,
+        customerName: matchedCust ? matchedCust.companyName : formData.customerName,
         tags: tagList
       };
 
@@ -231,6 +264,11 @@ export default function DispositionKanbanPage({
       alert('Fehler beim Speichern: ' + err.message);
     }
   };
+
+  // Selected customer object for modal preview
+  const modalSelectedCustomer = useMemo(() => {
+    return customers.find(c => c.id === formData.customerId) || null;
+  }, [customers, formData.customerId]);
 
   // Priority Badge Helper
   const getPriorityPill = (priority) => {
@@ -272,7 +310,7 @@ export default function DispositionKanbanPage({
             <span>Auftragsdisposition & Kanban-Board</span>
           </h2>
           <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
-            Echtzeit-Planung, Baustellen-Disposition & Abrechnungsabnahme direkt verknüpft mit Ihren Kunden
+            Echtzeit-Planung verknüpft mit <strong>{customers.length} registrierten Kunden</strong> aus Ihrer Kundenverwaltung
           </p>
         </div>
 
@@ -282,7 +320,7 @@ export default function DispositionKanbanPage({
             className="flex items-center space-x-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-sky-600/20 transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Neuer Auftrag / Disposition</span>
+            <span>+ Auftrag für Kunde anlegen</span>
           </button>
         </div>
       </div>
@@ -304,16 +342,21 @@ export default function DispositionKanbanPage({
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Customer Filter */}
-          <select
-            value={filterCustomer}
-            onChange={(e) => setFilterCustomer(e.target.value)}
-            className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200 focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer"
-          >
-            <option value="all">Alle Kunden ({customers.length})</option>
-            {customers.map(c => (
-              <option key={c.id} value={c.id}>{c.companyName}</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
+            <Users className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+            <select
+              value={filterCustomer}
+              onChange={(e) => setFilterCustomer(e.target.value)}
+              className="bg-transparent text-xs font-bold text-slate-200 focus:outline-none cursor-pointer"
+            >
+              <option value="all" className="bg-slate-900">Alle Kunden ({customers.length})</option>
+              {customers.map(c => (
+                <option key={c.id} value={c.id} className="bg-slate-900">
+                  {c.companyName} {c.contactPerson ? `(${c.contactPerson})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* Priority Filter */}
           <select
@@ -321,10 +364,10 @@ export default function DispositionKanbanPage({
             onChange={(e) => setFilterPriority(e.target.value)}
             className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200 focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer"
           >
-            <option value="all">Alle Prioritäten</option>
-            <option value="high">🔴 Hoch</option>
-            <option value="medium">🟡 Mittel</option>
-            <option value="low">🟢 Niedrig</option>
+            <option value="all" className="bg-slate-900">Alle Prioritäten</option>
+            <option value="high" className="bg-slate-900">🔴 Hoch</option>
+            <option value="medium" className="bg-slate-900">🟡 Mittel</option>
+            <option value="low" className="bg-slate-900">🟢 Niedrig</option>
           </select>
 
           {/* Assignee Filter */}
@@ -333,11 +376,22 @@ export default function DispositionKanbanPage({
             onChange={(e) => setFilterAssignee(e.target.value)}
             className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200 focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer"
           >
-            <option value="all">Alle Mitarbeiter</option>
+            <option value="all" className="bg-slate-900">Alle Mitarbeiter</option>
             {assignees.map(a => (
-              <option key={a} value={a}>{a}</option>
+              <option key={a} value={a} className="bg-slate-900">{a}</option>
             ))}
           </select>
+
+          {filterCustomer !== 'all' && (
+            <button
+              onClick={() => setFilterCustomer('all')}
+              className="p-2 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition text-xs font-bold flex items-center gap-1 cursor-pointer"
+              title="Kundenfilter zurücksetzen"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Filter aufheben</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -372,6 +426,8 @@ export default function DispositionKanbanPage({
                   </div>
                 ) : (
                   colItems.map((item) => {
+                    const leadBadge = getLeadSourceBadge(item.customerObj?.leadSource);
+
                     return (
                       <div
                         key={item.id}
@@ -391,23 +447,29 @@ export default function DispositionKanbanPage({
                         </h4>
 
                         {/* Customer & Project Subtitle */}
-                        <div className="space-y-0.5 text-xs">
+                        <div className="space-y-1 text-xs">
                           <div 
                             onClick={() => {
                               if (item.customerId && onSelectCustomer) {
                                 onSelectCustomer(item.customerId);
                               }
                             }}
-                            className={`font-semibold text-slate-300 truncate ${
+                            className={`font-bold text-slate-100 flex items-center gap-1.5 flex-wrap ${
                               item.customerId ? 'hover:text-sky-400 cursor-pointer transition' : ''
                             }`}
-                            title={item.customerId ? 'Kundenprofil öffnen' : ''}
+                            title={item.customerId ? 'Kundenprofil in Kundenverwaltung öffnen' : ''}
                           >
-                            {item.customerName}
+                            <Building2 className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                            <span className="break-words">{item.customerName}</span>
+                            {leadBadge && (
+                              <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${leadBadge.bg} ${leadBadge.text} ${leadBadge.border}`}>
+                                {leadBadge.label}
+                              </span>
+                            )}
                           </div>
 
                           {item.project && (
-                            <p className="text-[11.5px] text-sky-400 font-medium truncate">
+                            <p className="text-[11.5px] text-sky-400 font-medium truncate pl-5">
                               {item.project}
                             </p>
                           )}
@@ -529,7 +591,7 @@ export default function DispositionKanbanPage({
                     {editingItem ? 'Auftragsdisposition bearbeiten' : 'Neuen Auftrag anlegen'}
                   </h3>
                   <p className="text-xs text-slate-400">
-                    Disposition für TeamTrack Kanban & Baustellen-Abläufe
+                    Disposition für TeamTrack Kanban & Kundenverwaltung
                   </p>
                 </div>
               </div>
@@ -543,6 +605,76 @@ export default function DispositionKanbanPage({
 
             {/* Modal Form */}
             <form onSubmit={handleSaveModal} className="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
+              {/* PRIMARY CUSTOMER SELECTOR (From Kundenverwaltung) */}
+              <div className="bg-slate-800/90 p-4 rounded-2xl border border-slate-700 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sky-400 font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                    <Building2 className="w-4 h-4 text-sky-400" />
+                    Kunde aus Kundenverwaltung auswählen *
+                  </label>
+
+                  {onOpenCustomerModal && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModalOpen(false);
+                        onOpenCustomerModal();
+                      }}
+                      className="text-[11px] text-sky-400 hover:text-sky-300 font-bold underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>+ Neuer Kunde</span>
+                    </button>
+                  )}
+                </div>
+
+                <select
+                  required
+                  value={formData.customerId}
+                  onChange={(e) => {
+                    const custId = e.target.value;
+                    const matched = customers.find(c => c.id === custId);
+                    setFormData({
+                      ...formData,
+                      customerId: custId,
+                      customerName: matched ? matched.companyName : '',
+                      project: formData.project || (matched?.address ? matched.address.split(',')[1]?.trim() || matched.address : '')
+                    });
+                  }}
+                  className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-white font-bold text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer"
+                >
+                  <option value="">-- Kunde auswählen ({customers.length} registriert) --</option>
+                  {customers.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.companyName} {c.contactPerson ? `• z.Hd. ${c.contactPerson}` : ''}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Selected Customer Info Box */}
+                {modalSelectedCustomer && (
+                  <div className="bg-slate-900/90 p-3 rounded-xl border border-slate-700/80 text-[11.5px] space-y-1 text-slate-300">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-white text-xs">{modalSelectedCustomer.companyName}</span>
+                      {modalSelectedCustomer.leadSource && (() => {
+                        const b = getLeadSourceBadge(modalSelectedCustomer.leadSource);
+                        return b ? (
+                          <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded border ${b.bg} ${b.text} ${b.border}`}>
+                            {b.label}
+                          </span>
+                        ) : null;
+                      })()}
+                    </div>
+                    {modalSelectedCustomer.contactPerson && (
+                      <div className="text-slate-400">Ansprechpartner: <span className="text-slate-200">{modalSelectedCustomer.contactPerson}</span></div>
+                    )}
+                    {modalSelectedCustomer.address && (
+                      <div className="text-slate-400">Adresse: <span className="text-slate-200">{modalSelectedCustomer.address}</span></div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Job Title */}
               <div>
                 <label className="block text-slate-300 font-bold mb-1.5">
@@ -558,54 +690,15 @@ export default function DispositionKanbanPage({
                 />
               </div>
 
-              {/* Customer Selector & Project */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-300 font-bold mb-1.5">
-                    Kunde (aus Kundenverwaltung)
-                  </label>
-                  <select
-                    value={formData.customerId}
-                    onChange={(e) => {
-                      const cust = customers.find(c => c.id === e.target.value);
-                      setFormData({
-                        ...formData,
-                        customerId: e.target.value,
-                        customerName: cust ? cust.companyName : formData.customerName
-                      });
-                    }}
-                    className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer"
-                  >
-                    <option value="">-- Freitext / Allgemein --</option>
-                    {customers.map(c => (
-                      <option key={c.id} value={c.id}>{c.companyName}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-slate-300 font-bold mb-1.5">
-                    Kundenname (Freitext falls nicht in Liste)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="z.B. Huber Bauunternehmung GmbH"
-                    value={formData.customerName}
-                    onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
               {/* Project / Location & Date */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-300 font-bold mb-1.5">
-                    Projekt / Baustellen-Ort
+                    Projekt / Baustellen-Ort / Bereich
                   </label>
                   <input
                     type="text"
-                    placeholder="z.B. Wohnpark Würzburg-Nord"
+                    placeholder="z.B. Wohnpark Würzburg-Nord oder Sanierung"
                     value={formData.project}
                     onChange={(e) => setFormData({ ...formData, project: e.target.value })}
                     className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none"
@@ -667,7 +760,7 @@ export default function DispositionKanbanPage({
                     placeholder="z.B. Sarah Weber"
                     value={formData.assignee}
                     onChange={(e) => setFormData({ ...formData, assignee: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                    className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none"
                   />
                 </div>
               </div>
@@ -679,7 +772,7 @@ export default function DispositionKanbanPage({
                 </label>
                 <input
                   type="text"
-                  placeholder="#Elektro, #Baustelle, #Dringend"
+                  placeholder="#Baustelle, #Elektro, #Dringend, #Abnahme"
                   value={formData.tags}
                   onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                   className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none"

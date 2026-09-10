@@ -36,6 +36,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
+  const [dispositionCustomerId, setDispositionCustomerId] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Global state with instant default fallback
@@ -340,6 +341,10 @@ export default function App() {
               }}
               onOpenDemoEmailModal={handleOpenDemoEmail}
               onOpenInvoiceModal={(custId) => handleOpenInvoiceModal(custId)}
+              onNavigateToDisposition={(custId) => {
+                setDispositionCustomerId(custId || null);
+                setActiveTab('disposition');
+              }}
               onEditCustomer={(cust) => {
                 setEditingCustomer(cust);
                 setCustomerModalOpen(true);
@@ -358,9 +363,14 @@ export default function App() {
           {activeTab === 'disposition' && (
             <DispositionKanbanPage
               customers={customers}
+              initialCustomerId={dispositionCustomerId}
               onSelectCustomer={(id) => {
                 setSelectedCustomerId(id);
                 setActiveTab('customer-detail');
+              }}
+              onOpenCustomerModal={() => {
+                setEditingCustomer(null);
+                setCustomerModalOpen(true);
               }}
               onOpenInvoiceModal={(custId, inv, prefilled) => handleOpenInvoiceModal(custId, inv, prefilled)}
               onReloadAllData={loadAllData}
@@ -383,6 +393,10 @@ export default function App() {
               }}
               onOpenInvoiceModal={(custId, inv, prefilled) => handleOpenInvoiceModal(custId, inv, prefilled)}
               onOpenMileageModal={(custId) => handleOpenMileageModal(custId)}
+              onNavigateToDisposition={(custId) => {
+                setDispositionCustomerId(custId || selectedCustomerId);
+                setActiveTab('disposition');
+              }}
               onViewInvoice={handleViewInvoice}
               onEditCustomer={(cust) => {
                 setEditingCustomer(cust);

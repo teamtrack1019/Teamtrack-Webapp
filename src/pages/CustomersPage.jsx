@@ -27,7 +27,8 @@ import {
   Filter,
   User,
   Hash,
-  ExternalLink
+  ExternalLink,
+  Trello
 } from 'lucide-react';
 import { api } from '../api';
 import { 
@@ -45,6 +46,7 @@ export default function CustomersPage({
   onOpenCustomerModal, 
   onOpenDemoEmailModal, 
   onOpenInvoiceModal,
+  onNavigateToDisposition,
   onEditCustomer, 
   onUpdateCustomerStatus,
   onDeleteCustomer,
@@ -593,15 +595,26 @@ export default function CustomersPage({
                   </div>
                 </div>
 
-                {/* Card Footer: Detail Button & Add Invoice */}
-                <div className="bg-slate-50/80 -mx-5 -mb-5 sm:-mx-7 sm:-mb-7 p-4 sm:p-5 border-t border-slate-100 rounded-b-2xl sm:rounded-b-3xl flex items-center justify-between gap-3">
-                  <button
-                    onClick={() => onOpenInvoiceModal(selectedCustomer.id)}
-                    className="text-xs sm:text-sm font-bold text-slate-700 hover:text-sky-600 flex items-center gap-1.5 bg-white border border-slate-200 px-3.5 py-2 rounded-xl shadow-2xs transition cursor-pointer"
-                  >
-                    <FileText className="w-4 h-4 text-sky-600" />
-                    <span>+ Rechnung</span>
-                  </button>
+                {/* Card Footer: Detail Button & Add Invoice & Add Auftrag */}
+                <div className="bg-slate-50/80 -mx-5 -mb-5 sm:-mx-7 sm:-mb-7 p-4 sm:p-5 border-t border-slate-100 rounded-b-2xl sm:rounded-b-3xl flex flex-wrap items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={() => onOpenInvoiceModal(selectedCustomer.id)}
+                      className="text-xs sm:text-sm font-bold text-slate-700 hover:text-sky-600 flex items-center gap-1.5 bg-white border border-slate-200 px-3.5 py-2 rounded-xl shadow-2xs transition cursor-pointer"
+                    >
+                      <FileText className="w-4 h-4 text-sky-600" />
+                      <span>+ Rechnung</span>
+                    </button>
+
+                    <button
+                      onClick={() => onNavigateToDisposition && onNavigateToDisposition(selectedCustomer.id)}
+                      className="text-xs sm:text-sm font-bold text-slate-700 hover:text-sky-600 flex items-center gap-1.5 bg-white border border-slate-200 px-3.5 py-2 rounded-xl shadow-2xs transition cursor-pointer"
+                      title="Auftrag im Kanban anlegen"
+                    >
+                      <Trello className="w-4 h-4 text-indigo-600" />
+                      <span>+ Auftrag (Kanban)</span>
+                    </button>
+                  </div>
 
                   <button
                     onClick={() => onSelectCustomer(selectedCustomer.id)}
@@ -870,21 +883,32 @@ export default function CustomersPage({
                 </div>
 
                 {/* Card Footer: Detail Button */}
-                <div className="bg-slate-50 px-5 py-3 border-t border-slate-100 flex items-center justify-between">
-                  <button
-                    onClick={() => onOpenInvoiceModal(customer.id)}
-                    className="text-xs font-semibold text-slate-600 hover:text-sky-600 flex items-center gap-1"
-                  >
-                    <FileText className="w-3.5 h-3.5" />
-                    <span>+ Rechnung</span>
-                  </button>
+                <div className="bg-slate-50 px-4 py-3 border-t border-slate-100 flex items-center justify-between gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => onOpenInvoiceModal(customer.id)}
+                      className="text-xs font-semibold text-slate-600 hover:text-sky-600 flex items-center gap-1"
+                      title="Rechnung erstellen"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>+ RE</span>
+                    </button>
+                    <button
+                      onClick={() => onNavigateToDisposition && onNavigateToDisposition(customer.id)}
+                      className="text-xs font-semibold text-slate-600 hover:text-indigo-600 flex items-center gap-1"
+                      title="Auftrag im Kanban anlegen"
+                    >
+                      <Trello className="w-3.5 h-3.5 text-indigo-500" />
+                      <span>+ Auftrag</span>
+                    </button>
+                  </div>
 
                   <button
                     onClick={() => onSelectCustomer(customer.id)}
                     className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1 group-hover:translate-x-0.5 transition"
                   >
-                    <span>Kundenprofil öffnen</span>
-                    <ChevronRight className="w-4 h-4" />
+                    <span>Profil</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>

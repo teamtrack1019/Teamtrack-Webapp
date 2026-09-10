@@ -917,6 +917,7 @@ async function handleLocalRequest(endpoint, options = {}) {
         services: custServices,
         invoices: custInvoices,
         offers: custOffers,
+        dispositions: (db.dispositions || []).filter(d => d.customerId === custId),
         mileage: db.mileage.filter(m => m.customerId === custId),
         emailLogs: (db.emailLogs || []).filter(e => e.customerId === custId)
       };

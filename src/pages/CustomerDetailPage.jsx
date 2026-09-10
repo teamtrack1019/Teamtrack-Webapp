@@ -26,7 +26,8 @@ import {
   FileSpreadsheet,
   Download,
   AlertTriangle,
-  Bell
+  Bell,
+  Trello
 } from 'lucide-react';
 import { api } from '../api';
 import { formatCurrency, formatDate, formatDateTime, getOfferReminderStatus, getLeadSourceBadge } from '../utils/formatters';
@@ -41,6 +42,7 @@ export default function CustomerDetailPage({
   onEditService,
   onOpenInvoiceModal,
   onOpenMileageModal,
+  onNavigateToDisposition,
   onViewInvoice,
   onEditCustomer,
   onReloadAllData
@@ -76,7 +78,7 @@ export default function CustomerDetailPage({
     );
   }
 
-  const { customer, services, invoices, offers = [], mileage, emailLogs } = data;
+  const { customer, services, invoices, offers = [], mileage, emailLogs, dispositions = [] } = data;
 
   // Separate services into Abos vs. Einmalig
   const abos = services.filter(s => s.type === 'abo');
@@ -468,6 +470,18 @@ export default function CustomerDetailPage({
         >
           <FileSpreadsheet className="w-4 h-4" />
           <span>Angebote & KV ({offers.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('dispositions')}
+          className={`pb-3 text-sm font-bold transition flex items-center gap-2 border-b-2 whitespace-nowrap cursor-pointer ${
+            activeSubTab === 'dispositions'
+              ? 'border-sky-600 text-sky-600'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Trello className="w-4 h-4" />
+          <span>Aufträge & Kanban ({dispositions.length})</span>
         </button>
 
         <button
@@ -951,6 +965,85 @@ export default function CustomerDetailPage({
             {mileage.length === 0 && (
               <div className="text-center py-8 text-xs text-slate-400">
                 Keine Fahrten für diesen Kunden erfasst.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* SUBTAB: AUFTRÄGE & KANBAN */}
+      {activeSubTab === 'dispositions' && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-base font-bold text-slate-900">Auftragsdispositionen & Baustellen-Aufgaben</h3>
+              <p className="text-xs text-slate-500">Alle geplanten, laufenden und abgeschlossenen Aufgaben für {customer.companyName}</p>
+            </div>
+            <button
+              onClick={() => {
+                if (onNavigateToDisposition) {
+                  onNavigateToDisposition(customer.id);
+                }
+              }}
+              className="flex items-center space-x-1.5 px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition cursor-pointer self-start sm:self-auto"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Auftrag im Kanban anlegen</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            {dispositions.map((disp) => {
+              const statusLabels = {
+                geplant: { label: 'Geplant & Vorbereitung', bg: 'bg-sky-50 text-sky-800 border-sky-200' },
+                in_progress: { label: 'In Bearbeitung', bg: 'bg-blue-50 text-blue-800 border-blue-200' },
+                review: { label: 'Qualitätskontrolle / Abnahme', bg: 'bg-amber-50 text-amber-800 border-amber-200' },
+                completed: { label: 'Abgeschlossen & Abrechenbar', bg: 'bg-emerald-50 text-emerald-800 border-emerald-200' }
+              };
+              const st = statusLabels[disp.status] || { label: disp.status, bg: 'bg-slate-100 text-slate-700 border-slate-200' };
+
+              return (
+                <div key={disp.id} className="p-4 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-sky-300 transition-all space-y-2.5 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-black text-slate-600">{disp.dispNumber || disp.id}</span>
+                    <span className={`text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border ${st.bg}`}>
+                      {st.label}
+                    </span>
+                  </div>
+
+                  <h4 className="font-bold text-sm text-slate-900 leading-snug">{disp.title}</h4>
+
+                  {disp.project && (
+                    <div className="text-xs text-sky-700 font-semibold">{disp.project}</div>
+                  )}
+
+                  {Array.isArray(disp.tags) && disp.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {disp.tags.map((t, idx) => (
+                        <span key={idx} className="text-[10px] font-medium bg-white text-slate-600 px-2 py-0.5 rounded border border-slate-200">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-200/80">
+                    <div className="flex items-center gap-1">
+                      <User className="w-3.5 h-3.5 text-slate-400" />
+                      <span>{disp.assignee || 'Unzugewiesen'}</span>
+                    </div>
+                    <div className="flex items-center gap-1 font-mono">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      <span>{formatDate(disp.date)}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {dispositions.length === 0 && (
+              <div className="col-span-full text-center py-10 text-xs text-slate-400 border border-dashed border-slate-200 rounded-2xl">
+                Noch keine Aufträge für diesen Kunden im Kanban erfasst.
               </div>
             )}
           </div>
