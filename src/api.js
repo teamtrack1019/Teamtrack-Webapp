@@ -301,6 +301,83 @@ const defaultSeed = {
       createdAt: '2026-08-30T16:00:00.000Z'
     }
   ],
+  dispositions: [
+    {
+      id: 'disp-202',
+      dispNumber: 'DISP-202',
+      title: 'Materialdisposition & Anlieferung Gerüst',
+      customerId: 'cust-1',
+      customerName: 'Schmidt & Partner Bau GmbH',
+      project: 'Sanierung Randersacker',
+      priority: 'medium', // 'low', 'medium', 'high'
+      status: 'geplant', // 'geplant', 'in_progress', 'review', 'completed'
+      tags: ['#Logistik', '#Material'],
+      assignee: 'Max Mustermann',
+      date: '2026-09-10',
+      notes: 'Gerüstanlieferung und Vorprüfung der Fassade vor Ort.',
+      createdAt: '2026-09-01T08:00:00.000Z'
+    },
+    {
+      id: 'disp-205',
+      dispNumber: 'DISP-205',
+      title: 'Kundenberatung Vor-Ort & Aufmaß',
+      customerId: 'cust-2',
+      customerName: 'Bäcker Meisterei Lehmann',
+      project: 'Projektplanung 2026',
+      priority: 'medium',
+      status: 'geplant',
+      tags: ['#Aufmaß', '#Kunde'],
+      assignee: 'Sarah Weber',
+      date: '2026-09-12',
+      notes: 'Bestandsaufnahme vor Ort und Detailbesprechung für WebApp-Erweiterung.',
+      createdAt: '2026-09-02T09:00:00.000Z'
+    },
+    {
+      id: 'disp-201',
+      dispNumber: 'DISP-201',
+      title: 'Elektro-Hauptverteilung installieren',
+      customerId: 'cust-3',
+      customerName: 'Elektrotechnik Müller & Söhne',
+      project: 'Wohnpark Würzburg-Nord',
+      priority: 'high',
+      status: 'in_progress',
+      tags: ['#Elektro', '#Baustelle', '#Dringend'],
+      assignee: 'Sarah Weber',
+      date: '2026-09-08',
+      notes: 'Verkabelung und Schaltschrankinstallation im Erdgeschoss.',
+      createdAt: '2026-09-03T10:00:00.000Z'
+    },
+    {
+      id: 'disp-203',
+      dispNumber: 'DISP-203',
+      title: 'Wartung Hebeanlage Tor 4 & Testlauf',
+      customerId: 'cust-1',
+      customerName: 'Schmidt & Partner Bau GmbH',
+      project: 'Hafen Würzburg',
+      priority: 'high',
+      status: 'review',
+      tags: ['#Wartung', '#Prüfprotokoll'],
+      assignee: 'Jan Becker',
+      date: '2026-09-05',
+      notes: 'Hydraulik-Check und Funktionstest der Steuereinheit.',
+      createdAt: '2026-09-04T11:00:00.000Z'
+    },
+    {
+      id: 'disp-204',
+      dispNumber: 'DISP-204',
+      title: 'Sicherheits- und Brandschutzprüfung',
+      customerId: 'cust-3',
+      customerName: 'Elektrotechnik Müller & Söhne',
+      project: 'Bürokomplex Würzburg',
+      priority: 'low',
+      status: 'completed',
+      tags: ['#Abnahme', '#Protokoll'],
+      assignee: 'Max Mustermann',
+      date: '2026-09-02',
+      notes: 'Erfolgreich abgenommen, digitales Protokoll liegt vor.',
+      createdAt: '2026-09-02T14:00:00.000Z'
+    }
+  ],
   offers: [],
   emailLogs: []
 };
@@ -313,6 +390,9 @@ function getLocalData() {
       const parsed = JSON.parse(raw);
       if (!parsed.offers) {
         parsed.offers = [];
+      }
+      if (!parsed.dispositions || !Array.isArray(parsed.dispositions) || parsed.dispositions.length === 0) {
+        parsed.dispositions = defaultSeed.dispositions;
       }
       if (parsed.companySettings) {
         parsed.companySettings.isKleinunternehmer = true;
@@ -1502,6 +1582,72 @@ async function handleLocalRequest(endpoint, options = {}) {
     };
   }
 
+  // DISPOSITIONS (AUFTRAGSDISPOSITION & KANBAN-BOARD)
+  if (endpoint.startsWith('/dispositions')) {
+    if (!db.dispositions) db.dispositions = [];
+
+    if (endpoint === '/dispositions') {
+      if (method === 'GET') {
+        return db.dispositions;
+      }
+      if (method === 'POST') {
+        let maxNum = 200;
+        db.dispositions.forEach(d => {
+          const match = String(d.dispNumber || d.id).match(/DISP-(\d+)/i);
+          if (match) {
+            const n = parseInt(match[1], 10);
+            if (!isNaN(n) && n > maxNum) maxNum = n;
+          }
+        });
+        const dispNumber = body.dispNumber || `DISP-${maxNum + 1}`;
+        const newDisp = {
+          id: `disp-${Date.now()}`,
+          dispNumber,
+          title: body.title || 'Neuer Auftrag',
+          customerId: body.customerId || null,
+          customerName: body.customerName || 'Allgemein',
+          project: body.project || '',
+          priority: body.priority || 'medium', // 'low', 'medium', 'high'
+          status: body.status || 'geplant', // 'geplant', 'in_progress', 'review', 'completed'
+          tags: Array.isArray(body.tags) ? body.tags : (body.tags ? String(body.tags).split(',').map(t => t.trim()) : []),
+          assignee: body.assignee || 'Max Mustermann',
+          date: body.date || new Date().toISOString().split('T')[0],
+          notes: body.notes || '',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        db.dispositions.push(newDisp);
+        saveLocalData(db);
+        pushToFirebase(db);
+        return newDisp;
+      }
+    }
+
+    const parts = endpoint.split('/');
+    const dispId = parts[2];
+    const index = db.dispositions.findIndex(d => d.id === dispId);
+
+    if (index !== -1) {
+      if (method === 'GET') return db.dispositions[index];
+      if (method === 'PUT') {
+        db.dispositions[index] = {
+          ...db.dispositions[index],
+          ...body,
+          updatedAt: new Date().toISOString()
+        };
+        saveLocalData(db);
+        pushToFirebase(db);
+        return db.dispositions[index];
+      }
+      if (method === 'DELETE') {
+        const deleted = db.dispositions.splice(index, 1);
+        saveLocalData(db);
+        pushToFirebase(db);
+        return deleted[0];
+      }
+    }
+  }
+
   // SETTINGS
   if (endpoint === '/settings') {
     if (method === 'GET') return db.companySettings;
@@ -1546,6 +1692,11 @@ export const api = {
   createMileage: (data) => request('/mileage', { method: 'POST', body: JSON.stringify(data) }),
   updateMileage: (id, data) => request(`/mileage/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteMileage: (id) => request(`/mileage/${id}`, { method: 'DELETE' }),
+  getDispositions: () => request('/dispositions'),
+  getDisposition: (id) => request(`/dispositions/${id}`),
+  createDisposition: (data) => request('/dispositions', { method: 'POST', body: JSON.stringify(data) }),
+  updateDisposition: (id, data) => request(`/dispositions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteDisposition: (id) => request(`/dispositions/${id}`, { method: 'DELETE' }),
   getOffers: (customerId) => request(`/offers${customerId ? `?customerId=${customerId}` : ''}`),
   getOffer: (id) => request(`/offers/${id}`),
   createOffer: (data) => request('/offers', { method: 'POST', body: JSON.stringify(data) }),

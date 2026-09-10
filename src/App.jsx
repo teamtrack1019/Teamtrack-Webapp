@@ -11,6 +11,7 @@ import TaxReportPage from './pages/TaxReportPage';
 import BackupPage from './pages/BackupPage';
 import SettingsPage from './pages/SettingsPage';
 import PricingOffersPage from './pages/PricingOffersPage';
+import DispositionKanbanPage from './pages/DispositionKanbanPage';
 
 // Modals
 import CustomerModal from './components/CustomerModal';
@@ -351,6 +352,18 @@ export default function App() {
                 }
               }}
               onDeleteCustomer={handleDeleteCustomer}
+            />
+          )}
+
+          {activeTab === 'disposition' && (
+            <DispositionKanbanPage
+              customers={customers}
+              onSelectCustomer={(id) => {
+                setSelectedCustomerId(id);
+                setActiveTab('customer-detail');
+              }}
+              onOpenInvoiceModal={(custId, inv, prefilled) => handleOpenInvoiceModal(custId, inv, prefilled)}
+              onReloadAllData={loadAllData}
             />
           )}
 
