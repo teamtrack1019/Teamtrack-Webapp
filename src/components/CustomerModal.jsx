@@ -10,6 +10,7 @@ export default function CustomerModal({ isOpen, onClose, onSave, customer = null
     address: '',
     taxNumber: '',
     status: 'lead',
+    leadSource: 'WEBSITE ANFRAGE',
     businessType: 'Papierkram Digitalisierung & WebApp',
     notes: ''
   });
@@ -26,6 +27,7 @@ export default function CustomerModal({ isOpen, onClose, onSave, customer = null
         address: customer.address || '',
         taxNumber: customer.taxNumber || '',
         status: customer.status || 'lead',
+        leadSource: customer.leadSource || 'WEBSITE ANFRAGE',
         businessType: customer.businessType || 'Papierkram Digitalisierung & WebApp',
         notes: customer.notes || ''
       });
@@ -38,6 +40,7 @@ export default function CustomerModal({ isOpen, onClose, onSave, customer = null
         address: '',
         taxNumber: '',
         status: 'lead',
+        leadSource: 'WEBSITE ANFRAGE',
         businessType: 'Papierkram Digitalisierung & WebApp',
         notes: ''
       });
@@ -132,6 +135,27 @@ export default function CustomerModal({ isOpen, onClose, onSave, customer = null
                 <option value="archived">Archiviert (Inaktiv)</option>
               </select>
             </div>
+          </div>
+
+          {/* Lead Source / Woher erreicht */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+              Akquise-Kanal / Woher erreicht? (Lead-Quelle)
+            </label>
+            <select
+              value={formData.leadSource}
+              onChange={(e) => setFormData({ ...formData, leadSource: e.target.value })}
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white font-bold text-slate-800"
+            >
+              <option value="WEBSITE ANFRAGE">🌐 WEBSITE ANFRAGE</option>
+              <option value="DIREKT E-MAIL">✉️ DIREKT E-MAIL</option>
+              <option value="UPWORK">🟢 UPWORK</option>
+              <option value="XING">💼 XING</option>
+              <option value="MALT">🔴 MALT</option>
+              <option value="EMPFEHLUNG">⭐ EMPFEHLUNG</option>
+              <option value="SONSTIGES">📌 SONSTIGES</option>
+            </select>
           </div>
 
           {/* Email & Phone */}

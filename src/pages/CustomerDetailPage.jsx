@@ -29,7 +29,7 @@ import {
   Bell
 } from 'lucide-react';
 import { api } from '../api';
-import { formatCurrency, formatDate, formatDateTime, getOfferReminderStatus } from '../utils/formatters';
+import { formatCurrency, formatDate, formatDateTime, getOfferReminderStatus, getLeadSourceBadge } from '../utils/formatters';
 import { generateOfferPDF } from '../utils/pdfGenerator';
 
 export default function CustomerDetailPage({
@@ -135,13 +135,23 @@ export default function CustomerDetailPage({
                 <Building2 className="w-6 h-6 text-sky-400" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-xl md:text-2xl font-black text-slate-900">
                     {customer.companyName}
                   </h1>
                   <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${statusBadge.bg} ${statusBadge.text} ${statusBadge.border}`}>
                     {statusBadge.label}
                   </span>
+                  {customer.leadSource && (() => {
+                    const badge = getLeadSourceBadge(customer.leadSource);
+                    if (!badge) return null;
+                    return (
+                      <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border flex items-center gap-1 ${badge.bg} ${badge.text} ${badge.border}`}>
+                        <span>{badge.icon}</span>
+                        <span>{badge.label}</span>
+                      </span>
+                    );
+                  })()}
                 </div>
                 {customer.businessType && (
                   <p className="text-xs text-sky-700 font-semibold mt-0.5">

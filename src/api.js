@@ -37,6 +37,7 @@ const defaultSeed = {
       address: 'Industriestraße 14, 12099 Berlin',
       taxNumber: 'DE298765432',
       status: 'active',
+      leadSource: 'WEBSITE ANFRAGE',
       businessType: 'Papierkram Digitalisierung & Zeiterfassung',
       notes: 'Baudokumentation und Stundenzettel von Papier auf Tablet-WebApp umgestellt.',
       demoEmailSent: true,
@@ -54,6 +55,7 @@ const defaultSeed = {
       address: 'Hauptstraße 88, 10827 Berlin',
       taxNumber: '14/234/56789',
       status: 'active',
+      leadSource: 'UPWORK',
       businessType: 'Webapp & Rechnungswesen',
       notes: 'Bestellsystem für Filialen und digitale Lieferscheine.',
       demoEmailSent: true,
@@ -71,6 +73,7 @@ const defaultSeed = {
       address: 'Gewerbepark Süd 5, 12305 Berlin',
       taxNumber: 'DE345678912',
       status: 'lead',
+      leadSource: 'XING',
       businessType: 'Papierkram Digitalisierung',
       notes: 'Interesse an digitaler Baustellendokumentation & Kundenterminen.',
       demoEmailSent: true,
@@ -350,6 +353,14 @@ function getLocalData() {
           parsed.companySettings.iban = 'DE16 1001 0010 0012 7271 85';
         }
       }
+
+      // Auto-migrate customers: ensure leadSource exists
+      const fallbackSources = ['WEBSITE ANFRAGE', 'UPWORK', 'XING', 'DIREKT E-MAIL', 'MALT'];
+      (parsed.customers || []).forEach((c, idx) => {
+        if (!c.leadSource) {
+          c.leadSource = fallbackSources[idx % fallbackSources.length] || 'WEBSITE ANFRAGE';
+        }
+      });
 
       // Auto-migrate invoices: align exact Liefer-/Leistungsdatum with corresponding service and keep dueDate in sync
       (parsed.invoices || []).forEach(inv => {

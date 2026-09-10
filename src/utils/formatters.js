@@ -100,3 +100,30 @@ export function getOfferReminderStatus(customer) {
     return null;
   }
 }
+
+export function getLeadSourceBadge(source) {
+  if (!source) return null;
+  const s = String(source).toUpperCase().trim();
+  switch (s) {
+    case 'XING':
+      return { label: 'XING', bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200', icon: '💼' };
+    case 'UPWORK':
+      return { label: 'UPWORK', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: '🟢' };
+    case 'MALT':
+      return { label: 'MALT', bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', icon: '🔴' };
+    case 'DIREKT E-MAIL':
+    case 'DIRECKT E-MAIL':
+    case 'DIREKT EMAIL':
+    case 'E-MAIL':
+      return { label: 'DIREKT E-MAIL', bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200', icon: '✉️' };
+    case 'WEBSITE ANFRAGE':
+    case 'WEBSITE':
+      return { label: 'WEBSITE ANFRAGE', bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', icon: '🌐' };
+    case 'EMPFEHLUNG':
+      return { label: 'EMPFEHLUNG', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: '⭐' };
+    default:
+      return { label: source, bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200', icon: '📌' };
+  }
+}
+
+
