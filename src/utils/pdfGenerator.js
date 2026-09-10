@@ -1285,10 +1285,16 @@ export function createAbnahmeDoc(data, companySettings = {}) {
     );
   }
 
-  // 3. Backup responsibility (Customer responsibility!)
-  statements.push(
-    `${hasPkgA ? '3.' : '2.'} Eigenverantwortung Datensicherung: Die regelmäßige Erstellung und Sicherung von Backups obliegt der alleinigen Sorgfaltspflicht des Auftraggebers. Über die im System integrierte 1-Klick Backup-Funktion können vollständige Datensicherungen jederzeit eigenständig als JSON-Datei exportiert und archiviert werden.`
-  );
+  // 3. Backup responsibility (Automated server backups for Paket B or Customer responsibility)
+  if (hasPkgB) {
+    statements.push(
+      `${hasPkgA ? '3.' : '2.'} Datensicherung & Server-Backups: Im Rahmen der laufenden 7/24 Betreuung führt TeamTrack tägliche automatisierte Server-Backups durch. Ergänzend obliegt dem Auftraggeber die eigenverantwortliche lokale Archivierung über die integrierte 1-Klick Backup-Funktion.`
+    );
+  } else {
+    statements.push(
+      `${hasPkgA ? '3.' : '2.'} Eigenverantwortung Datensicherung: Die regelmäßige Erstellung und Sicherung von Backups obliegt der alleinigen Sorgfaltspflicht des Auftraggebers. Über die im System integrierte 1-Klick Backup-Funktion können vollständige Datensicherungen jederzeit eigenständig als JSON-Datei exportiert und archiviert werden.`
+    );
+  }
 
   // 4. Scope Limitation
   statements.push(

@@ -493,10 +493,19 @@ ${modNames.join('\n')}
 `;
     }
 
-    bodyText += `
+    if (hasPkgB) {
+      bodyText += `
+🔒 Datensicherung & Server-Backups:
+Im Rahmen der laufenden 7/24 Betreuung führt TeamTrack tägliche automatisierte Server-Backups durch. Ergänzend obliegt dem Auftraggeber die eigenverantwortliche lokale Archivierung über die integrierte 1-Klick Backup-Funktion.
+`;
+    } else {
+      bodyText += `
 🔒 Wichtiger Hinweis zur Datensicherung:
 Die regelmäßige Erstellung von Datensicherungen (Backups) obliegt der Eigenverantwortung des Kunden und kann jederzeit eigenständig mit 1 Klick über die integrierte Backup-Funktion im System durchgeführt werden.
+`;
+    }
 
+    bodyText += `
 Das rechtsverbindliche Abnahmeprotokoll als PDF-Dokument liegt dieser E-Mail bei. Bitte senden Sie uns das Dokument gegengezeichnet zurück.
 
 Bei Fragen stehen wir Ihnen jederzeit gerne zur Verfügung.
@@ -1581,12 +1590,20 @@ Web: https://team-track.de`;
                 )}
 
                 <div className="bg-emerald-900/60 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-emerald-700/60 space-y-1">
-                  <strong className="text-white block font-bold">3. Eigenverantwortung Datensicherung (Backups):</strong>
-                  <span>Ausdrücklicher Haftungsausschluss bei Datenverlust; die regelmäßige Datensicherung erfolgt eigenverantwortlich durch den Kunden über die integrierte 1-Klick Backup-Funktion im System.</span>
+                  <strong className="text-white block font-bold">
+                    {pkgAIncluded ? '3.' : '2.'} {pkgBIncluded ? 'Datensicherung & Server-Backups:' : 'Eigenverantwortung Datensicherung (Backups):'}
+                  </strong>
+                  <span>
+                    {pkgBIncluded
+                      ? 'Im Rahmen der laufenden 7/24 Betreuung führt TeamTrack tägliche automatisierte Server-Backups durch. Ergänzend obliegt dem Auftraggeber die eigenverantwortliche lokale Archivierung über die integrierte 1-Klick Backup-Funktion.'
+                      : 'Ausdrücklicher Haftungsausschluss bei Datenverlust; die regelmäßige Datensicherung erfolgt eigenverantwortlich durch den Kunden über die integrierte 1-Klick Backup-Funktion im System.'}
+                  </span>
                 </div>
 
                 <div className="bg-emerald-900/60 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-emerald-700/60 space-y-1">
-                  <strong className="text-white block font-bold">4. Ausschluss nicht vereinbarter Sonderleistungen:</strong>
+                  <strong className="text-white block font-bold">
+                    {pkgAIncluded ? '4.' : '3.'} Ausschluss nicht vereinbarter Sonderleistungen:
+                  </strong>
                   <span>Funktionen, die nicht explizit in diesem Protokoll aufgeführt sind, sind nicht Bestandteil dieser Abnahme und bedürfen gesonderter Beauftragung.</span>
                 </div>
               </div>
@@ -1857,8 +1874,12 @@ Web: https://team-track.de`;
                   )}
 
                   <div className="bg-white p-2.5 sm:p-3 rounded-xl border border-emerald-100 space-y-1">
-                    <strong className="text-slate-900 block font-bold">3. Eigenverantwortung Datensicherung (Backups):</strong>
-                    Ausdrücklicher Ausschluss von Haftungsansprüchen bei Datenverlust; regelmäßige Datensicherung erfolgt eigenverantwortlich durch den Kunden über die 1-Klick Backup-Funktion.
+                    <strong className="text-slate-900 block font-bold">
+                      {abnahmeModalOffer.packageA && abnahmeModalOffer.packageA.included ? '3.' : '2.'} {abnahmeModalOffer.packageB && abnahmeModalOffer.packageB.included ? 'Datensicherung & Server-Backups:' : 'Eigenverantwortung Datensicherung (Backups):'}
+                    </strong>
+                    {abnahmeModalOffer.packageB && abnahmeModalOffer.packageB.included
+                      ? 'Im Rahmen der laufenden 7/24 Betreuung führt TeamTrack tägliche automatisierte Server-Backups durch. Ergänzend obliegt dem Auftraggeber die eigenverantwortliche lokale Archivierung über die integrierte 1-Klick Backup-Funktion.'
+                      : 'Ausdrücklicher Ausschluss von Haftungsansprüchen bei Datenverlust; regelmäßige Datensicherung erfolgt eigenverantwortlich durch den Kunden über die 1-Klick Backup-Funktion.'}
                   </div>
                 </div>
               </div>
