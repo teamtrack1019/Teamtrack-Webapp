@@ -32,12 +32,57 @@ import {
 
 import { api } from './api';
 
+// Helper to parse route from URL hash
+const parseHash = (hashStr) => {
+  const clean = (hashStr || '').replace(/^#\/?/, '').trim();
+  if (!clean || clean === 'dashboard') {
+    return { tab: 'dashboard', customerId: null };
+  }
+  if (clean.startsWith('customer/') || clean.startsWith('customer-detail/')) {
+    const parts = clean.split('/');
+    return { tab: 'customer-detail', customerId: parts[1] ? parts[1] : null };
+  }
+  if (clean === 'customers') return { tab: 'customers', customerId: null };
+  if (clean === 'disposition') return { tab: 'disposition', customerId: null };
+  if (clean === 'pricing-offers') return { tab: 'pricing-offers', customerId: null };
+  if (clean === 'abnahme') return { tab: 'abnahme', customerId: null };
+  if (clean === 'invoices') return { tab: 'invoices', customerId: null };
+  if (clean === 'expenses') return { tab: 'expenses', customerId: null };
+  if (clean === 'mileage') return { tab: 'mileage', customerId: null };
+  if (clean === 'tax-report') return { tab: 'tax-report', customerId: null };
+  if (clean === 'backup') return { tab: 'backup', customerId: null };
+  if (clean === 'settings') return { tab: 'settings', customerId: null };
+
+  return { tab: clean, customerId: null };
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [dispositionCustomerId, setDispositionCustomerId] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Unified router function that pushes state to browser history
+  const navigateTo = useCallback((tab, customerId = null, replace = false) => {
+    let targetHash = `#${tab}`;
+    if (tab === 'customer-detail' && customerId) {
+      targetHash = `#customer/${customerId}`;
+    } else if (tab === 'dashboard') {
+      targetHash = '#dashboard';
+    }
+
+    setActiveTab(tab);
+    setSelectedCustomerId(customerId);
+
+    if (window.location.hash !== targetHash) {
+      if (replace) {
+        window.history.replaceState({ tab, customerId }, '', targetHash);
+      } else {
+        window.history.pushState({ tab, customerId }, '', targetHash);
+      }
+    }
+  }, []);
 
   // Global state with instant default fallback
   const [stats, setStats] = useState({
@@ -94,6 +139,50 @@ export default function App() {
   const [selectedViewInvoice, setSelectedViewInvoice] = useState(null);
   const [dataRefreshKey, setDataRefreshKey] = useState(0);
 
+  // Sync with Browser History / Hash Changes & Mouse Back/Forward Hardware Buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      const state = parseHash(window.location.hash);
+      setActiveTab(state.tab);
+      setSelectedCustomerId(state.customerId);
+    };
+
+    // Initial load from URL hash or set default #dashboard
+    if (!window.location.hash) {
+      window.history.replaceState({ tab: 'dashboard', customerId: null }, '', '#dashboard');
+    } else {
+      const initial = parseHash(window.location.hash);
+      setActiveTab(initial.tab);
+      setSelectedCustomerId(initial.customerId);
+    }
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
+
+    // Mouse Back (button 3) and Forward (button 4) hardware button listener
+    const handleMouseNav = (e) => {
+      if (e.button === 3) {
+        // Mouse 4 / Back Button
+        e.preventDefault();
+        window.history.back();
+      } else if (e.button === 4) {
+        // Mouse 5 / Forward Button
+        e.preventDefault();
+        window.history.forward();
+      }
+    };
+
+    window.addEventListener('mouseup', handleMouseNav);
+    window.addEventListener('auxclick', handleMouseNav);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+      window.removeEventListener('mouseup', handleMouseNav);
+      window.removeEventListener('auxclick', handleMouseNav);
+    };
+  }, []);
+
   // Load all core data
   const loadAllData = useCallback(async () => {
     try {
@@ -138,7 +227,9 @@ export default function App() {
   const handleDeleteCustomer = async (id) => {
     if (!window.confirm('Diesen Kunden und alle zugehörigen Daten wirklich löschen?')) return;
     await api.deleteCustomer(id);
-    if (selectedCustomerId === id) setSelectedCustomerId(null);
+    if (selectedCustomerId === id) {
+      navigateTo('customers');
+    }
     await loadAllData();
   };
 
@@ -221,8 +312,7 @@ export default function App() {
 
   // Navigation helpers
   const handleSelectCustomer = (id) => {
-    setSelectedCustomerId(id);
-    setActiveTab('customer-detail');
+    navigateTo('customer-detail', id);
   };
 
   const handleBulkGenerateAbos = async (targetType = 'all') => {
@@ -276,10 +366,7 @@ export default function App() {
       {/* Sidebar Navigation */}
       <Sidebar 
         activeTab={activeTab === 'customer-detail' ? 'customers' : activeTab} 
-        setActiveTab={(tab) => {
-          setSelectedCustomerId(null);
-          setActiveTab(tab);
-        }}
+        setActiveTab={(tab) => navigateTo(tab)}
         isMobileOpen={isMobileMenuOpen}
         setIsMobileOpen={setIsMobileMenuOpen}
         counts={{
@@ -313,16 +400,13 @@ export default function App() {
               customers={customers}
               services={services}
               invoices={invoices}
-              onNavigate={(tab) => setActiveTab(tab)}
+              onNavigate={(tab) => navigateTo(tab)}
               onOpenCustomerModal={() => {
                 setEditingCustomer(null);
                 setCustomerModalOpen(true);
               }}
               onOpenInvoiceModal={() => handleOpenInvoiceModal()}
-              onSelectCustomer={(id) => {
-                setSelectedCustomerId(id);
-                setActiveTab('customer-detail');
-              }}
+              onSelectCustomer={(id) => navigateTo('customer-detail', id)}
               onViewInvoice={handleViewInvoice}
               onBulkGenerateAbos={handleBulkGenerateAbos}
             />
@@ -331,10 +415,7 @@ export default function App() {
           {activeTab === 'customers' && (
             <CustomersPage
               customers={customers}
-              onSelectCustomer={(id) => {
-                setSelectedCustomerId(id);
-                setActiveTab('customer-detail');
-              }}
+              onSelectCustomer={(id) => navigateTo('customer-detail', id)}
               onOpenCustomerModal={() => {
                 setEditingCustomer(null);
                 setCustomerModalOpen(true);
@@ -343,7 +424,7 @@ export default function App() {
               onOpenInvoiceModal={(custId) => handleOpenInvoiceModal(custId)}
               onNavigateToDisposition={(custId) => {
                 setDispositionCustomerId(custId || null);
-                setActiveTab('disposition');
+                navigateTo('disposition');
               }}
               onEditCustomer={(cust) => {
                 setEditingCustomer(cust);
@@ -365,10 +446,7 @@ export default function App() {
               customers={customers}
               companySettings={companySettings}
               initialCustomerId={dispositionCustomerId}
-              onSelectCustomer={(id) => {
-                setSelectedCustomerId(id);
-                setActiveTab('customer-detail');
-              }}
+              onSelectCustomer={(id) => navigateTo('customer-detail', id)}
               onOpenCustomerModal={() => {
                 setEditingCustomer(null);
                 setCustomerModalOpen(true);
@@ -382,10 +460,7 @@ export default function App() {
             <CustomerDetailPage
               customerId={selectedCustomerId}
               refreshKey={dataRefreshKey}
-              onBack={() => {
-                setSelectedCustomerId(null);
-                setActiveTab('customers');
-              }}
+              onBack={() => navigateTo('customers')}
               onOpenDemoEmailModal={handleOpenDemoEmail}
               onOpenServiceModal={(custId, custName) => handleOpenService(custId, custName)}
               onEditService={(srv) => {
@@ -396,7 +471,7 @@ export default function App() {
               onOpenMileageModal={(custId) => handleOpenMileageModal(custId)}
               onNavigateToDisposition={(custId) => {
                 setDispositionCustomerId(custId || selectedCustomerId);
-                setActiveTab('disposition');
+                navigateTo('disposition');
               }}
               onViewInvoice={handleViewInvoice}
               onEditCustomer={(cust) => {
@@ -485,10 +560,7 @@ export default function App() {
         {/* Mobile Bottom Navigation Bar */}
         <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-slate-900 border-t border-slate-800 flex items-center justify-around z-40 text-slate-400">
           <button
-            onClick={() => {
-              setSelectedCustomerId(null);
-              setActiveTab('dashboard');
-            }}
+            onClick={() => navigateTo('dashboard')}
             className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-medium transition ${
               activeTab === 'dashboard' ? 'text-sky-400 font-bold' : 'hover:text-slate-200'
             }`}
@@ -498,10 +570,7 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => {
-              setSelectedCustomerId(null);
-              setActiveTab('customers');
-            }}
+            onClick={() => navigateTo('customers')}
             className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-medium transition ${
               activeTab === 'customers' || activeTab === 'customer-detail' ? 'text-sky-400 font-bold' : 'hover:text-slate-200'
             }`}
@@ -511,10 +580,7 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => {
-              setSelectedCustomerId(null);
-              setActiveTab('invoices');
-            }}
+            onClick={() => navigateTo('invoices')}
             className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-medium transition ${
               activeTab === 'invoices' ? 'text-sky-400 font-bold' : 'hover:text-slate-200'
             }`}
@@ -524,10 +590,7 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => {
-              setSelectedCustomerId(null);
-              setActiveTab('mileage');
-            }}
+            onClick={() => navigateTo('mileage')}
             className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-medium transition ${
               activeTab === 'mileage' ? 'text-sky-400 font-bold' : 'hover:text-slate-200'
             }`}
@@ -537,10 +600,7 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => {
-              setSelectedCustomerId(null);
-              setActiveTab('tax-report');
-            }}
+            onClick={() => navigateTo('tax-report')}
             className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-medium transition ${
               activeTab === 'tax-report' ? 'text-sky-400 font-bold' : 'hover:text-slate-200'
             }`}
