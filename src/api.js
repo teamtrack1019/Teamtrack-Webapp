@@ -312,7 +312,7 @@ const defaultSeed = {
       priority: 'medium', // 'low', 'medium', 'high'
       status: 'geplant', // 'geplant', 'in_progress', 'review', 'completed'
       tags: ['#Logistik', '#Material'],
-      assignee: 'Max Mustermann',
+      assignee: 'Huriye Ünalsoy',
       date: '2026-09-10',
       notes: 'Gerüstanlieferung und Vorprüfung der Fassade vor Ort.',
       createdAt: '2026-09-01T08:00:00.000Z'
@@ -327,7 +327,7 @@ const defaultSeed = {
       priority: 'medium',
       status: 'geplant',
       tags: ['#Aufmaß', '#Kunde'],
-      assignee: 'Sarah Weber',
+      assignee: 'Huriye Ünalsoy',
       date: '2026-09-12',
       notes: 'Bestandsaufnahme vor Ort und Detailbesprechung für WebApp-Erweiterung.',
       createdAt: '2026-09-02T09:00:00.000Z'
@@ -342,7 +342,7 @@ const defaultSeed = {
       priority: 'high',
       status: 'in_progress',
       tags: ['#Elektro', '#Baustelle', '#Dringend'],
-      assignee: 'Sarah Weber',
+      assignee: 'Huriye Ünalsoy',
       date: '2026-09-08',
       notes: 'Verkabelung und Schaltschrankinstallation im Erdgeschoss.',
       createdAt: '2026-09-03T10:00:00.000Z'
@@ -357,7 +357,7 @@ const defaultSeed = {
       priority: 'high',
       status: 'review',
       tags: ['#Wartung', '#Prüfprotokoll'],
-      assignee: 'Jan Becker',
+      assignee: 'Huriye Ünalsoy',
       date: '2026-09-05',
       notes: 'Hydraulik-Check und Funktionstest der Steuereinheit.',
       createdAt: '2026-09-04T11:00:00.000Z'
@@ -372,7 +372,7 @@ const defaultSeed = {
       priority: 'low',
       status: 'completed',
       tags: ['#Abnahme', '#Protokoll'],
-      assignee: 'Max Mustermann',
+      assignee: 'Huriye Ünalsoy',
       date: '2026-09-02',
       notes: 'Erfolgreich abgenommen, digitales Protokoll liegt vor.',
       createdAt: '2026-09-02T14:00:00.000Z'
@@ -393,6 +393,12 @@ function getLocalData() {
       }
       if (!parsed.dispositions || !Array.isArray(parsed.dispositions) || parsed.dispositions.length === 0) {
         parsed.dispositions = defaultSeed.dispositions;
+      } else {
+        parsed.dispositions.forEach(d => {
+          if (!d.assignee || d.assignee === 'Max Mustermann' || d.assignee === 'Sarah Weber' || d.assignee === 'Jan Becker') {
+            d.assignee = parsed.companySettings?.ownerName || 'Huriye Ünalsoy';
+          }
+        });
       }
       if (parsed.companySettings) {
         parsed.companySettings.isKleinunternehmer = true;

@@ -72,12 +72,15 @@ const COLUMNS = [
 
 export default function DispositionKanbanPage({
   customers = [],
+  companySettings = {},
   initialCustomerId = null,
   onSelectCustomer,
   onOpenCustomerModal,
   onOpenInvoiceModal,
   onReloadAllData
 }) {
+  const defaultOwnerName = companySettings?.ownerName || 'Huriye Ünalsoy';
+
   const [dispositions, setDispositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -96,7 +99,7 @@ export default function DispositionKanbanPage({
     priority: 'medium',
     status: 'geplant',
     tags: '',
-    assignee: 'Max Mustermann',
+    assignee: defaultOwnerName,
     date: new Date().toISOString().split('T')[0],
     notes: ''
   });
@@ -206,7 +209,7 @@ export default function DispositionKanbanPage({
         priority: item.priority || 'medium',
         status: item.status || 'geplant',
         tags: Array.isArray(item.tags) ? item.tags.join(', ') : (item.tags || ''),
-        assignee: item.assignee || 'Max Mustermann',
+        assignee: item.assignee || defaultOwnerName,
         date: item.date || new Date().toISOString().split('T')[0],
         notes: item.notes || ''
       });
@@ -222,8 +225,8 @@ export default function DispositionKanbanPage({
         project: defaultCust?.address ? defaultCust.address.split(',')[1]?.trim() || defaultCust.address : (defaultCust?.businessType || ''),
         priority: 'medium',
         status: 'geplant',
-        tags: '#Baustelle, #Digitalisierung',
-        assignee: 'Max Mustermann',
+        tags: '#Projekt, #Digitalisierung',
+        assignee: defaultOwnerName,
         date: new Date().toISOString().split('T')[0],
         notes: ''
       });
@@ -757,11 +760,18 @@ export default function DispositionKanbanPage({
                   </label>
                   <input
                     type="text"
-                    placeholder="z.B. Sarah Weber"
+                    list="modal-assignees-list"
+                    placeholder={`z.B. ${defaultOwnerName}`}
                     value={formData.assignee}
                     onChange={(e) => setFormData({ ...formData, assignee: e.target.value })}
                     className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none"
                   />
+                  <datalist id="modal-assignees-list">
+                    <option value={defaultOwnerName} />
+                    {assignees.filter(a => a !== defaultOwnerName).map(a => (
+                      <option key={a} value={a} />
+                    ))}
+                  </datalist>
                 </div>
               </div>
 

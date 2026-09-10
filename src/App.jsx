@@ -363,6 +363,7 @@ export default function App() {
           {activeTab === 'disposition' && (
             <DispositionKanbanPage
               customers={customers}
+              companySettings={companySettings}
               initialCustomerId={dispositionCustomerId}
               onSelectCustomer={(id) => {
                 setSelectedCustomerId(id);
