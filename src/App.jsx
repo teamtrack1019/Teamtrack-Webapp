@@ -362,7 +362,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-slate-100 overflow-hidden font-sans">
+    <div className="flex h-screen h-[100dvh] w-full bg-slate-100 overflow-hidden font-sans">
       {/* Sidebar Navigation */}
       <Sidebar 
         activeTab={activeTab === 'customer-detail' ? 'customers' : activeTab} 
@@ -393,7 +393,7 @@ export default function App() {
           companySettings={companySettings}
         />
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 pb-20 md:pb-6">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 pb-24 md:pb-6 smooth-scroll overscroll-contain">
           {activeTab === 'dashboard' && (
             <DashboardPage
               stats={stats}

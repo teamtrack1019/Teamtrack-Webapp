@@ -233,10 +233,10 @@ export default function CustomersPage({
 
               {sortedAndFiltered.length === 0 ? (
                 <div className="p-8 text-center text-slate-400 text-xs">
-                  Keine Kunden für diesen Filter gefunden.
+                  {isTR ? 'Bu filtreye uygun müşteri bulunamadı.' : 'Keine Kunden für diesen Filter gefunden.'}
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100 max-h-[750px] overflow-y-auto">
+                <div className="divide-y divide-slate-100 lg:max-h-[750px] lg:overflow-y-auto overscroll-contain smooth-scroll">
                   {sortedAndFiltered.map((customer) => {
                     const hasServicesOrJobs = (Number(customer.activeAbosCount || 0) > 0 || Number(customer.einmaligeCount || 0) > 0 || Number(customer.invoicesCount || 0) > 0);
                     const effectiveStatus = hasServicesOrJobs ? 'active' : (customer.status || 'lead');
