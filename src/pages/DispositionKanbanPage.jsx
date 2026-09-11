@@ -333,9 +333,9 @@ export default function DispositionKanbanPage({
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="bg-slate-900 text-slate-200 p-4 rounded-2xl border border-slate-800 shadow-lg flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="bg-slate-900 text-slate-200 p-4 rounded-2xl border border-slate-800 shadow-lg flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 min-w-0 max-w-full overflow-hidden">
         {/* Search */}
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 max-w-full md:max-w-md min-w-0">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
           <input
             type="text"
@@ -347,14 +347,14 @@ export default function DispositionKanbanPage({
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 min-w-0 max-w-full">
           {/* Customer Filter */}
-          <div className="flex items-center gap-1.5 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
+          <div className="flex items-center gap-1.5 bg-slate-800 px-3 py-2 rounded-xl border border-slate-700 w-full sm:w-auto max-w-full min-w-0">
             <Users className="w-3.5 h-3.5 text-sky-400 shrink-0" />
             <select
               value={filterCustomer}
               onChange={(e) => setFilterCustomer(e.target.value)}
-              className="bg-transparent text-xs font-bold text-slate-200 focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs font-bold text-slate-200 focus:outline-none cursor-pointer flex-1 min-w-0 truncate max-w-full"
             >
               <option value="all" className="bg-slate-900">{isTR ? `Tüm Müşteriler (${customers.length})` : `Alle Kunden (${customers.length})`}</option>
               {customers.map(c => (
@@ -369,7 +369,7 @@ export default function DispositionKanbanPage({
           <select
             value={filterPriority}
             onChange={(e) => setFilterPriority(e.target.value)}
-            className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200 focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer"
+            className="flex-1 sm:flex-initial px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200 focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer min-w-0"
           >
             <option value="all" className="bg-slate-900">{isTR ? 'Tüm Öncelikler' : 'Alle Prioritäten'}</option>
             <option value="high" className="bg-slate-900">🔴 {isTR ? 'Yüksek' : 'Hoch'}</option>
@@ -381,7 +381,7 @@ export default function DispositionKanbanPage({
           <select
             value={filterAssignee}
             onChange={(e) => setFilterAssignee(e.target.value)}
-            className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200 focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer"
+            className="flex-1 sm:flex-initial px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200 focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer min-w-0"
           >
             <option value="all" className="bg-slate-900">{isTR ? 'Tüm Sorumlular' : 'Alle Mitarbeiter'}</option>
             {assignees.map(a => (
@@ -392,7 +392,7 @@ export default function DispositionKanbanPage({
           {filterCustomer !== 'all' && (
             <button
               onClick={() => setFilterCustomer('all')}
-              className="p-2 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition text-xs font-bold flex items-center gap-1 cursor-pointer"
+              className="p-2 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition text-xs font-bold flex items-center gap-1 cursor-pointer shrink-0"
               title={isTR ? 'Filtreyi Temizle' : 'Kundenfilter zurücksetzen'}
             >
               <X className="w-3.5 h-3.5" />
