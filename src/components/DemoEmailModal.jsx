@@ -26,7 +26,7 @@ Balthasar-Neumann-Str. 38
 
 Tel: +49 172 4690446
 E-Mail: kontakt@team-track.de
-Web: https://team-track.de`;
+Web: www.team-track.de`;
 
 const EMAIL_TEMPLATES = {
   digitalisierung_intro: {
@@ -48,7 +48,7 @@ Unsere Kernbereiche im Überblick:
 Auf Wunsch stellen wir Ihnen gerne einen kostenlosen Demo-Zugang zur Verfügung oder führen Ihnen das System kurz unverbindlich vor, damit Sie und Ihr Team sich direkt selbst von den Vorteilen überzeugen können.
 
 🌐 Unsere Website & Einblicke:
-Werfen Sie auch gerne jederzeit einen Blick auf unsere Website unter https://team-track.de, um mehr über unsere Arbeit und digitalen Lösungen zu erfahren.
+Werfen Sie auch gerne jederzeit einen Blick auf unsere Website unter www.team-track.de, um mehr über unsere Arbeit und digitalen Lösungen zu erfahren.
 
 Bei Interesse oder Fragen stehen wir Ihnen jederzeit gerne für einen unverbindlichen Austausch zur Verfügung. Sie erreichen uns einfach per E-Mail oder telefonisch.
 Wir freuen uns auf Ihre Kontaktaufnahme.
@@ -62,7 +62,7 @@ ${COMPANY_SIGNATURE}`
 
 wie besprochen habe ich für ${cust.companyName} eine Vorschau-Umgebung vorbereitet, damit Sie und Ihr Team die Vorteile direkt live testen können.
 
-Link zur WebApp Demo: https://team-track.de
+Link zur WebApp Demo: www.team-track.de
 
 Probieren Sie gerne aus, wie schnell Aufträge, Stundenzettel und Mitarbeiterberichte erfasst werden können. Bei Fragen stehe ich Ihnen jederzeit persönlich zur Verfügung.
 

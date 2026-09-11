@@ -13,7 +13,7 @@ const defaultSeed = {
     address: 'Balthasar-Neumann-Str. 38, 97236 Randersacker',
     phone: '+49 172 4690446',
     email: 'kontakt@team-track.de',
-    website: 'https://team-track.de',
+    website: 'www.team-track.de',
     taxNumber: '27/123/45678',
     vatId: '61502944380',
     bankName: 'Postbank',
@@ -426,8 +426,8 @@ function getLocalData() {
         if (!parsed.companySettings.email || parsed.companySettings.email.includes('hotmail.com')) {
           parsed.companySettings.email = 'kontakt@team-track.de';
         }
-        if (!parsed.companySettings.website || parsed.companySettings.website.includes('vercel.app') || parsed.companySettings.website.includes('teamtrack-digital.de') || parsed.companySettings.website.includes('team-trak')) {
-          parsed.companySettings.website = 'https://team-track.de';
+        if (!parsed.companySettings.website || parsed.companySettings.website.includes('vercel.app') || parsed.companySettings.website.includes('teamtrack-digital.de') || parsed.companySettings.website.includes('team-trak') || parsed.companySettings.website === 'https://team-track.de') {
+          parsed.companySettings.website = 'www.team-track.de';
         }
         if (!parsed.companySettings.bic || parsed.companySettings.bic !== 'PBNKDEFF') {
           parsed.companySettings.bic = 'PBNKDEFF';

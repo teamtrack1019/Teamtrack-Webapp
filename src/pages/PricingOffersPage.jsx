@@ -379,7 +379,7 @@ Balthasar-Neumann-Str. 38
 
 Tel: +49 172 4690446
 E-Mail: kontakt@team-track.de
-Web: https://team-track.de`;
+Web: www.team-track.de`;
   };
 
   // Open Outlook App Compose
@@ -520,7 +520,7 @@ Balthasar-Neumann-Str. 38
 
 Tel: +49 172 4690446
 E-Mail: kontakt@team-track.de
-Web: https://team-track.de`;
+Web: www.team-track.de`;
 
     return bodyText;
   };
