@@ -990,7 +990,8 @@ export function createOfferDoc(offer, companySettings = {}) {
   doc.setFontSize(7);
   doc.setTextColor(100, 116, 139);
   doc.text(`Inhaberin: ${companySettings.ownerName || 'Huriye Ünalsoy'}`, margin, footerY + 3.8);
-  doc.text(`${streetLine}, ${cityLine}`, margin, footerY + 7.6);
+  doc.text(streetLine, margin, footerY + 7.6);
+  doc.text(cityLine, margin, footerY + 11.4);
 
   // Column 2: Bankverbindung (Starts at 78mm - ample room for long IBANs)
   const col2X = 78;
@@ -1016,6 +1017,7 @@ export function createOfferDoc(offer, companySettings = {}) {
   doc.setTextColor(100, 116, 139);
   doc.text(`St.-Nr.: ${companySettings.taxNumber || '27/123/45678'}`, col3X, footerY + 3.8);
   doc.text(`E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, col3X, footerY + 7.6);
+  doc.text(`Web: ${companySettings.website || 'www.team-track.de'}`, col3X, footerY + 11.4);
 
   return doc;
 }
@@ -1359,7 +1361,8 @@ export function createAbnahmeDoc(data, companySettings = {}) {
   doc.setFontSize(7);
   doc.setTextColor(100, 116, 139);
   doc.text(`Inhaberin: ${companySettings.ownerName || 'Huriye Ünalsoy'}`, margin, footerY + 3.8);
-  doc.text(`${streetLine}, ${cityLine}`, margin, footerY + 7.6);
+  doc.text(streetLine, margin, footerY + 7.6);
+  doc.text(cityLine, margin, footerY + 11.4);
 
   // Column 2
   const col2X = 78;
@@ -1385,6 +1388,7 @@ export function createAbnahmeDoc(data, companySettings = {}) {
   doc.setTextColor(100, 116, 139);
   doc.text(`St.-Nr.: ${companySettings.taxNumber || '27/123/45678'}`, col3X, footerY + 3.8);
   doc.text(`E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, col3X, footerY + 7.6);
+  doc.text(`Web: ${companySettings.website || 'www.team-track.de'}`, col3X, footerY + 11.4);
 
   return doc;
 }
