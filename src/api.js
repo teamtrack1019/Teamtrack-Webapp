@@ -14,7 +14,7 @@ const defaultSeed = {
     phone: '+49 172 4690446',
     email: 'kontakt@team-track.de',
     website: 'www.team-track.de',
-    taxNumber: '27/123/45678',
+    taxNumber: '257/282/11825',
     vatId: '61502944380',
     bankName: 'Postbank',
     iban: 'DE16 1001 0010 0012 7271 85',
@@ -434,6 +434,9 @@ function getLocalData() {
         }
         if (!parsed.companySettings.bankName || parsed.companySettings.bankName.includes('Sparkasse')) {
           parsed.companySettings.bankName = 'Postbank';
+        }
+        if (!parsed.companySettings.taxNumber || parsed.companySettings.taxNumber === '27/123/45678') {
+          parsed.companySettings.taxNumber = '257/282/11825';
         }
         if (!parsed.companySettings.iban || parsed.companySettings.iban === '-' || !parsed.companySettings.iban.startsWith('DE')) {
           parsed.companySettings.iban = 'DE16 1001 0010 0012 7271 85';

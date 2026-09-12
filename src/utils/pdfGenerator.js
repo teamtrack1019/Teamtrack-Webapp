@@ -1000,7 +1000,7 @@ export function createOfferDoc(offer, companySettings = {}) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(100, 116, 139);
-  doc.text(`St.-Nr.: ${companySettings.taxNumber || '27/123/45678'}`, col3X, footerY + 3.8);
+  doc.text(`St.-Nr.: ${companySettings.taxNumber || '257/282/11825'}`, col3X, footerY + 3.8);
   doc.text(`E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, col3X, footerY + 7.6);
   doc.text(`Web: ${companySettings.website || 'www.team-track.de'}`, col3X, footerY + 11.4);
 
@@ -1371,7 +1371,7 @@ export function createAbnahmeDoc(data, companySettings = {}) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(100, 116, 139);
-  doc.text(`St.-Nr.: ${companySettings.taxNumber || '27/123/45678'}`, col3X, footerY + 3.8);
+  doc.text(`St.-Nr.: ${companySettings.taxNumber || '257/282/11825'}`, col3X, footerY + 3.8);
   doc.text(`E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, col3X, footerY + 7.6);
   doc.text(`Web: ${companySettings.website || 'www.team-track.de'}`, col3X, footerY + 11.4);
 
