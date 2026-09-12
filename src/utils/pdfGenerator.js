@@ -959,21 +959,6 @@ export function createOfferDoc(offer, companySettings = {}) {
     curY += (lines.length * lineSpacing) + 0.8;
   });
 
-  // Signature lines
-  const sigY = condY + condH + 2.5;
-  if (sigY + 12 < 278) {
-    doc.setDrawColor(203, 213, 225);
-    doc.setLineWidth(0.4);
-    doc.line(margin, sigY + 8, margin + 70, sigY + 8);
-    doc.line(pageWidth - margin - 70, sigY + 8, pageWidth - margin, sigY + 8);
-
-    doc.setFontSize(7.0);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 116, 139);
-    doc.text('Ort, Datum & Unterschrift Auftragnehmer', margin, sigY + 11.5);
-    doc.text('Auftragsbestätigung Kunde (Unterschrift & Stempel)', pageWidth - margin - 70, sigY + 11.5);
-  }
-
   // 7. FOOTER (3 Spacious Columns to prevent any IBAN / Email overlap)
   const footerY = 281;
   doc.setDrawColor(226, 232, 240);
