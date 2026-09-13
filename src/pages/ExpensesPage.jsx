@@ -142,43 +142,43 @@ export default function ExpensesPage({
           <table className="w-full text-left text-xs border-collapse">
             <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
               <tr>
-                <th className="p-3.5 pl-5">Beleg-Nr.</th>
-                <th className="p-3.5">Lieferant / Empfänger</th>
-                <th className="p-3.5">Kategorie</th>
-                <th className="p-3.5">Datum</th>
-                <th className="p-3.5 text-right">Netto</th>
-                <th className="p-3.5 text-right">Vorsteuer</th>
-                <th className="p-3.5 text-right">Brutto</th>
-                <th className="p-3.5">Zahlart</th>
-                <th className="p-3.5 text-right pr-5">Aktionen</th>
+                <th className="p-3.5 pl-5 whitespace-nowrap">{isTR ? 'Fiş No' : 'Beleg-Nr.'}</th>
+                <th className="p-3.5 whitespace-nowrap">{isTR ? 'Tedarikçi / Alıcı' : 'Lieferant / Empfänger'}</th>
+                <th className="p-3.5 whitespace-nowrap">{isTR ? 'Kategori' : 'Kategorie'}</th>
+                <th className="p-3.5 whitespace-nowrap">{isTR ? 'Tarih' : 'Datum'}</th>
+                <th className="p-3.5 text-right whitespace-nowrap">{isTR ? 'Net' : 'Netto'}</th>
+                <th className="p-3.5 text-right whitespace-nowrap">{isTR ? 'KDV (Vorsteuer)' : 'Vorsteuer'}</th>
+                <th className="p-3.5 text-right whitespace-nowrap">{isTR ? 'Brüt' : 'Brutto'}</th>
+                <th className="p-3.5 whitespace-nowrap">{isTR ? 'Ödeme Türü' : 'Zahlart'}</th>
+                <th className="p-3.5 text-right pr-5 whitespace-nowrap">{isTR ? 'İşlemler' : 'Aktionen'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filtered.map((exp) => (
                 <tr key={exp.id} className="hover:bg-slate-50 transition">
-                  <td className="p-3.5 pl-5 font-mono font-bold text-slate-900">
+                  <td className="p-3.5 pl-5 font-mono font-bold text-slate-900 whitespace-nowrap">
                     {exp.expenseNumber}
                   </td>
                   <td className="p-3.5">
-                    <div className="font-semibold text-slate-900">{exp.vendor}</div>
+                    <div className="font-semibold text-slate-900 whitespace-nowrap">{exp.vendor}</div>
                     {exp.notes && <div className="text-[11px] text-slate-400 italic truncate max-w-xs">{exp.notes}</div>}
                   </td>
-                  <td className="p-3.5">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                  <td className="p-3.5 whitespace-nowrap">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap">
                       {exp.category}
                     </span>
                   </td>
-                  <td className="p-3.5 text-slate-600">
+                  <td className="p-3.5 text-slate-600 whitespace-nowrap">
                     {formatDate(exp.date)}
                   </td>
-                  <td className="p-3.5 text-right font-medium text-slate-700">
+                  <td className="p-3.5 text-right font-medium text-slate-700 whitespace-nowrap">
                     <div>{formatCurrency(exp.netAmount)}</div>
                   </td>
-                  <td className="p-3.5 text-right text-emerald-600 font-medium">
+                  <td className="p-3.5 text-right text-emerald-600 font-medium whitespace-nowrap">
                     <div>{formatCurrency(exp.taxAmount)}</div>
                     <div className="text-[10px] text-slate-400">({exp.taxRate || 0}%)</div>
                   </td>
-                  <td className="p-3.5 text-right">
+                  <td className="p-3.5 text-right whitespace-nowrap">
                     <div className="font-extrabold text-slate-900 text-sm">{formatCurrency(exp.grossAmount)}</div>
                     {(Number(exp.discountAmount) > 0 || Number(exp.extraAmount) > 0) && (
                       <div className="text-[10px] text-slate-500 flex items-center justify-end gap-1 mt-0.5 flex-wrap">
@@ -195,10 +195,10 @@ export default function ExpensesPage({
                       </div>
                     )}
                   </td>
-                  <td className="p-3.5 text-slate-500 font-medium">
+                  <td className="p-3.5 text-slate-500 font-medium whitespace-nowrap">
                     {exp.paymentMethod}
                   </td>
-                  <td className="p-3.5 text-right pr-5">
+                  <td className="p-3.5 text-right pr-5 whitespace-nowrap">
                     <div className="flex items-center justify-end space-x-1">
                       <button
                         onClick={() => onEditExpense(exp)}
