@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Receipt, Calendar, Euro, Tag, CreditCard, X, Building } from 'lucide-react';
+import { Receipt, Calendar, Euro, Tag, CreditCard, X, Building, MinusCircle, PlusCircle } from 'lucide-react';
 import { formatCurrency } from '../utils/formatters';
+import { useLanguage } from '../context/LanguageContext';
 
 const CATEGORIES = [
   'Software & Hosting',
@@ -22,12 +23,15 @@ const PAYMENT_METHODS = [
 ];
 
 export default function ExpenseModal({ isOpen, onClose, onSave, expense = null }) {
+  const { isTR } = useLanguage();
   const [formData, setFormData] = useState({
     expenseNumber: '',
     vendor: '',
     category: 'Software & Hosting',
     date: new Date().toISOString().split('T')[0],
     netAmount: '',
+    discountAmount: '',
+    extraAmount: '',
     taxRate: 19,
     paymentMethod: 'Banküberweisung',
     status: 'paid',
@@ -43,7 +47,9 @@ export default function ExpenseModal({ isOpen, onClose, onSave, expense = null }
         vendor: expense.vendor || '',
         category: expense.category || 'Software & Hosting',
         date: expense.date || new Date().toISOString().split('T')[0],
-        netAmount: expense.netAmount !== undefined ? expense.netAmount : '',
+        netAmount: expense.netAmount !== undefined && expense.netAmount !== null ? expense.netAmount : '',
+        discountAmount: expense.discountAmount !== undefined && expense.discountAmount !== null && expense.discountAmount !== 0 ? expense.discountAmount : '',
+        extraAmount: expense.extraAmount !== undefined && expense.extraAmount !== null && expense.extraAmount !== 0 ? expense.extraAmount : '',
         taxRate: expense.taxRate !== undefined ? expense.taxRate : 19,
         paymentMethod: expense.paymentMethod || 'Banküberweisung',
         status: expense.status || 'paid',
@@ -56,6 +62,8 @@ export default function ExpenseModal({ isOpen, onClose, onSave, expense = null }
         category: 'Software & Hosting',
         date: new Date().toISOString().split('T')[0],
         netAmount: '',
+        discountAmount: '',
+        extraAmount: '',
         taxRate: 19,
         paymentMethod: 'Banküberweisung',
         status: 'paid',
@@ -67,8 +75,11 @@ export default function ExpenseModal({ isOpen, onClose, onSave, expense = null }
   if (!isOpen) return null;
 
   const net = parseFloat(formData.netAmount) || 0;
-  const tax = (net * (parseFloat(formData.taxRate) || 0)) / 100;
-  const gross = net + tax;
+  const discount = parseFloat(formData.discountAmount) || 0;
+  const extra = parseFloat(formData.extraAmount) || 0;
+  const taxRate = parseFloat(formData.taxRate) || 0;
+  const tax = (net * taxRate) / 100;
+  const gross = Math.max(0, net + tax - discount + extra);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -77,7 +88,9 @@ export default function ExpenseModal({ isOpen, onClose, onSave, expense = null }
       await onSave({
         ...formData,
         netAmount: net,
-        taxRate: parseFloat(formData.taxRate) || 0,
+        discountAmount: discount,
+        extraAmount: extra,
+        taxRate: taxRate,
         taxAmount: tax,
         grossAmount: gross
       });
@@ -100,10 +113,10 @@ export default function ExpenseModal({ isOpen, onClose, onSave, expense = null }
             </div>
             <div>
               <h3 className="text-lg font-bold">
-                {expense ? 'Ausgabe bearbeiten' : 'Eingehende Ausgabe / Beleg erfassen'}
+                {expense ? (isTR ? 'Gideri Düzenle' : 'Ausgabe bearbeiten') : (isTR ? 'Gelen Fatura / Gider Girişi' : 'Eingehende Ausgabe / Beleg erfassen')}
               </h3>
               <p className="text-xs text-slate-400">
-                Betriebsausgabe für Vorsteuerabzug & EÜR Finanzamt
+                {isTR ? 'Gider kaydı, indirim/ekstra ve KDV hesaplaması' : 'Betriebsausgabe für Vorsteuerabzug & EÜR Finanzamt'}
               </p>
             </div>
           </div>
@@ -121,12 +134,12 @@ export default function ExpenseModal({ isOpen, onClose, onSave, expense = null }
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
               <Building className="w-3.5 h-3.5 text-slate-400" />
-              Lieferant / Dienstleister *
+              {isTR ? 'Tedarikçi / Firma *' : 'Lieferant / Dienstleister *'}
             </label>
             <input
               type="text"
               required
-              placeholder="z.B. Hetzner Server, Adobe, Telekom, Apple Store"
+              placeholder={isTR ? 'Örn. Vodafone Handy, Hetzner Server, Adobe' : 'z.B. Hetzner Server, Adobe, Telekom, Apple Store'}
               value={formData.vendor}
               onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
               className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
@@ -138,7 +151,7 @@ export default function ExpenseModal({ isOpen, onClose, onSave, expense = null }
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
                 <Tag className="w-3.5 h-3.5 text-slate-400" />
-                Ausgabenkategorie *
+                {isTR ? 'Gider Kategorisi *' : 'Ausgabenkategorie *'}
               </label>
               <select
                 value={formData.category}
@@ -153,11 +166,11 @@ export default function ExpenseModal({ isOpen, onClose, onSave, expense = null }
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Belegnummer / Rechnungs-Nr.
+                {isTR ? 'Fiş / Fatura No.' : 'Belegnummer / Rechnungs-Nr.'}
               </label>
               <input
                 type="text"
-                placeholder="z.B. BE-2026-0012"
+                placeholder="z.B. 122468214604"
                 value={formData.expenseNumber}
                 onChange={(e) => setFormData({ ...formData, expenseNumber: e.target.value })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none"
@@ -170,13 +183,13 @@ export default function ExpenseModal({ isOpen, onClose, onSave, expense = null }
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
                 <Euro className="w-3.5 h-3.5 text-slate-400" />
-                Nettobetrag (€) *
+                {isTR ? 'Net Tutar (€) *' : 'Nettobetrag (€) *'}
               </label>
               <input
                 type="number"
                 step="0.01"
                 required
-                placeholder="z.B. 49.00"
+                placeholder="z.B. 34.99"
                 value={formData.netAmount}
                 onChange={(e) => setFormData({ ...formData, netAmount: e.target.value })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-amber-500 focus:outline-none"
@@ -185,7 +198,7 @@ export default function ExpenseModal({ isOpen, onClose, onSave, expense = null }
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Vorsteuer / MwSt.
+                {isTR ? 'KDV / Vorsteuer' : 'Vorsteuer / MwSt.'}
               </label>
               <select
                 value={formData.taxRate}
@@ -199,15 +212,68 @@ export default function ExpenseModal({ isOpen, onClose, onSave, expense = null }
             </div>
           </div>
 
-          {/* Calculation Preview */}
-          <div className="bg-amber-50/60 border border-amber-200/80 rounded-xl p-3 flex items-center justify-between text-xs">
+          {/* Discount & Extra Optional Fields */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <span className="text-slate-500">Vorsteuer: </span>
-              <span className="font-semibold text-slate-700">{formatCurrency(tax)}</span>
+              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                <span className="flex items-center gap-1 text-rose-700">
+                  <MinusCircle className="w-3.5 h-3.5 text-rose-500" />
+                  {isTR ? 'Kupon / İndirim (€)' : 'Gutschein / Rabatt (€)'}
+                </span>
+                <span className="text-[10px] text-slate-400 font-normal">{isTR ? 'İndirim (-)' : 'Abzug (-)'}</span>
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00 (z.B. 5.00)"
+                value={formData.discountAmount}
+                onChange={(e) => setFormData({ ...formData, discountAmount: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              />
             </div>
+
             <div>
-              <span className="text-slate-500">Bruttobetrag: </span>
-              <span className="font-bold text-amber-900 text-sm">{formatCurrency(gross)}</span>
+              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                <span className="flex items-center gap-1 text-blue-700">
+                  <PlusCircle className="w-3.5 h-3.5 text-blue-500" />
+                  {isTR ? 'Ekstra Ücret (€)' : 'Zusatzkosten / Extra (€)'}
+                </span>
+                <span className="text-[10px] text-slate-400 font-normal">{isTR ? 'Fark (+)' : 'Aufpreis (+)'}</span>
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00 (z.B. 4.99)"
+                value={formData.extraAmount}
+                onChange={(e) => setFormData({ ...formData, extraAmount: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Calculation Preview */}
+          <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 text-xs space-y-1.5">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2.5 text-slate-600 flex-wrap">
+                <span>{isTR ? 'Net:' : 'Netto:'} <strong className="text-slate-800 font-mono">{formatCurrency(net)}</strong></span>
+                <span>{isTR ? 'KDV:' : 'Vorsteuer:'} <strong className="text-emerald-700 font-mono">+{formatCurrency(tax)}</strong> <span className="text-[10px] text-slate-400">({taxRate}%)</span></span>
+                {discount > 0 && (
+                  <span className="text-rose-700 font-medium">
+                    {isTR ? 'İndirim:' : 'Gutschein:'} <strong className="font-mono">-{formatCurrency(discount)}</strong>
+                  </span>
+                )}
+                {extra > 0 && (
+                  <span className="text-blue-700 font-medium">
+                    {isTR ? 'Extra:' : 'Zusatz:'} <strong className="font-mono">+{formatCurrency(extra)}</strong>
+                  </span>
+                )}
+              </div>
+              <div className="text-right pl-2 shrink-0">
+                <span className="text-slate-500 text-[11px] block">{isTR ? 'Hesaplanan Brüt:' : 'Bruttobetrag:'}</span>
+                <span className="font-extrabold text-amber-950 text-sm sm:text-base font-mono">{formatCurrency(gross)}</span>
+              </div>
             </div>
           </div>
 

@@ -172,13 +172,28 @@ export default function ExpensesPage({
                     {formatDate(exp.date)}
                   </td>
                   <td className="p-3.5 text-right font-medium text-slate-700">
-                    {formatCurrency(exp.netAmount)}
+                    <div>{formatCurrency(exp.netAmount)}</div>
                   </td>
                   <td className="p-3.5 text-right text-emerald-600 font-medium">
-                    {formatCurrency(exp.taxAmount)} <span className="text-[10px] text-slate-400">({exp.taxRate}%)</span>
+                    <div>{formatCurrency(exp.taxAmount)}</div>
+                    <div className="text-[10px] text-slate-400">({exp.taxRate || 0}%)</div>
                   </td>
-                  <td className="p-3.5 text-right font-extrabold text-slate-900 text-sm">
-                    {formatCurrency(exp.grossAmount)}
+                  <td className="p-3.5 text-right">
+                    <div className="font-extrabold text-slate-900 text-sm">{formatCurrency(exp.grossAmount)}</div>
+                    {(Number(exp.discountAmount) > 0 || Number(exp.extraAmount) > 0) && (
+                      <div className="text-[10px] text-slate-500 flex items-center justify-end gap-1 mt-0.5 flex-wrap">
+                        {Number(exp.discountAmount) > 0 && (
+                          <span className="px-1 py-0.2 rounded bg-rose-50 text-rose-600 font-medium border border-rose-100">
+                            -{formatCurrency(exp.discountAmount)}
+                          </span>
+                        )}
+                        {Number(exp.extraAmount) > 0 && (
+                          <span className="px-1 py-0.2 rounded bg-blue-50 text-blue-600 font-medium border border-blue-100">
+                            +{formatCurrency(exp.extraAmount)}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </td>
                   <td className="p-3.5 text-slate-500 font-medium">
                     {exp.paymentMethod}
