@@ -362,19 +362,30 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent,
               type="button"
               onClick={handleOpenOutlookWeb}
               disabled={loading}
-              className="px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-700/20 flex items-center justify-center space-x-1.5 transition disabled:opacity-50 cursor-pointer"
+              className="px-3.5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-700/20 flex items-center justify-center space-x-1.5 transition disabled:opacity-50 cursor-pointer"
               title="Direkt im Browser über Outlook Web öffnen"
             >
               <Globe className="w-3.5 h-3.5" />
-              <span>Über Outlook Web senden</span>
+              <span>Über Outlook Web</span>
             </button>
 
             <button
               type="button"
               onClick={handleSendViaOutlookApp}
               disabled={loading}
-              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 flex items-center justify-center space-x-2 transition disabled:opacity-50 cursor-pointer"
-              title="In der installierten Outlook / Mail-App sofort öffnen und senden"
+              className="px-3.5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 flex items-center justify-center space-x-1.5 transition disabled:opacity-50 cursor-pointer"
+              title="In der installierten Outlook / Mail-App öffnen"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>Über Outlook App</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSendViaOutlookApp}
+              disabled={loading}
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 flex items-center justify-center space-x-1.5 transition disabled:opacity-50 cursor-pointer"
+              title="E-Mail sofort mit Standard-Mailprogramm öffnen & senden"
             >
               <Send className="w-4 h-4" />
               <span>{loading ? 'Wird geöffnet...' : 'E-Mail sofort senden'}</span>
