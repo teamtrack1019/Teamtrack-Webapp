@@ -621,6 +621,7 @@ export default function App() {
         onClose={() => setCustomerModalOpen(false)}
         onSave={handleSaveCustomer}
         customer={editingCustomer}
+        existingCustomers={customers}
       />
 
       <DemoEmailModal
