@@ -373,11 +373,11 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent,
               type="button"
               onClick={handleSendViaOutlookApp}
               disabled={loading}
-              className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 flex items-center justify-center space-x-2 transition disabled:opacity-50 cursor-pointer"
-              title="In der installierten Outlook / Mail-App öffnen"
+              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 flex items-center justify-center space-x-2 transition disabled:opacity-50 cursor-pointer"
+              title="In der installierten Outlook / Mail-App sofort öffnen und senden"
             >
               <Send className="w-4 h-4" />
-              <span>{loading ? 'Wird geöffnet...' : 'Über Outlook / Mail-App senden'}</span>
+              <span>{loading ? 'Wird geöffnet...' : 'E-Mail sofort senden'}</span>
             </button>
           </div>
         </div>
