@@ -145,13 +145,13 @@ export default function TaxReportPage() {
         id="printable-tax-report"
       >
         {/* Document Header */}
-        <div className="border-b border-slate-300 pb-6 flex justify-between items-start">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider mb-2 border border-emerald-200">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>EÜR nach § 4 Abs. 3 EStG • Kleinunternehmer gem. § 19 UStG</span>
+        <div className="border-b border-slate-300 pb-6 flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div className="min-w-0 max-w-full">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-[11px] font-bold uppercase tracking-wider mb-2 border border-emerald-200">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span>EÜR nach § 4 Abs. 3 EStG • § 19 UStG</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-xl md:text-3xl font-black text-slate-900 tracking-tight break-words">
               Einnahmen-Überschuss-Rechnung {selectedYear}
             </h1>
             <p className="text-xs text-slate-500 mt-1">
@@ -160,11 +160,11 @@ export default function TaxReportPage() {
           </div>
 
           {/* Company Legal Meta */}
-          <div className="text-right text-xs space-y-0.5 text-slate-600">
-            <div className="font-bold text-slate-900 text-sm">{company?.companyName}</div>
-            <div>Inhaber: {company?.ownerName}</div>
-            <div>{company?.address}</div>
-            <div className="font-mono mt-1">Steuernummer: <strong>{company?.taxNumber || '-'}</strong></div>
+          <div className="text-left sm:text-right text-xs space-y-0.5 text-slate-600 shrink-0">
+            <div className="font-bold text-slate-900 text-sm">{company?.companyName || 'TeamTrack-Software'}</div>
+            <div>Inhaber: {company?.ownerName || 'Huriye Ünalsoy'}</div>
+            <div>{company?.address || 'Balthasar-Neumann-Str. 38, 97236 Randersacker'}</div>
+            <div className="font-mono mt-1">Steuernummer: <strong>{company?.taxNumber || '257/282/11825'}</strong></div>
             <div className="text-emerald-700 font-semibold mt-0.5">Status: Kleinunternehmer (§ 19 UStG)</div>
           </div>
         </div>

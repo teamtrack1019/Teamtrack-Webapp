@@ -28,16 +28,17 @@ export default function Navbar({
   const handleToggleMenu = onToggleMobileMenu || onOpenMobileMenu;
 
   return (
-    <header className="h-16 w-full bg-white border-b border-slate-200 px-3 md:px-6 flex items-center justify-between shrink-0 z-20 shadow-sm">
+    <header className="sticky top-0 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 px-3 md:px-6 pt-[env(safe-area-inset-top,0px)] h-[calc(4rem+env(safe-area-inset-top,0px))] min-h-[4rem] flex items-center justify-between shrink-0 z-30 shadow-xs">
       {/* Mobile Hamburger & Search Input */}
       <div className="flex items-center space-x-2 md:space-x-3 flex-1 max-w-md">
         <button
           type="button"
           onClick={handleToggleMenu}
-          className="md:hidden p-2 rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200 hover:text-slate-900 transition cursor-pointer"
-          title={t('nav.openMenu', 'Menüyü Aç')}
+          className="md:hidden flex items-center justify-center p-2.5 min-w-[42px] min-h-[42px] rounded-xl text-slate-900 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 transition shadow-xs border border-slate-200 shrink-0 cursor-pointer"
+          title={t('nav.openMenu', 'Menü')}
+          aria-label={t('nav.openMenu', 'Menü')}
         >
-          <Menu className="w-5 h-5 text-slate-800" />
+          <Menu className="w-5 h-5 text-slate-900 stroke-[2.5]" />
         </button>
 
         <div className="flex items-center w-full relative">

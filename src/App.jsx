@@ -27,8 +27,15 @@ import {
   Users, 
   FileText, 
   Car, 
-  Landmark 
+  Landmark,
+  Receipt,
+  Tag,
+  ShieldCheck,
+  Trello,
+  Settings,
+  Menu
 } from 'lucide-react';
+import { useLanguage } from './context/LanguageContext';
 
 import { api } from './api';
 
@@ -57,6 +64,7 @@ const parseHash = (hashStr) => {
 };
 
 export default function App() {
+  const { isTR } = useLanguage();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
@@ -557,57 +565,53 @@ export default function App() {
           )}
         </main>
 
-        {/* Mobile Bottom Navigation Bar */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-slate-900 border-t border-slate-800 flex items-center justify-around z-40 text-slate-400">
-          <button
-            onClick={() => navigateTo('dashboard')}
-            className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-medium transition ${
-              activeTab === 'dashboard' ? 'text-sky-400 font-bold' : 'hover:text-slate-200'
-            }`}
-          >
-            <LayoutDashboard className="w-5 h-5 mb-0.5" />
-            <span>Dashboard</span>
-          </button>
+        {/* Mobile Bottom Navigation Bar with Smooth Touch Swiping */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/98 backdrop-blur-md border-t border-slate-800 z-40 text-slate-400 select-none pb-[env(safe-area-inset-bottom,0px)] shadow-2xl">
+          <div className="flex items-center overflow-x-auto no-scrollbar py-2 px-2.5 gap-1.5 scroll-smooth touch-pan-x min-w-0">
+            {/* Quick Menu Opener */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="flex flex-col items-center justify-center shrink-0 px-2.5 py-1 text-[10px] font-bold text-slate-200 hover:text-white bg-slate-800 rounded-xl transition border border-slate-700 min-w-[56px] cursor-pointer"
+              title={isTR ? 'Tüm Menüyü Aç' : 'Hauptmenü'}
+            >
+              <Menu className="w-4 h-4 mb-0.5 text-sky-400" />
+              <span>{isTR ? 'Menü' : 'Menü'}</span>
+            </button>
 
-          <button
-            onClick={() => navigateTo('customers')}
-            className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-medium transition ${
-              activeTab === 'customers' || activeTab === 'customer-detail' ? 'text-sky-400 font-bold' : 'hover:text-slate-200'
-            }`}
-          >
-            <Users className="w-5 h-5 mb-0.5" />
-            <span>Kunden</span>
-          </button>
-
-          <button
-            onClick={() => navigateTo('invoices')}
-            className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-medium transition ${
-              activeTab === 'invoices' ? 'text-sky-400 font-bold' : 'hover:text-slate-200'
-            }`}
-          >
-            <FileText className="w-5 h-5 mb-0.5" />
-            <span>Rechnung</span>
-          </button>
-
-          <button
-            onClick={() => navigateTo('mileage')}
-            className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-medium transition ${
-              activeTab === 'mileage' ? 'text-sky-400 font-bold' : 'hover:text-slate-200'
-            }`}
-          >
-            <Car className="w-5 h-5 mb-0.5" />
-            <span>KM Fahrten</span>
-          </button>
-
-          <button
-            onClick={() => navigateTo('tax-report')}
-            className={`flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-medium transition ${
-              activeTab === 'tax-report' ? 'text-sky-400 font-bold' : 'hover:text-slate-200'
-            }`}
-          >
-            <Landmark className="w-5 h-5 mb-0.5" />
-            <span>Finanzamt</span>
-          </button>
+            {/* Scrollable Navigation Tabs for All Modules */}
+            {[
+              { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+              { id: 'customers', label: isTR ? 'Müşteriler' : 'Kunden', icon: Users, isActive: activeTab === 'customers' || activeTab === 'customer-detail' },
+              { id: 'disposition', label: isTR ? 'İş Planı' : 'Disposition', icon: Trello },
+              { id: 'pricing-offers', label: isTR ? 'Teklifler' : 'Angebote', icon: Tag },
+              { id: 'abnahme', label: isTR ? 'Teslimat' : 'Abnahme', icon: ShieldCheck },
+              { id: 'invoices', label: isTR ? 'Faturalar' : 'Rechnungen', icon: FileText },
+              { id: 'expenses', label: isTR ? 'Giderler' : 'Ausgaben', icon: Receipt },
+              { id: 'mileage', label: isTR ? 'KM Takip' : 'KM Fahrten', icon: Car },
+              { id: 'tax-report', label: isTR ? 'Finanzamt' : 'Finanzamt', icon: Landmark },
+              { id: 'backup', label: isTR ? 'Yedek' : 'Backup', icon: ShieldCheck },
+              { id: 'settings', label: isTR ? 'Ayarlar' : 'Optionen', icon: Settings },
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = item.isActive !== undefined ? item.isActive : activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => navigateTo(item.id)}
+                  className={`flex flex-col items-center justify-center shrink-0 px-3 py-1.5 text-[10.5px] rounded-xl transition cursor-pointer min-w-[66px] ${
+                    isActive
+                      ? 'bg-sky-600 text-white font-bold shadow-md shadow-sky-600/30'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 mb-0.5" />
+                  <span className="truncate max-w-[72px]">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </nav>
       </div>
 
