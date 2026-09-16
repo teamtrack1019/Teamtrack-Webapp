@@ -16,9 +16,7 @@ function getGreeting(contactPerson, isFormal = true) {
   return isFormal ? `Sehr geehrte(r) Frau/Herr ${trimmed},` : `Hallo Frau/Herr ${trimmed},`;
 }
 
-const COMPANY_SIGNATURE = `Mit freundlichen Grüßen
-
-TeamTrack-Software
+const COMPANY_SIGNATURE_DETAILS = `TeamTrack-Software
 Softwareentwicklung & IT-Beratung
 
 Balthasar-Neumann-Str. 38
@@ -28,32 +26,34 @@ Tel: +49 172 4690446
 E-Mail: kontakt@team-track.de
 Web: www.team-track.de`;
 
+const COMPANY_SIGNATURE = `Mit freundlichen Grüßen
+
+${COMPANY_SIGNATURE_DETAILS}`;
+
 const EMAIL_TEMPLATES = {
   digitalisierung_intro: {
     name: '1. Papierlose Prozesse & Digitalisierung',
     subject: 'Digitale Prozessoptimierung & smarte Web-Lösungen für Ihr Unternehmen – TeamTrack',
     body: (cust) => `${getGreeting(cust.contactPerson, true)}
 
-viele Unternehmen verlieren täglich wertvolle Arbeitszeit durch manuelle Papierprozesse, unübersichtliche Zeiterfassungen und aufwendige Rechnungsstellungen.
-Wir bei TeamTrack unterstützen Unternehmen dabei, ihre täglichen Arbeitsabläufe durch smarte digitale Lösungen zu vereinfachen, Bürokratie abzubauen und Kosten zu senken.
+viele Betriebe in unserer Region verlieren täglich wertvolle Arbeitszeit durch unübersichtliche Stundenzettel, manuelle Rechnungen und Papierkram.
+Als selbstständiger B2B-Softwareentwickler aus Würzburg unterstütze ich Handwerks- und Dienstleistungsbetriebe dabei, diese Abläufe durch schlanke Web-Lösungen zu automatisieren – maßgeschneidert und 100% in Ihrem eigenen Firmenbranding:
 
-Unsere Kernbereiche im Überblick:
-• Papierlose Prozesse & Digitalisierung: Schluss mit Zettelwirtschaft – alle Dokumente und Abläufe zentral und digital.
-• Digitale Zeit- & km-Erfassung: Rechtssichere und unkomplizierte Zeiterfassung für Mitarbeiter sowie transparente Fahrtenerfassung.
-• Automatische Rechnungsstellung: Rechnungen mit wenigen Klicks fehlerfrei und automatisiert erstellen.
-• Mitarbeiter- & Kundenverwaltung: Übersichtliche Nachverfolgung aller Einsätze und Kundenprozesse.
-• Individuelle Web-Apps & Web-Optimierung: Moderne, schnelle Web-Lösungen, die genau auf Ihre Betriebsabläufe zugeschnitten sind.
+• Mobile Zeiterfassung: Mitarbeiter erfassen Zeiten & Fahrten direkt per Smartphone auf der Baustelle (ohne App-Store-Download).
+• 1-Klick-Rechnungsstellung: Schnelle und fehlerfreie Rechnungen mit DATEV / SevDesk Schnittstellen.
+• Auftrags- & Kundenübersicht: Alle Einsätze und Kundendaten zentral an einem Ort.
+• Keine starren Großkonzern-Programme: Schlanke Lösungen zu fairen Festpreisen.
 
-💡 Kostenlose Live-Demo & Testzugang:
-Auf Wunsch stellen wir Ihnen gerne einen kostenlosen Demo-Zugang zur Verfügung oder führen Ihnen das System kurz unverbindlich vor, damit Sie und Ihr Team sich direkt selbst von den Vorteilen überzeugen können.
+Einen ersten Eindruck finden Sie direkt auf:
+👉 https://team-track.de
 
-🌐 Unsere Website & Einblicke:
-Werfen Sie auch gerne jederzeit einen Blick auf unsere Website unter www.team-track.de, um mehr über unsere Arbeit und digitalen Lösungen zu erfahren.
+Gerne stelle ich Ihnen einen kostenlosen und unverbindlichen Testzugang bereit, damit Sie und Ihr Team die Funktionen direkt selbst ausprobieren können.
 
-Bei Interesse oder Fragen stehen wir Ihnen jederzeit gerne für einen unverbindlichen Austausch zur Verfügung. Sie erreichen uns einfach per E-Mail oder telefonisch.
-Wir freuen uns auf Ihre Kontaktaufnahme.
+Soll ich Ihnen einen Testzugang freischalten? Eine kurze Antwort auf diese E-Mail genügt.
 
-${COMPANY_SIGNATURE}`
+Beste Grüße aus Würzburg,
+
+${COMPANY_SIGNATURE_DETAILS}`
   },
   demo_access: {
     name: '2. Live-Demo & Testzugang Einladung',
