@@ -88,15 +88,15 @@ export default function DashboardPage({
   const currentYear = new Date().getFullYear();
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-6 lg:p-8 space-y-6 animate-fadeIn">
+    <div className="w-full max-w-7xl mx-auto p-3.5 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 animate-fadeIn min-w-0">
       {/* Welcome Banner */}
-      <div className="w-full bg-gradient-to-r from-slate-900 via-slate-800 to-sky-950 p-6 md:p-8 rounded-3xl text-white shadow-lg border border-slate-700/50 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2 max-w-2xl">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 text-xs font-bold border border-sky-500/30">
+      <div className="w-full bg-gradient-to-r from-slate-900 via-slate-800 to-sky-950 p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl text-white shadow-lg border border-slate-700/50 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 min-w-0">
+        <div className="space-y-1.5 sm:space-y-2 max-w-2xl min-w-0">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-sky-500/20 text-sky-300 text-[11px] sm:text-xs font-bold border border-sky-500/30">
             <Zap className="w-3.5 h-3.5 text-sky-400" />
             <span>{t('sidebar.subtitle', 'Softwareentwicklung & IT-Beratung')}</span>
           </div>
-          <h2 className="text-2xl md:text-3xl font-black tracking-tight">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight">
             {t('dashboard.welcomeTitle', 'Willkommen bei TeamTrack')}
           </h2>
           <p className="text-slate-300 text-xs md:text-sm leading-relaxed">
@@ -104,17 +104,17 @@ export default function DashboardPage({
           </p>
         </div>
 
-        <div className="flex flex-wrap sm:flex-nowrap gap-3 shrink-0">
+        <div className="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-3 shrink-0">
           <button
             onClick={onOpenCustomerModal}
-            className="flex items-center space-x-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-sky-600/30 cursor-pointer"
+            className="flex-1 sm:flex-initial flex items-center justify-center space-x-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-sky-600/30 cursor-pointer"
           >
             <Users className="w-4 h-4" />
             <span>{t('customers.addCustomer', '+ Neuer Kunde')}</span>
           </button>
           <button
             onClick={onOpenInvoiceModal}
-            className="flex items-center space-x-2 px-4 py-2.5 bg-white text-slate-900 hover:bg-slate-100 rounded-xl text-xs font-bold transition shadow-md cursor-pointer"
+            className="flex-1 sm:flex-initial flex items-center justify-center space-x-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-white text-slate-900 hover:bg-slate-100 rounded-xl text-xs font-bold transition shadow-md cursor-pointer"
           >
             <FileText className="w-4 h-4 text-sky-600" />
             <span>{t('nav.newInvoice', '+ Rechnung')}</span>

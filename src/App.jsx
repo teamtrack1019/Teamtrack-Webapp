@@ -370,7 +370,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen h-[100dvh] w-full bg-slate-100 overflow-hidden font-sans">
+    <div className="flex h-screen h-[100dvh] w-full max-w-full bg-slate-100 overflow-hidden font-sans">
       {/* Sidebar Navigation */}
       <Sidebar 
         activeTab={activeTab === 'customer-detail' ? 'customers' : activeTab} 
@@ -385,7 +385,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 max-w-full h-full overflow-hidden">
         <Navbar 
           onOpenMobileMenu={() => setIsMobileMenuOpen(true)} 
           onOpenCustomerModal={() => {
@@ -401,7 +401,7 @@ export default function App() {
           companySettings={companySettings}
         />
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 pb-24 md:pb-6 smooth-scroll overscroll-contain">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 max-w-full pb-24 md:pb-6 smooth-scroll overscroll-contain">
           {activeTab === 'dashboard' && (
             <DashboardPage
               stats={stats}
