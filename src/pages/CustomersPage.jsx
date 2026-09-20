@@ -244,6 +244,7 @@ export default function CustomersPage({
                     const isSelected = selectedCustomer?.id === customer.id;
                     const leadBadge = getLeadSourceBadge(customer.leadSource);
                     const reminder = getOfferReminderStatus(customer);
+                    const isPendingFirstEmail = !customer.demoEmailSent && !customer.demoEmailSentAt;
 
                     return (
                       <div
@@ -251,16 +252,22 @@ export default function CustomersPage({
                         onClick={() => handleSelectCustomerItem(customer)}
                         className={`p-3.5 sm:p-4 transition cursor-pointer flex items-start justify-between gap-3 group select-none ${
                           isSelected
-                            ? 'bg-sky-50/80 border-l-4 border-l-sky-600 shadow-2xs'
-                            : 'hover:bg-slate-50/80 border-l-4 border-l-transparent'
+                            ? (isPendingFirstEmail
+                                ? 'bg-amber-100/90 border-l-4 border-l-amber-500 shadow-2xs'
+                                : 'bg-sky-50/80 border-l-4 border-l-sky-600 shadow-2xs')
+                            : (isPendingFirstEmail
+                                ? 'bg-amber-50/80 hover:bg-amber-100/80 border-l-4 border-l-amber-400/90'
+                                : 'bg-white hover:bg-slate-50/80 border-l-4 border-l-transparent')
                         }`}
                       >
                         {/* Initial Avatar */}
                         <div className="flex items-start gap-3 min-w-0 flex-1">
                           <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm shrink-0 uppercase transition ${
                             isSelected 
-                              ? 'bg-sky-600 text-white shadow-xs' 
-                              : 'bg-slate-100 text-slate-700 group-hover:bg-sky-100 group-hover:text-sky-800'
+                              ? (isPendingFirstEmail ? 'bg-amber-600 text-white shadow-xs' : 'bg-sky-600 text-white shadow-xs')
+                              : (isPendingFirstEmail 
+                                  ? 'bg-amber-200/90 text-amber-900 border border-amber-300 group-hover:bg-amber-300' 
+                                  : 'bg-slate-100 text-slate-700 group-hover:bg-sky-100 group-hover:text-sky-800')
                           }`}>
                             {(customer.companyName || 'K').charAt(0)}
                           </div>
@@ -268,7 +275,9 @@ export default function CustomersPage({
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <h4 className={`font-bold text-xs sm:text-sm truncate ${
-                                isSelected ? 'text-sky-950 font-black' : 'text-slate-900 group-hover:text-sky-600'
+                                isSelected 
+                                  ? (isPendingFirstEmail ? 'text-amber-950 font-black' : 'text-sky-950 font-black') 
+                                  : (isPendingFirstEmail ? 'text-slate-900 font-bold group-hover:text-amber-800' : 'text-slate-900 group-hover:text-sky-600')
                               }`}>
                                 {customer.companyName}
                               </h4>
@@ -299,6 +308,13 @@ export default function CustomersPage({
                                 </span>
                               )}
 
+                              {isPendingFirstEmail && (
+                                <span className="px-2 py-0.5 rounded-full text-[9.5px] font-bold border border-amber-300/90 bg-amber-200/80 text-amber-900 flex items-center gap-1">
+                                  <span>✉️</span>
+                                  <span>{isTR ? 'İlk E-Posta Bekliyor' : 'Neu / E-Mail offen'}</span>
+                                </span>
+                              )}
+
                               {customer.totalAboMonthly > 0 && (
                                 <span className="text-[9.5px] font-bold text-sky-700 bg-sky-100/70 px-1.5 py-0.5 rounded">
                                   {formatCurrency(customer.totalAboMonthly)}/Mo
@@ -309,7 +325,7 @@ export default function CustomersPage({
                         </div>
 
                         <ChevronRight className={`w-4 h-4 shrink-0 transition mt-2 ${
-                          isSelected ? 'text-sky-600 translate-x-0.5' : 'text-slate-300 group-hover:text-slate-500'
+                          isSelected ? (isPendingFirstEmail ? 'text-amber-600 translate-x-0.5' : 'text-sky-600 translate-x-0.5') : 'text-slate-300 group-hover:text-slate-500'
                         }`} />
                       </div>
                     );
@@ -650,11 +666,16 @@ export default function CustomersPage({
             const effectiveStatus = hasServicesOrJobs ? 'active' : (customer.status || 'lead');
             const statusBadge = getStatusBadge(effectiveStatus);
             const leadBadge = getLeadSourceBadge(customer.leadSource);
+            const isPendingFirstEmail = !customer.demoEmailSent && !customer.demoEmailSentAt;
 
             return (
               <div
                 key={customer.id}
-                className="bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-sky-300 transition-all duration-200 flex flex-col justify-between overflow-hidden group"
+                className={`rounded-2xl border shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden group ${
+                  isPendingFirstEmail
+                    ? 'bg-amber-50/70 border-amber-300 hover:border-amber-400'
+                    : 'bg-white border-slate-200/90 hover:border-sky-300'
+                }`}
               >
                 {/* Card Header */}
                 <div className="p-5 space-y-3">
@@ -668,6 +689,12 @@ export default function CustomersPage({
                           <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9.5px] font-bold border ${leadBadge.bg} ${leadBadge.text} ${leadBadge.border}`}>
                             <span>{leadBadge.icon}</span>
                             <span>{leadBadge.label}</span>
+                          </span>
+                        )}
+                        {isPendingFirstEmail && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold border border-amber-300/90 bg-amber-200/80 text-amber-900">
+                            <span>✉️</span>
+                            <span>{isTR ? 'İlk E-Posta Bekliyor' : 'Neu / E-Mail offen'}</span>
                           </span>
                         )}
                       </div>
