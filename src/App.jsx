@@ -21,6 +21,7 @@ import InvoiceModal from './components/InvoiceModal';
 import ExpenseModal from './components/ExpenseModal';
 import MileageModal from './components/MileageModal';
 import InvoiceViewModal from './components/InvoiceViewModal';
+import LogoPreviewModal from './components/LogoPreviewModal';
 
 import { 
   LayoutDashboard, 
@@ -145,6 +146,7 @@ export default function App() {
 
   const [viewInvoiceModalOpen, setViewInvoiceModalOpen] = useState(false);
   const [selectedViewInvoice, setSelectedViewInvoice] = useState(null);
+  const [logoModalOpen, setLogoModalOpen] = useState(false);
   const [dataRefreshKey, setDataRefreshKey] = useState(0);
 
   // Sync with Browser History / Hash Changes & Mouse Back/Forward Hardware Buttons
@@ -414,6 +416,7 @@ export default function App() {
                 setCustomerModalOpen(true);
               }}
               onOpenInvoiceModal={() => handleOpenInvoiceModal()}
+              onOpenLogoPreview={() => setLogoModalOpen(true)}
               onSelectCustomer={(id) => navigateTo('customer-detail', id)}
               onViewInvoice={handleViewInvoice}
               onBulkGenerateAbos={handleBulkGenerateAbos}
@@ -672,6 +675,11 @@ export default function App() {
         onClose={() => setViewInvoiceModalOpen(false)}
         invoice={selectedViewInvoice}
         companySettings={companySettings}
+      />
+
+      <LogoPreviewModal
+        isOpen={logoModalOpen}
+        onClose={() => setLogoModalOpen(false)}
       />
     </div>
   );

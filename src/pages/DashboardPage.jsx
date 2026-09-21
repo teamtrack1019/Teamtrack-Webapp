@@ -26,6 +26,7 @@ export default function DashboardPage({
   onNavigate, 
   onOpenCustomerModal, 
   onOpenInvoiceModal, 
+  onOpenLogoPreview,
   onSelectCustomer,
   onBulkGenerateAbos 
 }) {
@@ -105,6 +106,16 @@ export default function DashboardPage({
         </div>
 
         <div className="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-3 shrink-0">
+          {onOpenLogoPreview && (
+            <button
+              onClick={onOpenLogoPreview}
+              className="flex-1 sm:flex-initial flex items-center justify-center space-x-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-400/30 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
+              title="Logo Taslaklarını & İkon Önerilerini İncele"
+            >
+              <Sparkles className="w-4 h-4 text-sky-400" />
+              <span>{isTR ? '🎨 Logo Önerileri' : '🎨 Logo-Ideen'}</span>
+            </button>
+          )}
           <button
             onClick={onOpenCustomerModal}
             className="flex-1 sm:flex-initial flex items-center justify-center space-x-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-sky-600/30 cursor-pointer"
