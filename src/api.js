@@ -441,6 +441,9 @@ function getLocalData() {
         if (!parsed.companySettings.iban || parsed.companySettings.iban === '-' || !parsed.companySettings.iban.startsWith('DE')) {
           parsed.companySettings.iban = 'DE16 1001 0010 0012 7271 85';
         }
+        if (!parsed.companySettings.phone || parsed.companySettings.phone.includes('4690446') || parsed.companySettings.phone.includes('469 04 46')) {
+          parsed.companySettings.phone = '+49 172 6125371';
+        }
       }
 
       // Auto-migrate customers: ensure leadSource exists
@@ -593,6 +596,10 @@ function initFirebaseRealtimeSync() {
       if (docSnap.exists()) {
         const cloudData = docSnap.data()?.data;
         if (cloudData && !isPushingUpdate) {
+          if (cloudData.companySettings && (!cloudData.companySettings.phone || cloudData.companySettings.phone.includes('4690446') || cloudData.companySettings.phone.includes('469 04 46'))) {
+            cloudData.companySettings.phone = '+49 172 6125371';
+            pushToFirebase(cloudData);
+          }
           saveLocalData(cloudData);
         }
       } else {
@@ -1660,7 +1667,14 @@ async function handleLocalRequest(endpoint, options = {}) {
 
   // SETTINGS
   if (endpoint === '/settings') {
-    if (method === 'GET') return db.companySettings;
+    if (method === 'GET') {
+      if (db.companySettings && (!db.companySettings.phone || db.companySettings.phone.includes('4690446') || db.companySettings.phone.includes('469 04 46'))) {
+        db.companySettings.phone = '+49 172 6125371';
+        saveLocalData(db);
+        pushToFirebase(db);
+      }
+      return db.companySettings;
+    }
     if (method === 'PUT') {
       db.companySettings = { ...db.companySettings, ...body };
       saveLocalData(db);

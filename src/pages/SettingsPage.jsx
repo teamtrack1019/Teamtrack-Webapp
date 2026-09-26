@@ -80,8 +80,13 @@ export default function SettingsPage() {
             city = secondPart;
           }
         }
+        let phone = data.phone || '';
+        if (!phone || phone.includes('4690446')) {
+          phone = '+49 172 6125371';
+        }
         setSettings({
           ...data,
+          phone,
           street: street || 'Balthasar-Neumann-Str. 38',
           zipCode: zipCode || '97236',
           city: city || 'Randersacker'

@@ -72,7 +72,8 @@ export function createInvoiceDoc(invoice, companySettings = {}) {
   const fullAddressLine = `${streetLine}, ${cityLine}`;
   doc.text(fullAddressLine, textStartX, 36.5);
 
-  const phoneEmail = `Tel: ${companySettings.phone || '+49 172 6125371'}   |   E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`;
+  const cleanPhone = (companySettings.phone && !companySettings.phone.includes('4690446')) ? companySettings.phone : '+49 172 6125371';
+  const phoneEmail = `Tel: ${cleanPhone}   |   E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`;
   doc.text(phoneEmail, textStartX, 41.5);
 
   const webUrl = companySettings.website || 'www.team-track.de';
@@ -597,7 +598,8 @@ export function createOfferDoc(offer, companySettings = {}) {
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(71, 85, 105);
   doc.text(`${streetLine}, ${cityLine}`, textStartX, 36);
-  doc.text(`Tel: ${companySettings.phone || '+49 172 6125371'}   |   E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, textStartX, 41);
+  const cleanOfferPhone = (companySettings.phone && !companySettings.phone.includes('4690446')) ? companySettings.phone : '+49 172 6125371';
+  doc.text(`Tel: ${cleanOfferPhone}   |   E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, textStartX, 41);
   doc.text(`Web: ${companySettings.website || 'www.team-track.de'}`, textStartX, 46);
 
   // Header Right: Title & Number (Proportionate font size to avoid any text collision)
@@ -1060,7 +1062,8 @@ export function createAbnahmeDoc(data, companySettings = {}) {
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(71, 85, 105);
   doc.text(`${streetLine}, ${cityLine}`, textStartX, 36);
-  doc.text(`Tel: ${companySettings.phone || '+49 172 6125371'}   |   E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, textStartX, 41);
+  const cleanAbnahmePhone = (companySettings.phone && !companySettings.phone.includes('4690446')) ? companySettings.phone : '+49 172 6125371';
+  doc.text(`Tel: ${cleanAbnahmePhone}   |   E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, textStartX, 41);
   doc.text(`Web: ${companySettings.website || 'www.team-track.de'}`, textStartX, 46);
 
   // Header Right: Title & Protocol Number
@@ -1120,7 +1123,7 @@ export function createAbnahmeDoc(data, companySettings = {}) {
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(226, 232, 240);
   doc.setLineWidth(0.3);
-  doc.roundedRect(metaX, metaY, 65, 28, 2.5, 2.5, 'FD');
+  doc.roundedRect(metaX, metaY, 65, 35, 2.5, 2.5, 'FD');
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
@@ -1138,7 +1141,7 @@ export function createAbnahmeDoc(data, companySettings = {}) {
   doc.text('TeamTrack Team', metaX + 61, metaY + 27.5, { align: 'right' });
 
   // 3. INTRODUCTORY STATEMENT
-  const introY = Math.max(curRecY + 3, 90);
+  const introY = Math.max(curRecY + 4, 94);
   doc.setFontSize(9.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
