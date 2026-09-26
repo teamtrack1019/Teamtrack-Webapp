@@ -377,7 +377,7 @@ Softwareentwicklung & IT-Beratung
 Balthasar-Neumann-Str. 38
 97236 Randersacker
 
-Tel: +49 172 4690446
+Tel: +49 172 6125371
 E-Mail: kontakt@team-track.de
 Web: www.team-track.de`;
   };
@@ -518,7 +518,7 @@ Softwareentwicklung & IT-Beratung
 Balthasar-Neumann-Str. 38
 97236 Randersacker
 
-Tel: +49 172 4690446
+Tel: +49 172 6125371
 E-Mail: kontakt@team-track.de
 Web: www.team-track.de`;
 

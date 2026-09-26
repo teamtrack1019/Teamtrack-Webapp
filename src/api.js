@@ -11,7 +11,7 @@ const defaultSeed = {
     zipCode: '97236',
     city: 'Randersacker',
     address: 'Balthasar-Neumann-Str. 38, 97236 Randersacker',
-    phone: '+49 172 4690446',
+    phone: '+49 172 6125371',
     email: 'kontakt@team-track.de',
     website: 'www.team-track.de',
     taxNumber: '257/282/11825',

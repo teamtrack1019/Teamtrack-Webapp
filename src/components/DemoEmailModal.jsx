@@ -22,7 +22,7 @@ Softwareentwicklung & IT-Beratung
 Balthasar-Neumann-Str. 38
 97236 Randersacker
 
-Tel: +49 172 4690446
+Tel: +49 172 6125371
 E-Mail: kontakt@team-track.de
 Web: www.team-track.de`;
 
@@ -37,19 +37,28 @@ const EMAIL_TEMPLATES = {
     body: (cust) => `${getGreeting(cust.contactPerson, true)}
 
 viele Betriebe in unserer Region verlieren täglich wertvolle Arbeitszeit durch unübersichtliche Stundenzettel, manuelle Rechnungen und Papierkram.
-Als selbstständiger B2B-Softwareentwickler aus Würzburg unterstütze ich Handwerks- und Dienstleistungsbetriebe dabei, diese Abläufe durch schlanke Web-Lösungen zu automatisieren – maßgeschneidert und 100% in Ihrem eigenen Firmenbranding:
 
-• Mobile Zeiterfassung: Mitarbeiter erfassen Zeiten & Fahrten direkt per Smartphone auf der Baustelle (ohne App-Store-Download).
-• 1-Klick-Rechnungsstellung: Schnelle und fehlerfreie Rechnungen mit DATEV / SevDesk Schnittstellen.
-• Auftrags- & Kundenübersicht: Alle Einsätze und Kundendaten zentral an einem Ort.
-• Keine starren Großkonzern-Programme: Schlanke Lösungen zu fairen Festpreisen.
+Als selbstständiger B2B‑Softwareentwickler aus Würzburg unterstütze ich Handwerks‑ und Dienstleistungsbetriebe dabei, diese Abläufe durch **schlanke Web‑Lösungen** zu automatisieren – **maßgeschneidert** und zu **100 % in Ihrem eigenen Firmenbranding**:
 
-Einen ersten Eindruck finden Sie direkt auf:
-👉 https://team-track.de
+**Unsere Kernmodule im Überblick**
+- **Mobile Zeiterfassung** – Mitarbeiter erfassen Zeiten & Fahrten per Smartphone (ohne App‑Store‑Download).
+- **1‑Klick‑Rechnungsstellung** – Fehlerfreie Rechnungen mit DATEV / SevDesk‑Schnittstelle.
+- **Kunden‑ & Auftragsverwaltung** – Alle Einsätze und Kontaktdaten zentral im Blick.
+- **Individuelle Web‑Apps** – Schnelle, sichere Lösungen, exakt auf Ihre Prozesse abgestimmt.
 
-Gerne stelle ich Ihnen einen kostenlosen und unverbindlichen Testzugang bereit, damit Sie und Ihr Team die Funktionen direkt selbst ausprobieren können.
+**Ihr persönlicher Mehrwert**
+- Reduzierung von Verwaltungsaufwand um bis zu 30 %
+- Schnellere Rechnungsstellung → verbessertes Cash‑Flow
+- Transparente Zeit‑Tracking für genauere Kostenermittlung
+- Keine teuren Lizenzgebühren großer Anbieter – faire Festpreise
 
-Soll ich Ihnen einen Testzugang freischalten? Eine kurze Antwort auf diese E-Mail genügt.
+**Kostenloser Testzugang**
+Ich richte Ihnen gerne einen unverbindlichen Test‑Login ein, damit Sie die Funktionen sofort selbst prüfen können.
+
+**Wie geht’s weiter?**
+Antworten Sie einfach kurz mit *„Ja, bitte Testzugang“* oder nennen Sie mir einen Termin, an dem ich Ihnen die Einrichtung zeigen kann.
+
+Ich freue mich darauf, Ihnen zu zeigen, wie Sie mit wenigen Klicks Zeit und Kosten sparen.
 
 Beste Grüße aus Würzburg,
 
