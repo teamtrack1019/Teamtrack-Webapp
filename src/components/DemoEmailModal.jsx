@@ -18,13 +18,9 @@ function getGreeting(contactPerson, isFormal = true) {
 
 const COMPANY_SIGNATURE_DETAILS = `TeamTrack-Software
 Softwareentwicklung & IT-Beratung
-
-Balthasar-Neumann-Str. 38
-97236 Randersacker
-
 Tel: +49 172 6125371
 E-Mail: kontakt@team-track.de
-Web: www.team-track.de`;
+Web: https://team-track.de`;
 
 const COMPANY_SIGNATURE = `Mit freundlichen Grüßen
 
@@ -270,7 +266,7 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent,
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
               E-Mail-Vorlage wählen
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {Object.entries(EMAIL_TEMPLATES).map(([key, tpl]) => (
                 <button
                   key={key}
