@@ -38,6 +38,7 @@ import {
 import { useLanguage } from './context/LanguageContext';
 
 import { api } from './api';
+import { buildInvoiceDraft } from './utils/offerInvoice';
 
 // Helper to parse route from URL hash
 const parseHash = (hashStr) => {
@@ -500,12 +501,7 @@ export default function App() {
                 setCustomerModalOpen(true);
               }}
               onConvertToInvoice={(offer) => {
-                const prefilled = {
-                  title: `${offer.type === 'kostenvoranschlag' ? 'Kostenvoranschlag' : 'Angebot'} ${offer.offerNumber}`,
-                  price: offer.totalOneTime || offer.totalAmount || 0,
-                  type: 'einmalig'
-                };
-                handleOpenInvoiceModal(offer.customerId, null, prefilled);
+                handleOpenInvoiceModal(offer.customerId, null, buildInvoiceDraft(offer));
               }}
             />
           )}

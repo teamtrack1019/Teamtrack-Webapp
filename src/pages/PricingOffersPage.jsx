@@ -36,8 +36,28 @@ import {
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { generateOfferPDF, generateAbnahmePDF } from '../utils/pdfGenerator';
+import { buildInvoiceDraft } from '../utils/offerInvoice';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
+
+const WHATSAPP_ONCE = [
+  'WhatsApp-Terminassistent einrichten',
+  'Leistungen, Preise und Öffnungszeiten des Betriebs hinterlegen',
+  'Termin im Kalender, zum Beispiel Google Kalender'
+];
+
+const WHATSAPP_MONTHLY = [
+  'Das System bleibt verfügbar',
+  'Erinnerungen gehen automatisch raus',
+  'Kleine Änderungen: Preise, Öffnungszeiten oder eine neue Leistung'
+];
+
+const WHATSAPP_ABNAHME = [
+  'Test-Termin per WhatsApp geschrieben',
+  'Bestätigung kam an',
+  'Termin steht im Kalender',
+  'Leistungen, Preise und Öffnungszeiten sind die des Betriebs'
+];
 
 export const PAKET_A_MODULES = [
   { id: 'pkgA-1', title: 'Kunden- & Stammdatenverwaltung' },
@@ -112,6 +132,10 @@ function PricingOffersContent({
   // Package C: Modul-Erweiterung (Selectable modules list)
   const [pkgCIncluded, setPkgCIncluded] = useState(false);
   const [pkgCUnitPrice, setPkgCUnitPrice] = useState(890);
+  const [waIncluded, setWaIncluded] = useState(false);
+  const [waSetupPrice, setWaSetupPrice] = useState(390);
+  const [waMonthlyPrice, setWaMonthlyPrice] = useState(49);
+  const [waMinMonths, setWaMinMonths] = useState(12);
   const [selectedModuleIds, setSelectedModuleIds] = useState(['mod-1']);
   const [customModules, setCustomModules] = useState([]);
   const [newCustomModuleName, setNewCustomModuleName] = useState('');
@@ -221,11 +245,14 @@ function PricingOffersContent({
     if (pkgAIncluded) sum += Number(pkgAPrice || 0);
     if (pkgBIncluded) sum += Number(pkgBSetupPrice || 0);
     if (pkgCIncluded) sum += pkgCTotal;
+    if (waIncluded) sum += Number(waSetupPrice || 0);
     (customItems || []).forEach(it => {
       sum += (Number(it.unitPrice || 0) * Number(it.quantity || 1));
     });
     return sum;
-  }, [pkgAIncluded, pkgAPrice, pkgBIncluded, pkgBSetupPrice, pkgCIncluded, pkgCTotal, customItems]);
+  }, [pkgAIncluded, pkgAPrice, pkgBIncluded, pkgBSetupPrice, pkgCIncluded, pkgCTotal, waIncluded, waSetupPrice, customItems]);
+
+  const waMonthlyAmount = waIncluded ? Number(waMonthlyPrice || 49) : 0;
 
   const isKV = docType === 'kostenvoranschlag';
   const pricePrefix = isKV ? 'ab ' : '';
@@ -279,11 +306,21 @@ function PricingOffersContent({
         selectedModules: activeSelectedModules.map(m => ({ id: m.id, title: m.title })),
         moduleName: activeSelectedModules.map(m => m.title).join(' • ')
       },
+      packageWhatsApp: {
+        included: waIncluded,
+        setupPrice: Number(waSetupPrice || 390),
+        monthlyPrice: Number(waMonthlyPrice || 49),
+        minMonths: Number(waMinMonths || 12),
+        onceItems: WHATSAPP_ONCE,
+        monthlyItems: WHATSAPP_MONTHLY,
+        abnahmeChecks: WHATSAPP_ABNAHME
+      },
       customItems,
       totalOneTime,
-      totalRecurring: currentPkgBRecurringPrice,
-      recurringInterval: pkgBInterval,
-      totalAmount: totalOneTime + (pkgBIncluded ? currentPkgBRecurringPrice : 0),
+      totalRecurring: currentPkgBRecurringPrice + (!pkgBIncluded && waIncluded ? waMonthlyAmount : 0),
+      totalWhatsAppMonthly: waMonthlyAmount,
+      recurringInterval: pkgBIncluded ? pkgBInterval : 'monthly',
+      totalAmount: totalOneTime + (pkgBIncluded ? currentPkgBRecurringPrice : 0) + waMonthlyAmount,
       notes: customNotes
     };
   };
@@ -299,6 +336,11 @@ function PricingOffersContent({
     } catch (err) {
       alert('Fehler beim Speichern: ' + err.message);
     }
+  };
+
+  const openInvoiceFromOffer = (offer) => {
+    if (!onConvertToInvoice || !offer) return;
+    onConvertToInvoice(offer);
   };
 
   // Download PDF
@@ -331,9 +373,9 @@ vielen Dank für Ihr Interesse an einer Zusammenarbeit mit TeamTrack-Software.
 ${isKV ? 'Wie besprochen haben wir für Sie einen unverbindlichen Kostenvoranschlag' : 'Gerne unterbreiten wir Ihnen nachfolgend unser maßgeschneidertes Angebot'} für die Digitalisierung Ihrer Betriebsabläufe zusammengestellt:
 
 📋 ${isKV ? 'KOSTENVORANSCHLAG' : 'ANGEBOT'} ${offerNumber}
-${pkgAIncluded ? `• Paket 1 (Komplett-Entwicklung & WebApp): ${pricePrefix}${formatCurrency(pkgAPrice)} (einmalig)\n  Vereinbarter Modulumfang:\n${selectedPkgAModsFormatted}\n` : ''}${pkgBIncluded ? `• Paket 2 (Setup + 7/24 Abo-Betreuung): Setup ${pricePrefix}${formatCurrency(pkgBSetupPrice)} + ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)} / ${intervalText}\n` : ''}${pkgCIncluded && selectedModulesCount > 0 ? `• Paket 3 (Modulare Funktionserweiterung - ${selectedModulesCount} Modul${selectedModulesCount > 1 ? 'e' : ''} zu je ${pricePrefix}${formatCurrency(pkgCUnitPrice)} = ${pricePrefix}${formatCurrency(pkgCTotal)}):\n  Ausgewählte Funktionsbereiche:\n${selectedModsFormatted}\n` : ''}
-${currentPkgBRecurringPrice > 0 
-  ? `Einmalige Investition (Setup): ${pricePrefix}${formatCurrency(totalOneTime)}\nLaufende Betreuung (${intervalText}): ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)}\nGesamtsumme (Erstabwicklung inkl. 1. ${pkgBInterval === 'yearly' ? 'Jahr' : pkgBInterval === 'quarterly' ? 'Quartal' : 'Monat'}): ${pricePrefix}${formatCurrency(totalOneTime + currentPkgBRecurringPrice)}\n`
+${pkgAIncluded ? `• Paket 1 (Komplett-Entwicklung & WebApp): ${pricePrefix}${formatCurrency(pkgAPrice)} (einmalig)\n  Vereinbarter Modulumfang:\n${selectedPkgAModsFormatted}\n` : ''}${pkgBIncluded ? `• Paket 2 (Setup + 7/24 Abo-Betreuung): Setup ${pricePrefix}${formatCurrency(pkgBSetupPrice)} + ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)} / ${intervalText}\n` : ''}${pkgCIncluded && selectedModulesCount > 0 ? `• Paket 3 (Modulare Funktionserweiterung - ${selectedModulesCount} Modul${selectedModulesCount > 1 ? 'e' : ''} zu je ${pricePrefix}${formatCurrency(pkgCUnitPrice)} = ${pricePrefix}${formatCurrency(pkgCTotal)}):\n  Ausgewählte Funktionsbereiche:\n${selectedModsFormatted}\n` : ''}${waIncluded ? `• WhatsApp-Terminassistent: Einrichtung ${pricePrefix}${formatCurrency(waSetupPrice)} (einmalig) + Betreuung ${pricePrefix}${formatCurrency(waMonthlyPrice)} / Monat\n  Mindestlaufzeit: ${waMinMonths} Monate, danach monatlich bis eine Seite mit 30 Tagen kündigt.\n  Einmalig dabei:\n${WHATSAPP_ONCE.map(item => `    - ${item}`).join('\n')}\n  Jeden Monat dabei:\n${WHATSAPP_MONTHLY.map(item => `    - ${item}`).join('\n')}\n` : ''}
+${(currentPkgBRecurringPrice > 0 || waMonthlyAmount > 0)
+  ? `Einmalige Investition: ${pricePrefix}${formatCurrency(totalOneTime)}\n${currentPkgBRecurringPrice > 0 ? `Laufende Betreuung Paket 2 (${intervalText}): ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)}\n` : ''}${waMonthlyAmount > 0 ? `WhatsApp-Betreuung: ${pricePrefix}${formatCurrency(waMonthlyAmount)} / Monat\n` : ''}Gesamtsumme (einmalig inkl. 1. Zeitraum): ${pricePrefix}${formatCurrency(totalOneTime + currentPkgBRecurringPrice + waMonthlyAmount)}\n`
   : `Gesamtsumme: ${pricePrefix}${formatCurrency(totalOneTime)}\n`
 }
 ${(() => {
@@ -360,8 +402,16 @@ ${(() => {
 • Nahtlose Integration: Vollständige technische Anbindung an das bestehende TeamTrack-System inklusive Funktionstest und Einweisung.
 `;
   }
-  if (pkgAIncluded || (pkgCIncluded && selectedModulesCount > 0)) {
+  if ((pkgAIncluded || (pkgCIncluded && selectedModulesCount > 0)) && !(waIncluded && !pkgAIncluded && !pkgBIncluded && !pkgCIncluded)) {
     cond += `\n💳 Zahlungsmodalitäten (Entwicklung): 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung & Freigabe.\n`;
+  }
+  if (waIncluded) {
+    cond += `\n💬 WhatsApp-Terminassistent:
+• Der Assistent schreibt die Chat-Nachrichten. Er fragt Leistung, Tag und Uhrzeit und bestätigt den Termin. Es werden nur freie Zeiten angeboten. Dieselbe Uhrzeit wird nicht doppelt vergeben. Der Termin landet im Kalender, zum Beispiel im Google Kalender.
+• Einrichtung ${pricePrefix}${formatCurrency(waSetupPrice)} einmalig. Betreuung ${pricePrefix}${formatCurrency(waMonthlyPrice)} pro Monat. Mindestlaufzeit ${waMinMonths} Monate, danach monatliche Verlängerung, Kündigung mit 30 Tagen.
+• Die Gebühren von Meta für WhatsApp sind nicht in der monatlichen Betreuung enthalten. Sie laufen über die Karte des Auftraggebers.
+• Die einmalige Einrichtung wird mit der Abnahme fällig. Die monatliche Betreuung wird getrennt berechnet.
+`;
   }
   return cond;
 })()}
@@ -428,11 +478,15 @@ Web: www.team-track.de`;
     const hasPkgA = Boolean(offer?.packageA && offer.packageA.included);
     const hasPkgB = Boolean(offer?.packageB && offer.packageB.included);
     const hasPkgC = Boolean(offer?.packageC && offer.packageC.included);
+    const hasWa = Boolean(offer?.packageWhatsApp && offer.packageWhatsApp.included);
+    const waOnly = hasWa && !hasPkgA && !hasPkgB && !hasPkgC;
     const abnNumber = `ABN-${new Date().getFullYear()}-${String(offer?.id || Date.now()).slice(-4)}`;
 
     let bodyText = `${greeting}
 
-wir freuen uns, Ihnen mitteilen zu können, dass die Bereitstellung und Implementierung Ihrer maßgeschneiderten Softwarelösung (TeamTrack) erfolgreich abgeschlossen wurde.
+${waOnly
+  ? 'die Einrichtung Ihres WhatsApp-Terminassistenten ist abgeschlossen. Bitte prüfen Sie die Punkte unten und senden Sie uns das Abnahmeprotokoll unterschrieben zurück.'
+  : 'wir freuen uns, Ihnen mitteilen zu können, dass die Bereitstellung und Implementierung Ihrer maßgeschneiderten Softwarelösung (TeamTrack) erfolgreich abgeschlossen wurde.'}
 
 📋 SOFTWARE-ABNAHMEPROTOKOLL ${abnNumber}
 Referenz: ${offer?.type === 'kostenvoranschlag' ? 'Kostenvoranschlag' : 'Angebot'} ${offer?.offerNumber || ''}
@@ -494,12 +548,26 @@ ${modNames.join('\n')}
 `;
     }
 
+    if (hasWa) {
+      const setup = Number(offer.packageWhatsApp.setupPrice || 390);
+      const monthly = Number(offer.packageWhatsApp.monthlyPrice || 49);
+      const checks = Array.isArray(offer.packageWhatsApp.abnahmeChecks) && offer.packageWhatsApp.abnahmeChecks.length > 0
+        ? offer.packageWhatsApp.abnahmeChecks
+        : WHATSAPP_ABNAHME;
+      bodyText += `
+✅ WhatsApp-Terminassistent:
+${checks.map(item => `  - ${item}`).join('\n')}
+
+Mit der Unterschrift ist die Einrichtung abgenommen. Die einmalige Gebühr von ${formatCurrency(setup)} ist fällig. Die monatliche Betreuung von ${formatCurrency(monthly)} ist getrennt und nicht Teil dieses Protokolls. Meta-Gebühren für WhatsApp laufen über die Karte des Auftraggebers.
+`;
+    }
+
     if (hasPkgB) {
       bodyText += `
 🔒 Datensicherung & Server-Backups:
 Im Rahmen der laufenden 7/24 Betreuung führt TeamTrack tägliche automatisierte Server-Backups durch. Ergänzend obliegt dem Auftraggeber die eigenverantwortliche lokale Archivierung über die integrierte 1-Klick Backup-Funktion.
 `;
-    } else {
+    } else if (!waOnly) {
       bodyText += `
 🔒 Wichtiger Hinweis zur Datensicherung:
 Die regelmäßige Erstellung von Datensicherungen (Backups) obliegt der Eigenverantwortung des Kunden und kann jederzeit eigenständig mit 1 Klick über die integrierte Backup-Funktion im System durchgeführt werden.
@@ -1154,6 +1222,74 @@ Web: www.team-track.de`;
                 </div>
               </div>
 
+              {/* WHATSAPP TERMIN */}
+              <div className={`p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border transition-all min-w-0 ${
+                waIncluded ? 'border-emerald-700 bg-emerald-50/40 shadow-xs' : 'border-slate-200 bg-slate-50/50 opacity-80'
+              }`}>
+                <div className="flex items-start gap-2.5 sm:gap-3 min-w-0">
+                  <input
+                    type="checkbox"
+                    id="pkgWa"
+                    checked={waIncluded}
+                    onChange={(e) => setWaIncluded(e.target.checked)}
+                    className="mt-1 w-4 h-4 text-emerald-700 rounded border-slate-300 focus:ring-emerald-600 cursor-pointer shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <label htmlFor="pkgWa" className="font-black text-slate-900 text-xs sm:text-sm cursor-pointer flex flex-wrap items-center gap-1.5">
+                      <span>WhatsApp-Terminassistent</span>
+                      <span className="text-[9px] sm:text-[10px] font-bold bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-full whitespace-nowrap">Für Salons</span>
+                    </label>
+                    <p className="text-[11px] sm:text-xs text-slate-500 mt-1 leading-relaxed">
+                      Kundinnen und Kunden buchen im Chat. Der Assistent schreibt die Nachrichten. Für ein reines Salon-Angebot Paket 1–3 abwählen.
+                    </p>
+                    {waIncluded && (
+                      <div className="mt-3 sm:mt-4 pt-3 border-t border-emerald-200/80 space-y-3 min-w-0">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          <label className="text-[11px] font-semibold text-slate-700">
+                            Einrichtung, einmalig
+                            <div className="mt-1 flex items-center gap-1">
+                              <input type="number" min="0" step="10" value={waSetupPrice} onChange={(e) => setWaSetupPrice(Number(e.target.value))} className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-right font-bold" />
+                              <span>€</span>
+                            </div>
+                          </label>
+                          <label className="text-[11px] font-semibold text-slate-700">
+                            Betreuung / Monat
+                            <div className="mt-1 flex items-center gap-1">
+                              <input type="number" min="0" step="1" value={waMonthlyPrice} onChange={(e) => setWaMonthlyPrice(Number(e.target.value))} className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-right font-bold" />
+                              <span>€</span>
+                            </div>
+                          </label>
+                          <label className="text-[11px] font-semibold text-slate-700">
+                            Mindestlaufzeit
+                            <div className="mt-1 flex items-center gap-1">
+                              <input type="number" min="1" step="1" value={waMinMonths} onChange={(e) => setWaMinMonths(Number(e.target.value))} className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-right font-bold" />
+                              <span>Mon.</span>
+                            </div>
+                          </label>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                          <div className="bg-white rounded-xl border border-emerald-100 p-2.5">
+                            <div className="font-bold text-slate-800 mb-1">Einmalig dabei</div>
+                            <ul className="list-disc list-inside text-slate-600 space-y-0.5">
+                              {WHATSAPP_ONCE.map(item => <li key={item}>{item}</li>)}
+                            </ul>
+                          </div>
+                          <div className="bg-white rounded-xl border border-emerald-100 p-2.5">
+                            <div className="font-bold text-slate-800 mb-1">Jeden Monat dabei</div>
+                            <ul className="list-disc list-inside text-slate-600 space-y-0.5">
+                              {WHATSAPP_MONTHLY.map(item => <li key={item}>{item}</li>)}
+                            </ul>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-amber-900 bg-amber-50 border border-amber-200 rounded-xl p-2.5 leading-relaxed">
+                          Meta-Gebühren für WhatsApp sind nicht in den {formatCurrency(waMonthlyPrice)} enthalten. Sie laufen über die Karte des Kunden. Danach verlängert sich der Vertrag monatlich, bis eine Seite mit 30 Tagen kündigt.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* CUSTOM EXTRA ITEMS */}
               <div className="pt-2 min-w-0">
                 <div className="flex items-center justify-between mb-2">
@@ -1249,6 +1385,15 @@ Web: www.team-track.de`;
                   </div>
                 )}
 
+                {waMonthlyAmount > 0 && (
+                  <div className="flex items-center justify-between text-slate-300 gap-2">
+                    <span className="truncate">WhatsApp-Betreuung (monatlich):</span>
+                    <span className="font-bold text-emerald-300 text-sm shrink-0">
+                      {pricePrefix}{formatCurrency(waMonthlyAmount)}
+                    </span>
+                  </div>
+                )}
+
                 <div className="pt-3 border-t border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
                     <span className="text-xs text-slate-400 block font-medium">Gesamtsumme (Erstabwicklung):</span>
@@ -1256,11 +1401,13 @@ Web: www.team-track.de`;
                   </div>
                   <div className="text-left sm:text-right">
                     <span className="text-xl sm:text-2xl font-black text-sky-400 block">
-                      {pricePrefix}{formatCurrency(totalOneTime + (pkgBIncluded ? currentPkgBRecurringPrice : 0))}
+                      {pricePrefix}{formatCurrency(totalOneTime + (pkgBIncluded ? currentPkgBRecurringPrice : 0) + waMonthlyAmount)}
                     </span>
-                    {currentPkgBRecurringPrice > 0 && (
+                    {(currentPkgBRecurringPrice > 0 || waMonthlyAmount > 0) && (
                       <span className="text-[10.5px] sm:text-[11px] text-slate-400 block font-semibold leading-tight mt-0.5">
-                        (Setup {pricePrefix}{formatCurrency(totalOneTime)} + 1. {pkgBInterval === 'yearly' ? 'Jahr' : pkgBInterval === 'quarterly' ? 'Quartal' : 'Monat'} Abo {pricePrefix}{formatCurrency(currentPkgBRecurringPrice)})
+                        (einmalig {pricePrefix}{formatCurrency(totalOneTime)}
+                        {currentPkgBRecurringPrice > 0 ? ` + 1. ${pkgBInterval === 'yearly' ? 'Jahr' : pkgBInterval === 'quarterly' ? 'Quartal' : 'Monat'} Paket 2 ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)}` : ''}
+                        {waMonthlyAmount > 0 ? ` + 1. Monat WhatsApp ${pricePrefix}${formatCurrency(waMonthlyAmount)}` : ''})
                       </span>
                     )}
                   </div>
@@ -1297,6 +1444,15 @@ Web: www.team-track.de`;
                     <span>{copied ? 'Kopiert!' : 'Text kopieren'}</span>
                   </button>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => openInvoiceFromOffer(getCurrentOfferPayload())}
+                  className="w-full py-2.5 bg-white/10 hover:bg-white/15 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer border border-white/15"
+                >
+                  <Receipt className="w-4 h-4 text-emerald-300 shrink-0" />
+                  <span>Rechnung aus Angebot füllen</span>
+                </button>
 
                 {/* Abnahmeprotokoll Button */}
                 <button
@@ -1533,6 +1689,35 @@ Web: www.team-track.de`;
                     <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-relaxed">Initial-Setup übergeben, Admin-Zugänge freigeschaltet und in laufenden Support überführt.</p>
                   </div>
                 </label>
+              </div>
+
+              <div className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all min-w-0 ${
+                waIncluded ? 'border-emerald-700 bg-emerald-50/40' : 'border-slate-200 bg-slate-50/50 opacity-60'
+              }`}>
+                <label className="flex items-start gap-2.5 cursor-pointer min-w-0">
+                  <input
+                    type="checkbox"
+                    checked={waIncluded}
+                    onChange={(e) => setWaIncluded(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 text-emerald-700 rounded border-slate-300 focus:ring-emerald-600 shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <span className="font-black text-xs sm:text-sm text-slate-900 break-words">WhatsApp-Terminassistent</span>
+                    <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-relaxed">
+                      Einrichtung {formatCurrency(waSetupPrice)} wird mit der Abnahme fällig. Betreuung {formatCurrency(waMonthlyPrice)} / Monat ist getrennt.
+                    </p>
+                  </div>
+                </label>
+                {waIncluded && (
+                  <ul className="mt-3 pt-3 border-t border-emerald-200 space-y-1.5 text-[11px] text-slate-700">
+                    {WHATSAPP_ABNAHME.map(item => (
+                      <li key={item} className="flex items-start gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 shrink-0 mt-0.5" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               {/* Paket 3 Abnahme */}
@@ -1782,6 +1967,15 @@ Web: www.team-track.de`;
                               >
                                 <ShieldCheck className="w-3.5 h-3.5" />
                                 <span>Abnahme</span>
+                              </button>
+                              <button
+                                type="button"
+                                title="Rechnung mit den Angebotspositionen öffnen"
+                                onClick={() => openInvoiceFromOffer(offer)}
+                                className="px-2 py-1.5 rounded-lg bg-sky-600 text-white hover:bg-sky-500 transition cursor-pointer flex items-center gap-1 font-bold text-xs"
+                              >
+                                <Receipt className="w-3.5 h-3.5" />
+                                <span>Rechnung</span>
                               </button>
                               <button
                                 type="button"

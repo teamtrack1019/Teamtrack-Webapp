@@ -32,6 +32,7 @@ import {
 import { api } from '../api';
 import { formatCurrency, formatDate, formatDateTime, getOfferReminderStatus, getLeadSourceBadge, getStatusBadge } from '../utils/formatters';
 import { generateOfferPDF } from '../utils/pdfGenerator';
+import { buildInvoiceDraft } from '../utils/offerInvoice';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function CustomerDetailPage({
@@ -908,6 +909,15 @@ export default function CustomerDetailPage({
                       )}
                     </div>
 
+                    <button
+                      type="button"
+                      onClick={() => onOpenInvoiceModal(customer.id, null, buildInvoiceDraft(off))}
+                      className="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                      title={isTR ? 'Teklif satırlarıyla fatura aç' : 'Rechnung mit den Angebotspositionen öffnen'}
+                    >
+                      <Receipt className="w-3.5 h-3.5" />
+                      <span>{isTR ? 'Fatura' : 'Rechnung'}</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => generateOfferPDF(off)}

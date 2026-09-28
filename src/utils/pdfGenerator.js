@@ -782,6 +782,31 @@ export function createOfferDoc(offer, companySettings = {}) {
     ]);
   }
 
+  if (offer.packageWhatsApp && offer.packageWhatsApp.included) {
+    const setupPrice = Number(offer.packageWhatsApp.setupPrice || 390);
+    const monthlyPrice = Number(offer.packageWhatsApp.monthlyPrice || 49);
+    const minMonths = Number(offer.packageWhatsApp.minMonths || 12);
+    const onceItems = (offer.packageWhatsApp.onceItems || []).map(name => `• ${name}`).join('\n');
+    const monthlyItems = (offer.packageWhatsApp.monthlyItems || []).map(name => `• ${name}`).join('\n');
+
+    tableBody.push([
+      `${posCounter++}`,
+      `WhatsApp-Terminassistent – Einrichtung\n` +
+      `${onceItems}\n` +
+      `Mindestlaufzeit ${minMonths} Monate. Meta-Gebühren für WhatsApp sind nicht enthalten.`,
+      '1x Einmalig',
+      `${docPrefix}${formatCurrency(setupPrice)}`,
+      `${docPrefix}${formatCurrency(setupPrice)}`
+    ]);
+    tableBody.push([
+      `${posCounter++}`,
+      `WhatsApp-Terminassistent – Betreuung\n${monthlyItems}`,
+      'Monatlich',
+      `${docPrefix}${formatCurrency(monthlyPrice)} / Monat`,
+      `${docPrefix}${formatCurrency(monthlyPrice)} / Monat`
+    ]);
+  }
+
   // Custom Items
   (offer.customItems || []).forEach(item => {
     const q = Number(item.quantity || 1);
@@ -843,20 +868,24 @@ export function createOfferDoc(offer, companySettings = {}) {
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(226, 232, 240);
   doc.setLineWidth(0.3);
-  doc.roundedRect(totalsX, finalY, totalsWidth, 24, 2, 2, 'FD');
-
-  doc.setFontSize(8.5);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(71, 85, 105);
-
   const oneTimeSum = Number(offer.totalOneTime || 0);
   const recurringSum = Number(offer.totalRecurring || 0);
   const recInterval = offer.recurringInterval || 'monthly';
   const recLabel = recInterval === 'yearly' ? 'pro Jahr' : recInterval === 'quarterly' ? 'pro Quartal' : 'pro Monat';
   const grandTotal = Number(offer.totalAmount || (oneTimeSum + recurringSum));
 
-  const hasOnlyB = Boolean(offer.packageB && offer.packageB.included && !offer.packageA?.included && !offer.packageC?.included);
-  const oneTimeLabel = hasOnlyB ? 'Einmalige Einrichtung (Setup):' : 'Einmalige Entwicklung:';
+  const hasWaTotals = Boolean(offer.packageWhatsApp && offer.packageWhatsApp.included);
+  const waMonthlySeparate = hasWaTotals && Boolean(offer.packageB?.included) ? Number(offer.packageWhatsApp.monthlyPrice || offer.totalWhatsAppMonthly || 49) : 0;
+  const hasOnlyB = Boolean(offer.packageB && offer.packageB.included && !offer.packageA?.included && !offer.packageC?.included && !hasWaTotals);
+  const hasOnlyWa = hasWaTotals && !offer.packageA?.included && !offer.packageB?.included && !offer.packageC?.included;
+  const oneTimeLabel = (hasOnlyB || hasOnlyWa) ? 'Einmalige Einrichtung:' : 'Einmalige Entwicklung:';
+  const totalsBoxH = waMonthlySeparate > 0 ? 30 : 24;
+
+  doc.roundedRect(totalsX, finalY, totalsWidth, totalsBoxH, 2, 2, 'FD');
+
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
 
   doc.text(oneTimeLabel, totalsX + 4, finalY + 6);
   doc.setFont('helvetica', 'bold');
@@ -872,36 +901,58 @@ export function createOfferDoc(offer, companySettings = {}) {
     doc.text(`${docPrefix}${formatCurrency(recurringSum)}`, totalsX + totalsWidth - 4, finalY + 12, { align: 'right' });
   }
 
+  if (waMonthlySeparate > 0) {
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(71, 85, 105);
+    doc.text('WhatsApp-Betreuung (pro Monat):', totalsX + 4, finalY + 18);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(47, 106, 69);
+    doc.text(`${docPrefix}${formatCurrency(waMonthlySeparate)}`, totalsX + totalsWidth - 4, finalY + 18, { align: 'right' });
+  }
+
+  const summaryLineY = waMonthlySeparate > 0 ? 21 : 15;
+  const summaryTextY = waMonthlySeparate > 0 ? 26.5 : 20.5;
+
   // Summary line
   doc.setDrawColor(203, 213, 225);
-  doc.line(totalsX + 4, finalY + 15, totalsX + totalsWidth - 4, finalY + 15);
+  doc.line(totalsX + 4, finalY + summaryLineY, totalsX + totalsWidth - 4, finalY + summaryLineY);
   doc.setFontSize(9.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  doc.text('Gesamtsumme:', totalsX + 4, finalY + 20.5);
+  doc.text('Gesamtsumme:', totalsX + 4, finalY + summaryTextY);
   doc.setTextColor(0, 130, 203);
-  doc.text(`${docPrefix}${formatCurrency(grandTotal)}`, totalsX + totalsWidth - 4, finalY + 20.5, { align: 'right' });
+  doc.text(`${docPrefix}${formatCurrency(grandTotal)}`, totalsX + totalsWidth - 4, finalY + summaryTextY, { align: 'right' });
 
   // Tax note
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(100, 116, 139);
-  doc.text(kleinunternehmerText, margin, finalY + 28);
+  doc.text(kleinunternehmerText, margin, finalY + totalsBoxH + 4);
 
   // 6. CONDITIONS & ACCEPTANCE SECTION
-  const condY = finalY + 30;
+  const condY = finalY + totalsBoxH + 8;
   const boxWidth = pageWidth - (margin * 2); // 170mm
   const textWidth = boxWidth - 8; // 162mm
 
   const hasPkgA = Boolean(offer.packageA && offer.packageA.included);
   const hasPkgB = Boolean(offer.packageB && offer.packageB.included);
   const hasPkgC = Boolean(offer.packageC && offer.packageC.included);
+  const hasWa = Boolean(offer.packageWhatsApp && offer.packageWhatsApp.included);
   const bInterval = offer.packageB?.interval || offer.recurringInterval || 'monthly';
   const bIntervalLabel = bInterval === 'yearly' ? 'jährlich' : bInterval === 'quarterly' ? 'vierteljährlich' : 'monatlich';
 
   const condItems = [];
 
-  if (hasPkgB && !hasPkgA && !hasPkgC) {
+  if (hasWa && !hasPkgA && !hasPkgB && !hasPkgC) {
+    const setup = Number(offer.packageWhatsApp.setupPrice || 390);
+    const monthly = Number(offer.packageWhatsApp.monthlyPrice || 49);
+    const months = Number(offer.packageWhatsApp.minMonths || 12);
+    condItems.push('• Leistung: Der WhatsApp-Terminassistent schreibt die Chat-Nachrichten, bietet nur freie Zeiten an, vergibt dieselbe Uhrzeit nicht doppelt und trägt den Termin in den Kalender ein (zum Beispiel Google Kalender).');
+    condItems.push(`• Preise: Einrichtung ${formatCurrency(setup)} einmalig. Betreuung ${formatCurrency(monthly)} pro Monat. Mindestlaufzeit ${months} Monate, danach monatliche Verlängerung, bis eine Seite mit 30 Tagen kündigt.`);
+    condItems.push('• Meta-Gebühren: Die Gebühren von Meta für WhatsApp sind nicht in der monatlichen Betreuung enthalten. Sie laufen über die Karte des Auftraggebers.');
+    condItems.push('• Zahlung: Die einmalige Einrichtung wird mit der Abnahme fällig. Die monatliche Betreuung wird getrennt, jeweils zu Monatsbeginn, berechnet.');
+    condItems.push(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`);
+  } else if (hasPkgB && !hasPkgA && !hasPkgC) {
     // Pure Paket B (Abo)
     condItems.push(`• Leistungsumfang & Abo-Service: Das System wird mit einer initialen Einrichtung schlüsselfertig implementiert. Die laufende 7/24-Abo-Betreuung umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, hochverfügbaren Cloud-Server-Betrieb in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- und Sicherheitsupdates, integrierte Datensicherungs-Tools sowie laufende Feature-Erweiterungen und Funktionsanpassungen (Mindestlaufzeit 12 Monate, monatlich zahlbar und flexibel erweiterbar).`);
     condItems.push(`• Datensicherung (Backups): Die regelmäßige Datensicherung liegt in der Verantwortung des Auftraggebers und erfolgt eigenständig über die im System integrierte 1-Klick Backup-Funktion.`);
@@ -928,6 +979,13 @@ export function createOfferDoc(offer, companySettings = {}) {
       condItems.push('• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung & Freigabe.');
     }
     condItems.push(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`);
+  }
+
+  if (hasWa && (hasPkgA || hasPkgB || hasPkgC)) {
+    const setup = Number(offer.packageWhatsApp.setupPrice || 390);
+    const monthly = Number(offer.packageWhatsApp.monthlyPrice || 49);
+    const months = Number(offer.packageWhatsApp.minMonths || 12);
+    condItems.push(`• WhatsApp-Terminassistent: Einrichtung ${formatCurrency(setup)} einmalig, Betreuung ${formatCurrency(monthly)} pro Monat, Mindestlaufzeit ${months} Monate. Meta-Gebühren extra. Die Einrichtung wird mit der Abnahme fällig, die monatliche Betreuung getrennt.`);
   }
 
   if (offer.notes && offer.notes.trim()) {
@@ -1209,6 +1267,22 @@ export function createAbnahmeDoc(data, companySettings = {}) {
     ]);
   }
 
+  if (data.packageWhatsApp && data.packageWhatsApp.included) {
+    const checks = (data.packageWhatsApp.abnahmeChecks || []).length > 0
+      ? data.packageWhatsApp.abnahmeChecks
+      : [
+          'Test-Termin per WhatsApp geschrieben',
+          'Bestätigung kam an',
+          'Termin steht im Kalender',
+          'Leistungen, Preise und Öffnungszeiten sind die des Betriebs'
+        ];
+    tableBody.push([
+      `${pos++}`,
+      `WhatsApp-Terminassistent\n${checks.map(item => `• ${item}`).join('\n')}`,
+      'Einrichtung geprüft\n& abgenommen'
+    ]);
+  }
+
   (data.customItems || []).forEach(item => {
     tableBody.push([
       `${pos++}`,
@@ -1260,9 +1334,25 @@ export function createAbnahmeDoc(data, companySettings = {}) {
 
   const hasPkgA = Boolean(data.packageA && data.packageA.included);
   const hasPkgB = Boolean(data.packageB && data.packageB.included);
+  const hasPkgC = Boolean(data.packageC && data.packageC.included);
+  const hasWa = Boolean(data.packageWhatsApp && data.packageWhatsApp.included);
+  const waOnly = hasWa && !hasPkgA && !hasPkgB && !hasPkgC;
 
   const statements = [];
 
+  if (waOnly) {
+    const setup = Number(data.packageWhatsApp.setupPrice || 390);
+    const monthly = Number(data.packageWhatsApp.monthlyPrice || 49);
+    statements.push(
+      '1. Abnahme der Einrichtung: Der Auftraggeber bestätigt, dass ein Test-Termin per WhatsApp geschrieben wurde, die Bestätigung ankam, der Termin im Kalender steht und Leistungen, Preise sowie Öffnungszeiten die des Betriebs sind.'
+    );
+    statements.push(
+      `2. Fälligkeit: Mit dieser Unterschrift ist die Einrichtung abgenommen. Die einmalige Gebühr von ${formatCurrency(setup)} ist fällig. Die monatliche Betreuung von ${formatCurrency(monthly)} ist getrennt und nicht Teil dieses Protokolls.`
+    );
+    statements.push(
+      '3. Meta-Gebühren: Die Gebühren von Meta für WhatsApp sind nicht in der monatlichen Betreuung enthalten. Sie laufen über die Karte des Auftraggebers.'
+    );
+  } else {
   // 1. General Acceptance
   statements.push(
     '1. Abnahmeerklärung: Der Auftraggeber bestätigt hiermit, dass die vertraglich vereinbarte Softwarelösung und alle oben aufgeführten Module vollständig, betriebsbereit und ordnungsgemäß übergeben wurden. Die Funktionsprüfung wurde innerhalb der vereinbarten Frist erfolgreich durchgeführt und das System wird ohne wesentliche Mängel abgenommen.'
@@ -1290,6 +1380,14 @@ export function createAbnahmeDoc(data, companySettings = {}) {
   statements.push(
     `${hasPkgA ? '4.' : '3.'} Ausschluss nicht vereinbarter Leistungen: Funktionen, Schnittstellen oder Sonderwünsche, die nicht explizit in diesem Protokoll aufgeführt sind, sind nicht Bestandteil dieser Abnahme und bedürfen einer gesonderten schriftlichen Beauftragung.`
   );
+  if (hasWa) {
+    const setup = Number(data.packageWhatsApp.setupPrice || 390);
+    const monthly = Number(data.packageWhatsApp.monthlyPrice || 49);
+    statements.push(
+      `WhatsApp-Terminassistent: Die Einrichtung ist mit diesem Protokoll abgenommen. Die einmalige Gebühr von ${formatCurrency(setup)} ist fällig. Die monatliche Betreuung von ${formatCurrency(monthly)} wird getrennt berechnet.`
+    );
+  }
+  }
 
   const allSplitStatements = statements.map(st => doc.splitTextToSize(st, textWidth));
   const totalLines = allSplitStatements.reduce((sum, lines) => sum + lines.length, 0);
