@@ -1,3 +1,34 @@
+export const WHATSAPP_JOB_NOTES = `Einrichtung:
+• WhatsApp-Terminassistent einrichten
+• Leistungen, Preise und Öffnungszeiten hinterlegen
+• Termin im Kalender, zum Beispiel Google Kalender
+
+Abnahme:
+• Test-Termin per WhatsApp geschrieben
+• Bestätigung kam an
+• Termin steht im Kalender
+• Leistungen, Preise und Öffnungszeiten sind die des Betriebs
+
+Preise: Einrichtung 390 € einmalig, Betreuung 49 € / Monat, Mindestlaufzeit 12 Monate. Meta-Gebühren extra.`;
+
+export function buildWhatsAppDisposition(offer, ownerName) {
+  const customerName = offer?.customerName || '';
+  return {
+    title: `WhatsApp-Terminassistent${customerName ? ` – ${customerName}` : ''}`,
+    customerId: offer?.customerId || '',
+    customerName,
+    project: 'WhatsApp-Termin',
+    priority: 'medium',
+    status: 'geplant',
+    tags: ['#WhatsApp', '#Termin', '#Salon'],
+    assignee: ownerName || 'Huriye Ünalsoy',
+    date: new Date().toISOString().split('T')[0],
+    notes: WHATSAPP_JOB_NOTES,
+    jobType: 'whatsapp-termin',
+    offerNumber: offer?.offerNumber || ''
+  };
+}
+
 function moduleTitles(list) {
   if (!Array.isArray(list)) return [];
   return list

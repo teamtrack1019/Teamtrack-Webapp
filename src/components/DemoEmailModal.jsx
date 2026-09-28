@@ -110,6 +110,19 @@ Ich freue mich auf Ihre kurze Rückmeldung und stehe Ihnen für alle Fragen jede
 
 ${COMPANY_SIGNATURE}`;
     }
+  },
+  whatsapp_termin: {
+    name: '5. WhatsApp-Terminassistent für Salons',
+    subject: 'Termine über WhatsApp annehmen, auch wenn niemand ans Telefon geht – TeamTrack',
+    body: (cust) => `${getGreeting(cust.contactPerson, true)}
+
+viele Salons verlieren Termine, weil abends niemand ans Telefon geht. Ich richte einen Assistenten auf Ihrer WhatsApp-Nummer ein: Der Gast wählt Leistung, Tag und Uhrzeit, bekommt nur freie Zeiten und eine Bestätigung. 24 Stunden vorher geht eine Erinnerung raus. Dieselbe Uhrzeit kann nicht doppelt vergeben werden. Sie tippen diese Nachrichten nicht selbst.
+
+Der Termin landet in Ihrem Kalender, zum Beispiel im Google Kalender. Preise, Dauer und Öffnungszeiten sind die Ihres Salons.
+
+Wenn Sie möchten, zeige ich Ihnen das in einer kurzen Demo — am Bildschirm, ohne Verpflichtung. Antworten Sie einfach kurz, dann vereinbaren wir einen Termin.
+
+${COMPANY_SIGNATURE}`
   }
 };
 

@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { api } from '../api';
 import { formatDate, formatDateTime, getLeadSourceBadge, getStatusBadge } from '../utils/formatters';
+import { buildInvoiceDraft, buildWhatsAppDisposition, WHATSAPP_JOB_NOTES } from '../utils/offerInvoice';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function DispositionKanbanPage({
@@ -89,6 +90,7 @@ export default function DispositionKanbanPage({
   const [filterCustomer, setFilterCustomer] = useState(initialCustomerId || 'all');
   const [filterPriority, setFilterPriority] = useState('all');
   const [filterAssignee, setFilterAssignee] = useState('all');
+  const [filterJobType, setFilterJobType] = useState('all');
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -103,7 +105,9 @@ export default function DispositionKanbanPage({
     tags: '',
     assignee: defaultOwnerName,
     date: new Date().toISOString().split('T')[0],
-    notes: ''
+    notes: '',
+    jobType: 'general',
+    offerNumber: ''
   });
 
   const loadDispositions = async () => {
@@ -153,10 +157,11 @@ export default function DispositionKanbanPage({
       const matchesCustomer = filterCustomer === 'all' || item.customerId === filterCustomer;
       const matchesPriority = filterPriority === 'all' || item.priority === filterPriority;
       const matchesAssignee = filterAssignee === 'all' || item.assignee === filterAssignee;
+      const matchesJobType = filterJobType === 'all' || item.jobType === filterJobType || (filterJobType === 'whatsapp-termin' && Array.isArray(item.tags) && item.tags.some(tag => /whatsapp/i.test(tag)));
 
-      return matchesSearch && matchesCustomer && matchesPriority && matchesAssignee;
+      return matchesSearch && matchesCustomer && matchesPriority && matchesAssignee && matchesJobType;
     });
-  }, [enrichedDispositions, searchTerm, filterCustomer, filterPriority, filterAssignee]);
+  }, [enrichedDispositions, searchTerm, filterCustomer, filterPriority, filterAssignee, filterJobType]);
 
   // Unique assignees for filter
   const assignees = useMemo(() => {
@@ -213,7 +218,9 @@ export default function DispositionKanbanPage({
         tags: Array.isArray(item.tags) ? item.tags.join(', ') : (item.tags || ''),
         assignee: item.assignee || defaultOwnerName,
         date: item.date || new Date().toISOString().split('T')[0],
-        notes: item.notes || ''
+        notes: item.notes || '',
+        jobType: item.jobType || 'general',
+        offerNumber: item.offerNumber || ''
       });
     } else {
       setEditingItem(null);
@@ -230,7 +237,9 @@ export default function DispositionKanbanPage({
         tags: '#Projekt, #Digitalisierung',
         assignee: defaultOwnerName,
         date: new Date().toISOString().split('T')[0],
-        notes: ''
+        notes: '',
+        jobType: 'general',
+        offerNumber: ''
       });
     }
     setModalOpen(true);
@@ -253,7 +262,9 @@ export default function DispositionKanbanPage({
       const payload = {
         ...formData,
         customerName: matchedCust ? matchedCust.companyName : formData.customerName,
-        tags: tagList
+        tags: tagList,
+        jobType: formData.jobType || 'general',
+        offerNumber: formData.offerNumber || ''
       };
 
       if (editingItem) {
@@ -377,6 +388,15 @@ export default function DispositionKanbanPage({
             <option value="low" className="bg-slate-900">🟢 {isTR ? 'Düşük' : 'Niedrig'}</option>
           </select>
 
+          <select
+            value={filterJobType}
+            onChange={(e) => setFilterJobType(e.target.value)}
+            className="flex-1 sm:flex-initial px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200 focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer min-w-0"
+          >
+            <option value="all" className="bg-slate-900">{isTR ? 'Tüm iş türleri' : 'Alle Auftragsarten'}</option>
+            <option value="whatsapp-termin" className="bg-slate-900">WhatsApp-Termin</option>
+          </select>
+
           {/* Assignee Filter */}
           <select
             value={filterAssignee}
@@ -449,6 +469,12 @@ export default function DispositionKanbanPage({
                         </div>
 
                         {/* Title */}
+                        {item.jobType === 'whatsapp-termin' && (
+                          <span className="inline-flex text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-300">
+                            WhatsApp-Termin
+                          </span>
+                        )}
+
                         <h4 className="font-black text-sm sm:text-base text-white tracking-tight leading-snug break-words">
                           {item.title}
                         </h4>
@@ -547,11 +573,18 @@ export default function DispositionKanbanPage({
                             <button
                               onClick={() => {
                                 if (onOpenInvoiceModal) {
-                                  const prefilled = {
-                                    title: `${item.title} (${item.project || 'Auftrag'})`,
-                                    price: 0,
-                                    type: 'einmalig'
-                                  };
+                                  const prefilled = item.jobType === 'whatsapp-termin'
+                                    ? buildInvoiceDraft({
+                                        type: 'angebot',
+                                        offerNumber: item.offerNumber,
+                                        customerId: item.customerId,
+                                        packageWhatsApp: { included: true, setupPrice: 390, monthlyPrice: 49, minMonths: 12 }
+                                      })
+                                    : {
+                                        title: `${item.title} (${item.project || 'Auftrag'})`,
+                                        price: 0,
+                                        type: 'einmalig'
+                                      };
                                   onOpenInvoiceModal(item.customerId || null, null, prefilled);
                                 }
                               }}
@@ -641,11 +674,18 @@ export default function DispositionKanbanPage({
                   onChange={(e) => {
                     const custId = e.target.value;
                     const matched = customers.find(c => c.id === custId);
+                    const customerName = matched ? matched.companyName : '';
+                    const isWhatsApp = formData.jobType === 'whatsapp-termin';
                     setFormData({
                       ...formData,
                       customerId: custId,
-                      customerName: matched ? matched.companyName : '',
-                      project: formData.project || (matched?.address ? matched.address.split(',')[1]?.trim() || matched.address : '')
+                      customerName,
+                      project: isWhatsApp
+                        ? 'WhatsApp-Termin'
+                        : (formData.project || (matched?.address ? matched.address.split(',')[1]?.trim() || matched.address : '')),
+                      title: isWhatsApp
+                        ? `WhatsApp-Terminassistent${customerName ? ` – ${customerName}` : ''}`
+                        : formData.title
                     });
                   }}
                   className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-white font-bold text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer"
@@ -680,6 +720,45 @@ export default function DispositionKanbanPage({
                     )}
                   </div>
                 )}
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-bold mb-1.5">
+                  Auftragsart
+                </label>
+                <select
+                  value={formData.jobType || 'general'}
+                  onChange={(e) => {
+                    const jobType = e.target.value;
+                    if (jobType === 'whatsapp-termin') {
+                      const preset = buildWhatsAppDisposition({
+                        customerId: formData.customerId,
+                        customerName: formData.customerName,
+                        offerNumber: formData.offerNumber
+                      }, formData.assignee || defaultOwnerName);
+                      setFormData({
+                        ...formData,
+                        ...preset,
+                        tags: preset.tags.join(', '),
+                        status: formData.status || 'geplant',
+                        date: formData.date
+                      });
+                    } else {
+                      setFormData({
+                        ...formData,
+                        jobType: 'general',
+                        title: formData.jobType === 'whatsapp-termin' ? '' : formData.title,
+                        project: formData.project === 'WhatsApp-Termin' ? '' : formData.project,
+                        tags: formData.tags.includes('#WhatsApp') ? '#Projekt, #Digitalisierung' : formData.tags,
+                        notes: formData.notes === WHATSAPP_JOB_NOTES ? '' : formData.notes
+                      });
+                    }
+                  }}
+                  className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-medium focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                >
+                  <option value="general">Allgemeiner Auftrag</option>
+                  <option value="whatsapp-termin">WhatsApp-Terminassistent</option>
+                </select>
               </div>
 
               {/* Job Title */}

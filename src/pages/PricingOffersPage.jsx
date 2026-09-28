@@ -25,6 +25,7 @@ import {
   ArrowRight,
   TrendingUp,
   Receipt,
+  Columns3,
   FileSpreadsheet,
   CheckSquare,
   Square,
@@ -36,7 +37,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { generateOfferPDF, generateAbnahmePDF } from '../utils/pdfGenerator';
-import { buildInvoiceDraft } from '../utils/offerInvoice';
+import { buildInvoiceDraft, buildWhatsAppDisposition } from '../utils/offerInvoice';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -92,6 +93,7 @@ function PricingOffersContent({
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [kanbanNotice, setKanbanNotice] = useState('');
 
   useEffect(() => {
     if (initialTab) setActiveTab(initialTab);
@@ -341,6 +343,35 @@ function PricingOffersContent({
   const openInvoiceFromOffer = (offer) => {
     if (!onConvertToInvoice || !offer) return;
     onConvertToInvoice(offer);
+  };
+
+  const trackWhatsAppOnKanban = async (offer) => {
+    if (!offer?.packageWhatsApp?.included) {
+      setKanbanNotice('WhatsApp-Terminassistent ist nicht ausgewählt.');
+      return;
+    }
+    if (!offer.customerId) {
+      setKanbanNotice('Bitte zuerst einen Kunden auswählen.');
+      return;
+    }
+    try {
+      const existing = await api.getDispositions();
+      const already = (existing || []).find((item) =>
+        item.jobType === 'whatsapp-termin'
+        && item.customerId === offer.customerId
+        && (item.offerNumber || '') === (offer.offerNumber || '')
+      );
+      if (already) {
+        setKanbanNotice(`Liegt schon im Kanban: ${already.dispNumber || already.title}`);
+        return;
+      }
+      const created = await api.createDisposition(
+        buildWhatsAppDisposition(offer, companySettings?.ownerName)
+      );
+      setKanbanNotice(`Im Kanban angelegt: ${created?.dispNumber || 'WhatsApp-Termin'} · Spalte Geplant`);
+    } catch (err) {
+      setKanbanNotice(err.message || 'Kanban-Auftrag konnte nicht angelegt werden.');
+    }
   };
 
   // Download PDF
@@ -1454,6 +1485,20 @@ Web: www.team-track.de`;
                   <span>Rechnung aus Angebot füllen</span>
                 </button>
 
+                {waIncluded && (
+                  <button
+                    type="button"
+                    onClick={() => trackWhatsAppOnKanban(getCurrentOfferPayload())}
+                    className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Columns3 className="w-4 h-4 shrink-0" />
+                    <span>Im Kanban verfolgen</span>
+                  </button>
+                )}
+                {kanbanNotice && (
+                  <p className="text-[11px] text-emerald-200 font-semibold text-center">{kanbanNotice}</p>
+                )}
+
                 {/* Abnahmeprotokoll Button */}
                 <button
                   type="button"
@@ -1875,6 +1920,10 @@ Web: www.team-track.de`;
             </div>
           </div>
 
+          {kanbanNotice && (
+            <p className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">{kanbanNotice}</p>
+          )}
+
           {offersList.length === 0 ? (
             <div className="text-center py-12 text-slate-400 space-y-3">
               <FileSpreadsheet className="w-12 h-12 mx-auto text-slate-300" />
@@ -1968,6 +2017,17 @@ Web: www.team-track.de`;
                                 <ShieldCheck className="w-3.5 h-3.5" />
                                 <span>Abnahme</span>
                               </button>
+                              {offer.packageWhatsApp?.included && (
+                                <button
+                                  type="button"
+                                  title="WhatsApp-Auftrag im Kanban anlegen"
+                                  onClick={() => trackWhatsAppOnKanban(offer)}
+                                  className="px-2 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 transition cursor-pointer flex items-center gap-1 font-bold text-xs"
+                                >
+                                  <Columns3 className="w-3.5 h-3.5" />
+                                  <span>Kanban</span>
+                                </button>
+                              )}
                               <button
                                 type="button"
                                 title="Rechnung mit den Angebotspositionen öffnen"

@@ -1023,6 +1023,11 @@ export default function CustomerDetailPage({
                     </span>
                   </div>
 
+                  {disp.jobType === 'whatsapp-termin' && (
+                    <span className="inline-flex text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-700">
+                      WhatsApp-Termin
+                    </span>
+                  )}
                   <h4 className="font-bold text-sm text-slate-900 leading-snug">{disp.title}</h4>
 
                   {disp.project && (

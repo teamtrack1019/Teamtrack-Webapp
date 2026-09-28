@@ -1630,6 +1630,8 @@ async function handleLocalRequest(endpoint, options = {}) {
           assignee: body.assignee || 'Max Mustermann',
           date: body.date || new Date().toISOString().split('T')[0],
           notes: body.notes || '',
+          jobType: body.jobType || 'general',
+          offerNumber: body.offerNumber || '',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
