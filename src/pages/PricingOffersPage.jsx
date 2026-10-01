@@ -265,6 +265,16 @@ function PricingOffersContent({
   }, [pkgAIncluded, pkgAPrice, pkgBIncluded, pkgBSetupPrice, pkgCIncluded, pkgCTotal, waIncluded, waSetupPrice, customItems]);
 
   const waMonthlyAmount = waIncluded ? Number(waMonthlyPrice || 49) : 0;
+  const includedPackageCount = [
+    pkgAIncluded,
+    pkgBIncluded,
+    Boolean(pkgCIncluded && selectedModulesCount > 0),
+    waIncluded
+  ].filter(Boolean).length;
+  const multiplePackages = includedPackageCount > 1;
+  const paket2MonthlyTotal = priceAmount(pkgBSetupPrice) + priceAmount(pkgBMonthlyPrice);
+  const paket2QuarterlyTotal = priceAmount(pkgBSetupPrice) + priceAmount(pkgBQuarterlyPrice);
+  const paket2YearlyTotal = priceAmount(pkgBSetupPrice) + priceAmount(pkgBYearlyPrice);
 
   const isKV = docType === 'kostenvoranschlag';
   const pricePrefix = isKV ? 'ab ' : '';
@@ -417,11 +427,15 @@ vielen Dank für Ihr Interesse an einer Zusammenarbeit mit TeamTrack-Software.
 ${isKV ? 'Wie besprochen haben wir für Sie einen unverbindlichen Kostenvoranschlag' : 'Gerne unterbreiten wir Ihnen nachfolgend unser maßgeschneidertes Angebot'} für die Digitalisierung Ihrer Betriebsabläufe zusammengestellt:
 
 📋 ${isKV ? 'KOSTENVORANSCHLAG' : 'ANGEBOT'} ${offerNumber}
-${pkgAIncluded ? `• Paket 1 (Komplett-Entwicklung & WebApp): ${pricePrefix}${formatCurrency(pkgAPrice)} (einmalig)\n  Vereinbarter Modulumfang:\n${selectedPkgAModsFormatted}\n` : ''}${pkgBIncluded ? `• Paket 2 (Setup + 7/24 Abo-Betreuung), ein Paket:\n  - Einmalige Einrichtung: ${pricePrefix}${formatCurrency(pkgBSetupPrice)}\n  - Monatlich: ${pricePrefix}${formatCurrency(priceAmount(pkgBMonthlyPrice))} / Monat\n  - Vierteljährlich: ${pricePrefix}${formatCurrency(priceAmount(pkgBQuarterlyPrice))} / Quartal\n  - Jährlich: ${pricePrefix}${formatCurrency(priceAmount(pkgBYearlyPrice))} / Jahr\n` : ''}${pkgCIncluded && selectedModulesCount > 0 ? `• Paket 3 (Modulare Funktionserweiterung - ${selectedModulesCount} Modul${selectedModulesCount > 1 ? 'e' : ''} zu je ${pricePrefix}${formatCurrency(pkgCUnitPrice)} = ${pricePrefix}${formatCurrency(pkgCTotal)}):\n  Ausgewählte Funktionsbereiche:\n${selectedModsFormatted}\n` : ''}${waIncluded ? `• WhatsApp-Terminassistent: Einrichtung ${pricePrefix}${formatCurrency(waSetupPrice)} (einmalig) + Betreuung ${pricePrefix}${formatCurrency(waMonthlyPrice)} / Monat\n  Mindestlaufzeit: ${waMinMonths} Monate, danach monatlich bis eine Seite mit 30 Tagen kündigt.\n  Einmalig dabei:\n${WHATSAPP_ONCE.map(item => `    - ${item}`).join('\n')}\n  Jeden Monat dabei:\n${WHATSAPP_MONTHLY.map(item => `    - ${item}`).join('\n')}\n` : ''}
-${pkgAIncluded && pkgBIncluded
-  ? `Es wird nur ein Paket beauftragt.\nPaket 1 einmalig: ${pricePrefix}${formatCurrency(pkgAPrice)}\nPaket 2 Einrichtung: ${pricePrefix}${formatCurrency(pkgBSetupPrice)}\nPaket 2 Betreuung: monatlich ${pricePrefix}${formatCurrency(priceAmount(pkgBMonthlyPrice))}, vierteljährlich ${pricePrefix}${formatCurrency(priceAmount(pkgBQuarterlyPrice))}, jährlich ${pricePrefix}${formatCurrency(priceAmount(pkgBYearlyPrice))}\n`
+${pkgAIncluded ? `• Paket 1 (Komplett-Entwicklung & WebApp): ${pricePrefix}${formatCurrency(pkgAPrice)} (einmalig)\n  Vereinbarter Modulumfang:\n${selectedPkgAModsFormatted}\n` : ''}${pkgBIncluded ? `• Paket 2 (Setup + 7/24 Abo-Betreuung), ein Paket:\n  - Einmalige Einrichtung: ${pricePrefix}${formatCurrency(pkgBSetupPrice)}\n  - Monatlich: ${pricePrefix}${formatCurrency(priceAmount(pkgBMonthlyPrice))} / Monat\n  - Vierteljährlich: ${pricePrefix}${formatCurrency(priceAmount(pkgBQuarterlyPrice))} / Quartal\n  - Jährlich: ${pricePrefix}${formatCurrency(priceAmount(pkgBYearlyPrice))} / Jahr (15 % Nachlass)\n` : ''}${pkgCIncluded && selectedModulesCount > 0 ? `• Paket 3 (Modulare Funktionserweiterung - ${selectedModulesCount} Modul${selectedModulesCount > 1 ? 'e' : ''} zu je ${pricePrefix}${formatCurrency(pkgCUnitPrice)} = ${pricePrefix}${formatCurrency(pkgCTotal)}):\n  Ausgewählte Funktionsbereiche:\n${selectedModsFormatted}\n` : ''}${waIncluded ? `• WhatsApp-Terminassistent: Einrichtung ${pricePrefix}${formatCurrency(waSetupPrice)} (einmalig) + Betreuung ${pricePrefix}${formatCurrency(waMonthlyPrice)} / Monat\n  Mindestlaufzeit: ${waMinMonths} Monate, danach monatlich bis eine Seite mit 30 Tagen kündigt.\n  Einmalig dabei:\n${WHATSAPP_ONCE.map(item => `    - ${item}`).join('\n')}\n  Jeden Monat dabei:\n${WHATSAPP_MONTHLY.map(item => `    - ${item}`).join('\n')}\n` : ''}
+${multiplePackages
+  ? `${pkgAIncluded && pkgBIncluded ? 'Es wird nur ein Paket beauftragt.' : 'Mehrere Pakete. Die Beträge werden nicht addiert.'}\n${pkgAIncluded ? `Paket 1: ${pricePrefix}${formatCurrency(pkgAPrice)}\n` : ''}${pkgBIncluded ? `Paket 2 Einrichtung: ${pricePrefix}${formatCurrency(pkgBSetupPrice)}\nPaket 2 Betreuung: monatlich ${pricePrefix}${formatCurrency(priceAmount(pkgBMonthlyPrice))}, vierteljährlich ${pricePrefix}${formatCurrency(priceAmount(pkgBQuarterlyPrice))}, jährlich ${pricePrefix}${formatCurrency(priceAmount(pkgBYearlyPrice))} (15 % Nachlass)\n` : ''}`
+  : pkgBIncluded
+  ? `Gesamtsumme Paket 2\nMonatlich: ${pricePrefix}${formatCurrency(paket2MonthlyTotal)} (Einrichtung + Monat)\nVierteljährlich: ${pricePrefix}${formatCurrency(paket2QuarterlyTotal)} (Einrichtung + Quartal)\nJährlich: ${pricePrefix}${formatCurrency(paket2YearlyTotal)} (Einrichtung + Jahr, 15 % Nachlass)\n`
+  : pkgAIncluded
+  ? `Gesamtsumme Paket 1: ${pricePrefix}${formatCurrency(pkgAPrice)}\n`
   : (currentPkgBRecurringPrice > 0 || waMonthlyAmount > 0)
-  ? `Einmalige Investition: ${pricePrefix}${formatCurrency(totalOneTime)}\n${currentPkgBRecurringPrice > 0 ? `Laufende Betreuung Paket 2 (${intervalText}): ${pricePrefix}${formatCurrency(currentPkgBRecurringPrice)}\n` : ''}${waMonthlyAmount > 0 ? `WhatsApp-Betreuung: ${pricePrefix}${formatCurrency(waMonthlyAmount)} / Monat\n` : ''}Gesamtsumme (einmalig inkl. 1. Zeitraum): ${pricePrefix}${formatCurrency(totalOneTime + currentPkgBRecurringPrice + waMonthlyAmount)}\n`
+  ? `Einmalige Investition: ${pricePrefix}${formatCurrency(totalOneTime)}\n${waMonthlyAmount > 0 ? `WhatsApp-Betreuung: ${pricePrefix}${formatCurrency(waMonthlyAmount)} / Monat\n` : ''}Gesamtsumme: ${pricePrefix}${formatCurrency(totalOneTime + waMonthlyAmount)}\n`
   : `Gesamtsumme: ${pricePrefix}${formatCurrency(totalOneTime)}\n`
 }
 ${(() => {
@@ -1047,7 +1061,7 @@ Web: www.team-track.de`;
                                 }`}
                               >
                                 <div>Jährlich</div>
-                                <div className="text-[10px] font-normal opacity-90">{pricePrefix}{pkgBYearlyPrice} €/J</div>
+                                <div className="text-[10px] font-normal opacity-90">15 % Nachlass · {pricePrefix}{pkgBYearlyPrice} €/J</div>
                               </button>
                             </div>
                           </div>
@@ -1086,7 +1100,7 @@ Web: www.team-track.de`;
                               />
                             </div>
                             <div>
-                              <span className="text-[10px] text-slate-500 block mb-0.5">Preis Jahr (€):</span>
+                              <span className="text-[10px] text-slate-500 block mb-0.5">Preis Jahr (€), 15 % Nachlass:</span>
                               <input
                                 type="number"
                                 min="0"
@@ -1097,7 +1111,7 @@ Web: www.team-track.de`;
                             </div>
                           </div>
                           <p className="text-[10.5px] text-slate-500 leading-snug">
-                            Quartal = 3 × Monatspreis. Jahrespreis = 12 × Monatspreis abzüglich 15 %.
+                            Quartal = 3 × Monatspreis. Jahrespreis = 12 × Monatspreis mit 15 % Nachlass.
                           </p>
                         </div>
                       )}
@@ -1432,29 +1446,61 @@ Web: www.team-track.de`;
               </div>
 
               <div className="space-y-2.5 sm:space-y-3 text-xs min-w-0">
-                {pkgAIncluded && pkgBIncluded ? (
+                {multiplePackages ? (
                   <div className="space-y-2">
-                    <p className="text-[11px] font-bold text-amber-200">Zwei Alternativen. Es wird nur ein Paket beauftragt.</p>
+                    <p className="text-[11px] font-bold text-amber-200">
+                      {pkgAIncluded && pkgBIncluded
+                        ? 'Zwei Alternativen. Es wird nur ein Paket beauftragt.'
+                        : 'Mehrere Pakete. Die Beträge werden nicht addiert.'}
+                    </p>
+                    {pkgAIncluded && (
+                      <div className="flex items-center justify-between text-slate-300 gap-2">
+                        <span>Paket 1, einmalig</span>
+                        <span className="font-bold text-white shrink-0">{pricePrefix}{formatCurrency(pkgAPrice)}</span>
+                      </div>
+                    )}
+                    {pkgBIncluded && (
+                      <>
+                        <div className="flex items-center justify-between text-slate-300 gap-2">
+                          <span>Paket 2, Einrichtung</span>
+                          <span className="font-bold text-white shrink-0">{pricePrefix}{formatCurrency(pkgBSetupPrice)}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-300 gap-2">
+                          <span>Paket 2, monatlich</span>
+                          <span className="font-bold text-sky-300 shrink-0">{pricePrefix}{formatCurrency(priceAmount(pkgBMonthlyPrice))}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-300 gap-2">
+                          <span>Paket 2, vierteljährlich</span>
+                          <span className="font-bold text-sky-300 shrink-0">{pricePrefix}{formatCurrency(priceAmount(pkgBQuarterlyPrice))}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-300 gap-2">
+                          <span>Paket 2, jährlich (15 % Nachlass)</span>
+                          <span className="font-bold text-sky-300 shrink-0">{pricePrefix}{formatCurrency(priceAmount(pkgBYearlyPrice))}</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ) : pkgBIncluded ? (
+                  <div className="space-y-2">
+                    <p className="text-[11px] font-bold text-slate-300">Gesamtsumme Paket 2</p>
                     <div className="flex items-center justify-between text-slate-300 gap-2">
-                      <span>Paket 1, einmalig</span>
-                      <span className="font-bold text-white shrink-0">{pricePrefix}{formatCurrency(pkgAPrice)}</span>
+                      <span>Monatlich</span>
+                      <span className="font-bold text-sky-300 shrink-0">{pricePrefix}{formatCurrency(paket2MonthlyTotal)}</span>
                     </div>
                     <div className="flex items-center justify-between text-slate-300 gap-2">
-                      <span>Paket 2, Einrichtung</span>
-                      <span className="font-bold text-white shrink-0">{pricePrefix}{formatCurrency(pkgBSetupPrice)}</span>
+                      <span>Vierteljährlich</span>
+                      <span className="font-bold text-sky-300 shrink-0">{pricePrefix}{formatCurrency(paket2QuarterlyTotal)}</span>
                     </div>
                     <div className="flex items-center justify-between text-slate-300 gap-2">
-                      <span>Paket 2, monatlich</span>
-                      <span className="font-bold text-sky-300 shrink-0">{pricePrefix}{formatCurrency(priceAmount(pkgBMonthlyPrice))}</span>
+                      <span>Jährlich (15 % Nachlass)</span>
+                      <span className="font-bold text-sky-300 shrink-0">{pricePrefix}{formatCurrency(paket2YearlyTotal)}</span>
                     </div>
-                    <div className="flex items-center justify-between text-slate-300 gap-2">
-                      <span>Paket 2, vierteljährlich</span>
-                      <span className="font-bold text-sky-300 shrink-0">{pricePrefix}{formatCurrency(priceAmount(pkgBQuarterlyPrice))}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-slate-300 gap-2">
-                      <span>Paket 2, jährlich</span>
-                      <span className="font-bold text-sky-300 shrink-0">{pricePrefix}{formatCurrency(priceAmount(pkgBYearlyPrice))}</span>
-                    </div>
+                    <p className="text-[10px] text-slate-500">Jeweils Einrichtung plus das gewählte Intervall.</p>
+                  </div>
+                ) : pkgAIncluded ? (
+                  <div className="pt-1 flex items-center justify-between gap-2">
+                    <span className="text-xs text-slate-400">Gesamtsumme Paket 1</span>
+                    <span className="text-xl font-black text-sky-400">{pricePrefix}{formatCurrency(pkgAPrice)}</span>
                   </div>
                 ) : (
                 <div className="flex items-center justify-between text-slate-300 gap-2">
@@ -1465,7 +1511,7 @@ Web: www.team-track.de`;
                 </div>
                 )}
 
-                {!(pkgAIncluded && pkgBIncluded) && currentPkgBRecurringPrice > 0 && (
+                {!multiplePackages && !pkgAIncluded && !pkgBIncluded && currentPkgBRecurringPrice > 0 && (
                   <div className="flex items-center justify-between text-slate-300 gap-2">
                     <span className="truncate">Laufende Betreuung ({pkgBInterval === 'yearly' ? 'Jährlich' : pkgBInterval === 'quarterly' ? 'Vierteljährlich' : 'Monatlich'}):</span>
                     <span className="font-bold text-sky-300 text-sm shrink-0">
@@ -1483,7 +1529,7 @@ Web: www.team-track.de`;
                   </div>
                 )}
 
-                {!(pkgAIncluded && pkgBIncluded) && (
+                {!multiplePackages && !pkgAIncluded && !pkgBIncluded && (
                 <div className="pt-3 border-t border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
                     <span className="text-xs text-slate-400 block font-medium">Gesamtsumme (Erstabwicklung):</span>

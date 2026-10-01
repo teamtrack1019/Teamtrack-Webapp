@@ -749,7 +749,7 @@ export function createOfferDoc(offer, companySettings = {}) {
     const careLines = [
       monthlyPrice > 0 ? `• Monatlich: ${docPrefix}${formatCurrency(monthlyPrice)} / Monat` : '',
       quarterlyPrice > 0 ? `• Vierteljährlich: ${docPrefix}${formatCurrency(quarterlyPrice)} / Quartal` : '',
-      yearlyPrice > 0 ? `• Jährlich: ${docPrefix}${formatCurrency(yearlyPrice)} / Jahr` : ''
+      yearlyPrice > 0 ? `• Jährlich: ${docPrefix}${formatCurrency(yearlyPrice)} / Jahr (15 % Nachlass)` : ''
     ].filter(Boolean);
 
     tableBody.push([
@@ -757,7 +757,8 @@ export function createOfferDoc(offer, companySettings = {}) {
       `Paket 2: Setup + 7/24 Abo-Betreuung\n` +
       `Einmalige Einrichtung (Setup): ${docPrefix}${formatCurrency(setupPrice)}\n` +
       `Laufende Betreuung, ein Intervall nach Wahl:\n` +
-      `${careLines.join('\n')}`,
+      `${careLines.join('\n')}\n` +
+      `Vertragslaufzeit: 1 Jahr (12 Monate). Die Zahlungsweise ändert die Laufzeit nicht.`,
       '1 Paket',
       `Einrichtung\n${docPrefix}${formatCurrency(setupPrice)}`,
       `Einrichtung\n${docPrefix}${formatCurrency(setupPrice)}`
@@ -888,16 +889,48 @@ export function createOfferDoc(offer, companySettings = {}) {
   const bMonthly = Number(offer.packageB?.monthlyPrice ?? (offer.packageB?.interval === 'quarterly' || offer.packageB?.interval === 'yearly' ? 0 : offer.packageB?.recurringPrice) ?? 0);
   const bQuarterly = Number(offer.packageB?.quarterlyPrice ?? (offer.packageB?.interval === 'quarterly' ? offer.packageB?.recurringPrice : 0) ?? 0);
   const bYearly = Number(offer.packageB?.yearlyPrice ?? (offer.packageB?.interval === 'yearly' ? offer.packageB?.recurringPrice : 0) ?? 0);
-  const alternativeRows = packagesAreAlternatives ? [
-    ['Paket 1, einmalig', Number(offer.packageA?.price || 0), ''],
-    ['Paket 2, einmalige Einrichtung', Number(offer.packageB?.setupPrice || 0), ''],
-    bMonthly > 0 ? ['Paket 2, monatlich', bMonthly, '/ Monat'] : null,
-    bQuarterly > 0 ? ['Paket 2, vierteljährlich', bQuarterly, '/ Quartal'] : null,
-    bYearly > 0 ? ['Paket 2, jährlich', bYearly, '/ Jahr'] : null
-  ].filter(Boolean) : [];
-  const totalsBoxH = packagesAreAlternatives ? (12 + alternativeRows.length * 5.5) : (waMonthlySeparate > 0 ? 30 : 24);
-  const totalsBoxX = packagesAreAlternatives ? margin : totalsX;
-  const totalsBoxW = packagesAreAlternatives ? (pageWidth - margin * 2) : totalsWidth;
+  const includedPackageCount = [
+    offer.packageA?.included,
+    offer.packageB?.included,
+    offer.packageC?.included,
+    offer.packageWhatsApp?.included
+  ].filter(Boolean).length;
+  const multiplePackages = includedPackageCount > 1;
+  const onlyPaket1 = Boolean(offer.packageA?.included) && includedPackageCount === 1;
+  const onlyPaket2 = Boolean(offer.packageB?.included) && includedPackageCount === 1;
+  const separateRows = [];
+  if (multiplePackages) {
+    if (offer.packageA?.included) separateRows.push(['Paket 1, einmalig', Number(offer.packageA.price || 0), '']);
+    if (offer.packageB?.included) {
+      separateRows.push(['Paket 2, einmalige Einrichtung', Number(offer.packageB.setupPrice || 0), '']);
+      if (bMonthly > 0) separateRows.push(['Paket 2, monatlich', bMonthly, '/ Monat']);
+      if (bQuarterly > 0) separateRows.push(['Paket 2, vierteljährlich', bQuarterly, '/ Quartal']);
+      if (bYearly > 0) separateRows.push(['Paket 2, jährlich (15 % Nachlass)', bYearly, '/ Jahr']);
+    }
+    if (offer.packageC?.included) {
+      const unitPrice = Number(offer.packageC.unitPrice || 0);
+      const qty = Number(offer.packageC.quantity || 0);
+      separateRows.push(['Paket 3', unitPrice * qty, '']);
+    }
+    if (offer.packageWhatsApp?.included) {
+      separateRows.push(['WhatsApp, Einrichtung', Number(offer.packageWhatsApp.setupPrice || 0), '']);
+      separateRows.push(['WhatsApp, monatlich', Number(offer.packageWhatsApp.monthlyPrice || 0), '/ Monat']);
+    }
+  }
+  const paket2Setup = Number(offer.packageB?.setupPrice || 0);
+  const paket2TotalRows = onlyPaket2 ? [
+    ['Monatlich', paket2Setup + bMonthly],
+    ['Vierteljährlich', paket2Setup + bQuarterly],
+    ['Jährlich (15 % Nachlass)', paket2Setup + bYearly]
+  ] : [];
+  const wideTotals = multiplePackages || onlyPaket2;
+  const totalsBoxH = multiplePackages
+    ? (12 + Math.max(separateRows.length, 1) * 5.5)
+    : onlyPaket2
+      ? (14 + paket2TotalRows.length * 5.5)
+      : (waMonthlySeparate > 0 ? 30 : 24);
+  const totalsBoxX = wideTotals ? margin : totalsX;
+  const totalsBoxW = wideTotals ? (pageWidth - margin * 2) : totalsWidth;
 
   doc.roundedRect(totalsBoxX, finalY, totalsBoxW, totalsBoxH, 2, 2, 'FD');
 
@@ -905,11 +938,17 @@ export function createOfferDoc(offer, companySettings = {}) {
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(71, 85, 105);
 
-  if (packagesAreAlternatives) {
+  if (multiplePackages) {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(15, 23, 42);
-    doc.text('Nur ein Paket wird beauftragt. Die Beträge werden nicht addiert.', totalsBoxX + 4, finalY + 6);
-    alternativeRows.forEach((row, index) => {
+    doc.text(
+      packagesAreAlternatives
+        ? 'Nur ein Paket wird beauftragt. Die Beträge werden nicht addiert.'
+        : 'Mehrere Pakete. Die Beträge werden nicht addiert.',
+      totalsBoxX + 4,
+      finalY + 6
+    );
+    separateRows.forEach((row, index) => {
       const rowY = finalY + 12 + index * 5.5;
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(71, 85, 105);
@@ -918,11 +957,24 @@ export function createOfferDoc(offer, companySettings = {}) {
       doc.setTextColor(15, 23, 42);
       doc.text(`${docPrefix}${formatCurrency(row[1])}${row[2] ? ` ${row[2]}` : ''}`, totalsBoxX + totalsBoxW - 4, rowY, { align: 'right' });
     });
+  } else if (onlyPaket2) {
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    doc.text('Gesamtsumme Paket 2 (Einrichtung plus gewähltes Intervall)', totalsBoxX + 4, finalY + 6);
+    paket2TotalRows.forEach((row, index) => {
+      const rowY = finalY + 13 + index * 5.5;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(71, 85, 105);
+      doc.text(row[0], totalsBoxX + 4, rowY);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 130, 203);
+      doc.text(`${docPrefix}${formatCurrency(row[1])}`, totalsBoxX + totalsBoxW - 4, rowY, { align: 'right' });
+    });
   } else {
   doc.text(oneTimeLabel, totalsX + 4, finalY + 6);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  doc.text(`${docPrefix}${formatCurrency(oneTimeSum)}`, totalsX + totalsWidth - 4, finalY + 6, { align: 'right' });
+  doc.text(`${docPrefix}${formatCurrency(onlyPaket1 ? Number(offer.packageA?.price || 0) : oneTimeSum)}`, totalsX + totalsWidth - 4, finalY + 6, { align: 'right' });
 
   if (recurringSum > 0) {
     doc.setFont('helvetica', 'normal');
@@ -951,7 +1003,7 @@ export function createOfferDoc(offer, companySettings = {}) {
   doc.setFontSize(9.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  doc.text('Gesamtsumme:', totalsX + 4, finalY + summaryTextY);
+  doc.text(onlyPaket1 ? 'Gesamtsumme Paket 1:' : 'Gesamtsumme:', totalsX + 4, finalY + summaryTextY);
   doc.setTextColor(0, 130, 203);
   doc.text(`${docPrefix}${formatCurrency(grandTotal)}`, totalsX + totalsWidth - 4, finalY + summaryTextY, { align: 'right' });
   }
@@ -987,7 +1039,8 @@ export function createOfferDoc(offer, companySettings = {}) {
     condItems.push(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`);
   } else if (hasPkgB && !hasPkgA && !hasPkgC) {
     // Pure Paket B (Abo)
-    condItems.push(`• Leistungsumfang & Abo-Service: Das System wird mit einer initialen Einrichtung schlüsselfertig implementiert. Die laufende 7/24-Abo-Betreuung umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, hochverfügbaren Cloud-Server-Betrieb in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- und Sicherheitsupdates, integrierte Datensicherungs-Tools sowie laufende Feature-Erweiterungen und Funktionsanpassungen (Mindestlaufzeit 12 Monate, monatlich zahlbar und flexibel erweiterbar).`);
+    condItems.push(`• Leistungsumfang & Abo-Service: Das System wird mit einer initialen Einrichtung schlüsselfertig implementiert. Die laufende 7/24-Abo-Betreuung umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, hochverfügbaren Cloud-Server-Betrieb in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- und Sicherheitsupdates, integrierte Datensicherungs-Tools sowie laufende Feature-Erweiterungen und Funktionsanpassungen.`);
+    condItems.push('• Vertragslaufzeit: Bei Beauftragung von Paket 2 schließen wir einen Vertrag über 1 Jahr (12 Monate). Die Zahlungsweise (monatlich, vierteljährlich oder jährlich) ändert diese Laufzeit nicht.');
     condItems.push(`• Datensicherung (Backups): Die regelmäßige Datensicherung liegt in der Verantwortung des Auftraggebers und erfolgt eigenständig über die im System integrierte 1-Klick Backup-Funktion.`);
     condItems.push(`• Zahlungsmodalitäten: Einmaliges Setup bei Bereitstellung; laufende Abo-Betreuung jeweils zu Beginn des Abrechnungszeitraums (${bIntervalLabel}).`);
     condItems.push(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`);
@@ -1001,6 +1054,7 @@ export function createOfferDoc(offer, companySettings = {}) {
       condItems.unshift('• Paketwahl: Paket 1 und Paket 2 sind Alternativen. Beauftragt wird nur ein Paket. Die einmalige Einrichtung gehört zu Paket 2.');
       condItems.push('• Zahlung bei Paket 1: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung.');
       condItems.push('• Zahlung bei Paket 2: Die einmalige Einrichtung wird bei Bereitstellung fällig. Die Betreuung wird monatlich, vierteljährlich oder jährlich gewählt und zu Beginn dieses Intervalls berechnet.');
+      condItems.push('• Vertragslaufzeit Paket 2: Bei Beauftragung von Paket 2 schließen wir einen Vertrag über 1 Jahr (12 Monate). Die Zahlungsweise ändert die Laufzeit nicht.');
     } else if (hasPkgB) {
       condItems.push(`• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung; laufendes Abo jeweils zu Beginn des Abrechnungszeitraums (${bIntervalLabel}).`);
     } else {
@@ -1012,6 +1066,7 @@ export function createOfferDoc(offer, companySettings = {}) {
     condItems.push('• Verbindlicher Leistungsumfang: Es werden ausschließlich die in diesem Angebot explizit ausgewählten und aufgeführten Module umgesetzt. Nicht im Angebot enthaltene Funktionsbereiche bedürfen einer gesonderten schriftlichen Beauftragung.');
     if (hasPkgB) {
       condItems.push(`• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung; laufendes Abo jeweils zu Beginn des Abrechnungszeitraums (${bIntervalLabel}).`);
+      condItems.push('• Vertragslaufzeit Paket 2: Bei Beauftragung von Paket 2 schließen wir einen Vertrag über 1 Jahr (12 Monate). Die Zahlungsweise ändert die Laufzeit nicht.');
     } else {
       condItems.push('• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung & Freigabe.');
     }
