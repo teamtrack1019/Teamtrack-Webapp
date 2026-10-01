@@ -79,6 +79,16 @@ const PREDEFINED_MODULES = [
   { id: 'mod-5', num: '5', title: 'Modul 5: Logistik-, Dispositions- & Tourenplanung', desc: 'Einsatzplanung für Mitarbeiter & Fahrzeuge, Routenoptimierung & Auftragsverfolgung' }
 ];
 
+function priceAmount(value) {
+  if (value === '' || value == null) return 0;
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount : 0;
+}
+
+function roundEuro(amount) {
+  return Math.round((Number(amount) + Number.EPSILON) * 100) / 100;
+}
+
 function PricingOffersContent({ 
   initialTab = 'creator',
   customers = [], 
@@ -232,9 +242,9 @@ function PricingOffersContent({
   // Calculate Totals
   const currentPkgBRecurringPrice = useMemo(() => {
     if (!pkgBIncluded) return 0;
-    if (pkgBInterval === 'yearly') return Number(pkgBYearlyPrice || 1590);
-    if (pkgBInterval === 'quarterly') return Number(pkgBQuarterlyPrice || 420);
-    return Number(pkgBMonthlyPrice || 149);
+    if (pkgBInterval === 'yearly') return priceAmount(pkgBYearlyPrice);
+    if (pkgBInterval === 'quarterly') return priceAmount(pkgBQuarterlyPrice);
+    return priceAmount(pkgBMonthlyPrice);
   }, [pkgBIncluded, pkgBInterval, pkgBMonthlyPrice, pkgBQuarterlyPrice, pkgBYearlyPrice]);
 
   const pkgCTotal = useMemo(() => {
@@ -1043,8 +1053,20 @@ Web: www.team-track.de`;
                               <span className="text-[10px] text-slate-500 block mb-0.5">Preis Monat (€):</span>
                               <input
                                 type="number"
+                                min="0"
                                 value={pkgBMonthlyPrice}
-                                onChange={(e) => setPkgBMonthlyPrice(Number(e.target.value))}
+                                onChange={(e) => {
+                                  const raw = e.target.value;
+                                  if (raw === '') {
+                                    setPkgBMonthlyPrice('');
+                                    return;
+                                  }
+                                  const monthly = Number(raw);
+                                  if (!Number.isFinite(monthly)) return;
+                                  setPkgBMonthlyPrice(monthly);
+                                  setPkgBQuarterlyPrice(roundEuro(monthly * 3));
+                                  setPkgBYearlyPrice(roundEuro(monthly * 12 * 0.15));
+                                }}
                                 className="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg text-right font-semibold"
                               />
                             </div>
@@ -1052,8 +1074,9 @@ Web: www.team-track.de`;
                               <span className="text-[10px] text-slate-500 block mb-0.5">Preis Quartal (€):</span>
                               <input
                                 type="number"
+                                min="0"
                                 value={pkgBQuarterlyPrice}
-                                onChange={(e) => setPkgBQuarterlyPrice(Number(e.target.value))}
+                                onChange={(e) => setPkgBQuarterlyPrice(e.target.value === '' ? '' : Number(e.target.value))}
                                 className="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg text-right font-semibold"
                               />
                             </div>
@@ -1061,12 +1084,16 @@ Web: www.team-track.de`;
                               <span className="text-[10px] text-slate-500 block mb-0.5">Preis Jahr (€):</span>
                               <input
                                 type="number"
+                                min="0"
                                 value={pkgBYearlyPrice}
-                                onChange={(e) => setPkgBYearlyPrice(Number(e.target.value))}
+                                onChange={(e) => setPkgBYearlyPrice(e.target.value === '' ? '' : Number(e.target.value))}
                                 className="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg text-right font-semibold"
                               />
                             </div>
                           </div>
+                          <p className="text-[10.5px] text-slate-500 leading-snug">
+                            Quartal = 3 × Monatspreis. Jahrespreis = 15 % von 12 Monatspreisen.
+                          </p>
                         </div>
                       )}
                     </div>
