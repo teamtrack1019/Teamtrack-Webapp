@@ -1012,10 +1012,15 @@ export function createOfferDoc(offer, companySettings = {}) {
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(100, 116, 139);
-  doc.text(kleinunternehmerText, margin, finalY + totalsBoxH + 4);
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const footerY = pageHeight - 16;
+  const contentLimit = footerY - 6;
+  const taxNoteY = finalY + totalsBoxH + 4;
+  doc.text(kleinunternehmerText, margin, Math.min(taxNoteY, contentLimit), { maxWidth: pageWidth - (margin * 2) });
 
   // 6. CONDITIONS & ACCEPTANCE SECTION
-  const condY = finalY + totalsBoxH + 8;
+  // Footer sits in a fixed band. Conditions that do not fit continue on the next page.
+  let condY = finalY + totalsBoxH + 8;
   const boxWidth = pageWidth - (margin * 2); // 170mm
   const textWidth = boxWidth - 8; // 162mm
 
@@ -1085,76 +1090,107 @@ export function createOfferDoc(offer, companySettings = {}) {
   }
 
   const allSplitItems = condItems.map(item => doc.splitTextToSize(item, textWidth));
-  const totalLineCount = allSplitItems.reduce((acc, lines) => acc + lines.length, 0);
-
   const fontSize = 7.0;
   const lineSpacing = 3.0;
-  const condH = 6.0 + (totalLineCount * lineSpacing) + (condItems.length * 0.8);
+  let itemIndex = 0;
+  let continuation = false;
 
-  doc.setFillColor(255, 255, 255);
-  doc.setDrawColor(203, 213, 225);
-  doc.setLineWidth(0.4);
-  doc.roundedRect(margin, condY, boxWidth, condH, 2, 2, 'FD');
+  while (itemIndex < allSplitItems.length) {
+    if (condY + 36 > contentLimit) {
+      doc.addPage();
+      condY = 18;
+    }
 
-  doc.setFontSize(8.0);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(15, 23, 42);
-  doc.text('Leistungsumfang, Konditionen & Vereinbarungen:', margin + 4, condY + 4.8);
+    const chunkStart = condY;
+    const available = contentLimit - chunkStart;
+    let used = 9;
+    const fitting = [];
 
-  doc.setFontSize(fontSize);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(51, 65, 85);
+    while (itemIndex < allSplitItems.length) {
+      const lines = allSplitItems[itemIndex];
+      const itemH = (lines.length * lineSpacing) + 1.0;
+      if (fitting.length > 0 && used + itemH > available - 3) break;
+      fitting.push(lines);
+      used += itemH;
+      itemIndex += 1;
+      if (used + 8 > available) break;
+    }
 
-  let curY = condY + 8.2;
-  allSplitItems.forEach((lines) => {
-    doc.text(lines, margin + 4, curY);
-    curY += (lines.length * lineSpacing) + 0.8;
-  });
+    const condH = used + 2.5;
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(margin, chunkStart, boxWidth, condH, 2, 2, 'FD');
 
-  // 7. FOOTER (3 Spacious Columns to prevent any IBAN / Email overlap)
-  const footerY = 281;
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.4);
-  doc.line(margin, footerY - 4, pageWidth - margin, footerY - 4);
+    doc.setFontSize(8.0);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    const condHeading = continuation
+      ? 'Leistungsumfang, Konditionen & Vereinbarungen (Fortsetzung):'
+      : 'Leistungsumfang, Konditionen & Vereinbarungen:';
+    doc.text(condHeading, margin + 4, chunkStart + 4.8);
 
-  doc.setFontSize(7.5);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(15, 23, 42);
+    doc.setFontSize(fontSize);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(51, 65, 85);
 
-  // Column 1: Company & Address (margin = 20mm)
-  doc.text(companySettings.companyName || 'TeamTrack-Software', margin, footerY);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(100, 116, 139);
-  doc.text(`Inhaberin: ${companySettings.ownerName || 'Huriye Ünalsoy'}`, margin, footerY + 3.8);
-  doc.text(streetLine, margin, footerY + 7.6);
-  doc.text(cityLine, margin, footerY + 11.4);
+    let curY = chunkStart + 9;
+    fitting.forEach((lines) => {
+      doc.text(lines, margin + 4, curY);
+      curY += (lines.length * lineSpacing) + 1.0;
+    });
 
-  // Column 2: Bankverbindung (Starts at 78mm - ample room for long IBANs)
-  const col2X = 78;
-  doc.setFontSize(7.5);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(15, 23, 42);
-  doc.text('Bankverbindung', col2X, footerY);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(100, 116, 139);
-  doc.text(`Bank: ${companySettings.bankName || 'Postbank'}`, col2X, footerY + 3.8);
-  doc.text(`IBAN: ${companySettings.iban || 'DE16 1001 0010 0012 7271 85'}`, col2X, footerY + 7.6);
-  doc.text(`BIC: ${companySettings.bic || 'PBNKDEFF'}`, col2X, footerY + 11.4);
+    continuation = true;
+    if (itemIndex < allSplitItems.length) {
+      doc.addPage();
+      condY = 18;
+    }
+  }
 
-  // Column 3: Contact & Tax (Starts at 140mm)
-  const col3X = 140;
-  doc.setFontSize(7.5);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(15, 23, 42);
-  doc.text('Kontakt & Steuernummer', col3X, footerY);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(100, 116, 139);
-  doc.text(`St.-Nr.: ${companySettings.taxNumber || '257/282/11825'}`, col3X, footerY + 3.8);
-  doc.text(`E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, col3X, footerY + 7.6);
-  doc.text(`Web: ${companySettings.website || 'www.team-track.de'}`, col3X, footerY + 11.4);
+  // 7. FOOTER on every page, below the reserved band so it never covers the conditions
+  const pageCount = doc.getNumberOfPages();
+  for (let page = 1; page <= pageCount; page += 1) {
+    doc.setPage(page);
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.4);
+    doc.line(margin, footerY - 4, pageWidth - margin, footerY - 4);
+
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+
+    doc.text(companySettings.companyName || 'TeamTrack-Software', margin, footerY, { maxWidth: 54 });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Inhaberin: ${companySettings.ownerName || 'Huriye Ünalsoy'}`, margin, footerY + 3.8, { maxWidth: 54 });
+    doc.text(streetLine, margin, footerY + 7.6, { maxWidth: 54 });
+    doc.text(cityLine, margin, footerY + 11.4, { maxWidth: 54 });
+
+    const col2X = 78;
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    doc.text('Bankverbindung', col2X, footerY, { maxWidth: 58 });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Bank: ${companySettings.bankName || 'Postbank'}`, col2X, footerY + 3.8, { maxWidth: 58 });
+    doc.text(`IBAN: ${companySettings.iban || 'DE16 1001 0010 0012 7271 85'}`, col2X, footerY + 7.6, { maxWidth: 58 });
+    doc.text(`BIC: ${companySettings.bic || 'PBNKDEFF'}`, col2X, footerY + 11.4, { maxWidth: 58 });
+
+    const col3X = 140;
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    doc.text('Kontakt & Steuernummer', col3X, footerY, { maxWidth: 50 });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`St.-Nr.: ${companySettings.taxNumber || '257/282/11825'}`, col3X, footerY + 3.8, { maxWidth: 50 });
+    doc.text(`E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, col3X, footerY + 7.6, { maxWidth: 50 });
+    doc.text(`Web: ${companySettings.website || 'www.team-track.de'}`, col3X, footerY + 11.4, { maxWidth: 50 });
+  }
 
   return doc;
 }
