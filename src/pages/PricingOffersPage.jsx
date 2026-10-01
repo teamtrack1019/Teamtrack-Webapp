@@ -1065,7 +1065,7 @@ Web: www.team-track.de`;
                                   if (!Number.isFinite(monthly)) return;
                                   setPkgBMonthlyPrice(monthly);
                                   setPkgBQuarterlyPrice(roundEuro(monthly * 3));
-                                  setPkgBYearlyPrice(roundEuro(monthly * 12 * 0.15));
+                                  setPkgBYearlyPrice(roundEuro(monthly * 12 * 0.85));
                                 }}
                                 className="w-full px-2 py-1 bg-white border border-slate-200 rounded-lg text-right font-semibold"
                               />
@@ -1092,7 +1092,7 @@ Web: www.team-track.de`;
                             </div>
                           </div>
                           <p className="text-[10.5px] text-slate-500 leading-snug">
-                            Quartal = 3 × Monatspreis. Jahrespreis = 15 % von 12 Monatspreisen.
+                            Quartal = 3 × Monatspreis. Jahrespreis = 12 × Monatspreis abzüglich 15 %.
                           </p>
                         </div>
                       )}
