@@ -748,9 +748,9 @@ export function createOfferDoc(offer, companySettings = {}) {
     const quarterlyPrice = explicitPrice(offer.packageB.quarterlyPrice, 'quarterly');
     const yearlyPrice = explicitPrice(offer.packageB.yearlyPrice, 'yearly');
     const careLines = [
-      monthlyPrice > 0 ? `• Monatlich: ${docPrefix}${formatCurrency(monthlyPrice)} / Monat` : '',
-      quarterlyPrice > 0 ? `• Vierteljährlich: ${docPrefix}${formatCurrency(quarterlyPrice)} / Quartal` : '',
-      yearlyPrice > 0 ? `• Jährlich: ${docPrefix}${formatCurrency(yearlyPrice)} / Jahr (15 % Nachlass)` : ''
+      monthlyPrice > 0 ? `• oder monatlich: ${docPrefix}${formatCurrency(monthlyPrice)} / Monat` : '',
+      quarterlyPrice > 0 ? `• oder vierteljährlich: ${docPrefix}${formatCurrency(quarterlyPrice)} / Quartal` : '',
+      yearlyPrice > 0 ? `• oder jährlich: ${docPrefix}${formatCurrency(yearlyPrice)} / Jahr (15 % Nachlass)` : ''
     ].filter(Boolean);
 
     tableBody.push([
@@ -902,7 +902,7 @@ export function createOfferDoc(offer, companySettings = {}) {
   const separateRows = [];
   if (multiplePackages) {
     if (offer.packageA?.included) separateRows.push(['Paket 1, einmalig', Number(offer.packageA.price || 0), '']);
-    if (offer.packageB?.included) {
+    if (offer.packageB?.included && !bothMainPackages) {
       separateRows.push(['Paket 2, einmalige Einrichtung', Number(offer.packageB.setupPrice || 0), '']);
       if (bMonthly > 0) separateRows.push(['Paket 2, monatlich', bMonthly, '/ Monat']);
       if (bQuarterly > 0) separateRows.push(['Paket 2, vierteljährlich', bQuarterly, '/ Quartal']);
@@ -924,18 +924,22 @@ export function createOfferDoc(offer, companySettings = {}) {
   const totalsBoxW = wideTotals ? (pageWidth - margin * 2) : totalsWidth;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  const paket2IntroLines = onlyPaket2
+  const showPaket2Choices = onlyPaket2 || bothMainPackages;
+  const paket2IntroLines = showPaket2Choices
     ? doc.splitTextToSize('Nur eine Zahlungsweise. Die Einrichtung wird einmalig berechnet, danach nur das gewählte Intervall.', totalsBoxW - 8)
     : [];
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
-  const paket2ChoiceLines = onlyPaket2 ? [
+  const paket2ChoiceLines = showPaket2Choices ? [
     `oder monatlich: danach ${docPrefix}${formatCurrency(bMonthly)} / Monat. Erste Rechnung ${docPrefix}${formatCurrency(paket2Setup + bMonthly)} (einmalig inkl. Einrichtung ${docPrefix}${formatCurrency(paket2Setup)}).`,
     `oder vierteljährlich: danach ${docPrefix}${formatCurrency(bQuarterly)} / Quartal. Erste Rechnung ${docPrefix}${formatCurrency(paket2Setup + bQuarterly)} (einmalig inkl. Einrichtung ${docPrefix}${formatCurrency(paket2Setup)}).`,
     `oder jährlich (15 % Nachlass): danach ${docPrefix}${formatCurrency(bYearly)} / Jahr. Erste Rechnung ${docPrefix}${formatCurrency(paket2Setup + bYearly)} (einmalig inkl. Einrichtung ${docPrefix}${formatCurrency(paket2Setup)}).`
   ].map(line => doc.splitTextToSize(line, totalsBoxW - 8)) : [];
+  const paket2ChoiceBlockH = showPaket2Choices && !onlyPaket2
+    ? (4 + paket2IntroLines.length * 3.8 + paket2ChoiceLines.reduce((sum, lines) => sum + lines.length * 3.4 + 1.6, 0))
+    : 0;
   const totalsBoxH = multiplePackages
-    ? (12 + Math.max(separateRows.length, 1) * 5.5)
+    ? (12 + Math.max(separateRows.length, 1) * 5.5 + paket2ChoiceBlockH)
     : onlyPaket2
       ? (8 + paket2IntroLines.length * 3.8 + paket2ChoiceLines.reduce((sum, lines) => sum + lines.length * 3.4 + 1.6, 0) + 2)
       : (waMonthlySeparate > 0 ? 30 : 24);
@@ -965,6 +969,21 @@ export function createOfferDoc(offer, companySettings = {}) {
       doc.setTextColor(15, 23, 42);
       doc.text(`${docPrefix}${formatCurrency(row[1])}${row[2] ? ` ${row[2]}` : ''}`, totalsBoxX + totalsBoxW - 4, rowY, { align: 'right' });
     });
+    if (bothMainPackages) {
+      let choiceY = finalY + 12 + separateRows.length * 5.5 + 4;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(15, 23, 42);
+      doc.text(paket2IntroLines, totalsBoxX + 4, choiceY);
+      choiceY += paket2IntroLines.length * 3.8 + 1.5;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(71, 85, 105);
+      paket2ChoiceLines.forEach((lines) => {
+        doc.text(lines, totalsBoxX + 4, choiceY);
+        choiceY += lines.length * 3.4 + 1.6;
+      });
+    }
   } else if (onlyPaket2) {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);

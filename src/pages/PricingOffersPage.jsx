@@ -429,7 +429,9 @@ ${isKV ? 'Wie besprochen haben wir für Sie einen unverbindlichen Kostenvoransch
 📋 ${isKV ? 'KOSTENVORANSCHLAG' : 'ANGEBOT'} ${offerNumber}
 ${pkgAIncluded ? `• Paket 1 (Komplett-Entwicklung & WebApp): ${pricePrefix}${formatCurrency(pkgAPrice)} (einmalig)\n  Vereinbarter Modulumfang:\n${selectedPkgAModsFormatted}\n` : ''}${pkgBIncluded ? `• Paket 2 (Setup + 7/24 Abo-Betreuung), ein Paket:\n  - Einmalige Einrichtung: ${pricePrefix}${formatCurrency(pkgBSetupPrice)}\n  - Monatlich: ${pricePrefix}${formatCurrency(priceAmount(pkgBMonthlyPrice))} / Monat\n  - Vierteljährlich: ${pricePrefix}${formatCurrency(priceAmount(pkgBQuarterlyPrice))} / Quartal\n  - Jährlich: ${pricePrefix}${formatCurrency(priceAmount(pkgBYearlyPrice))} / Jahr (15 % Nachlass)\n` : ''}${pkgCIncluded && selectedModulesCount > 0 ? `• Paket 3 (Modulare Funktionserweiterung - ${selectedModulesCount} Modul${selectedModulesCount > 1 ? 'e' : ''} zu je ${pricePrefix}${formatCurrency(pkgCUnitPrice)} = ${pricePrefix}${formatCurrency(pkgCTotal)}):\n  Ausgewählte Funktionsbereiche:\n${selectedModsFormatted}\n` : ''}${waIncluded ? `• WhatsApp-Terminassistent: Einrichtung ${pricePrefix}${formatCurrency(waSetupPrice)} (einmalig) + Betreuung ${pricePrefix}${formatCurrency(waMonthlyPrice)} / Monat\n  Mindestlaufzeit: ${waMinMonths} Monate, danach monatlich bis eine Seite mit 30 Tagen kündigt.\n  Einmalig dabei:\n${WHATSAPP_ONCE.map(item => `    - ${item}`).join('\n')}\n  Jeden Monat dabei:\n${WHATSAPP_MONTHLY.map(item => `    - ${item}`).join('\n')}\n` : ''}
 ${multiplePackages
-  ? `${pkgAIncluded && pkgBIncluded ? 'Paket 1 und Paket 2 werden zusammen beauftragt. Die Beträge bleiben getrennt.' : 'Mehrere Pakete. Die Beträge werden nicht addiert.'}\n${pkgAIncluded ? `Paket 1: ${pricePrefix}${formatCurrency(pkgAPrice)}\n` : ''}${pkgBIncluded ? `Paket 2 Einrichtung: ${pricePrefix}${formatCurrency(pkgBSetupPrice)}\nPaket 2 Betreuung: monatlich ${pricePrefix}${formatCurrency(priceAmount(pkgBMonthlyPrice))}, vierteljährlich ${pricePrefix}${formatCurrency(priceAmount(pkgBQuarterlyPrice))}, jährlich ${pricePrefix}${formatCurrency(priceAmount(pkgBYearlyPrice))} (15 % Nachlass)\n` : ''}`
+  ? `${pkgAIncluded && pkgBIncluded
+    ? `Paket 1 und Paket 2 werden zusammen beauftragt. Die Beträge bleiben getrennt.\nPaket 1: ${pricePrefix}${formatCurrency(pkgAPrice)} einmalig\nPaket 2: nur eine Zahlungsweise. Die Einrichtung wird einmalig berechnet, danach nur das gewählte Intervall.\noder monatlich: danach ${pricePrefix}${formatCurrency(priceAmount(pkgBMonthlyPrice))} / Monat. Erste Rechnung ${pricePrefix}${formatCurrency(paket2MonthlyTotal)} (einmalig inkl. Einrichtung ${pricePrefix}${formatCurrency(pkgBSetupPrice)}).\noder vierteljährlich: danach ${pricePrefix}${formatCurrency(priceAmount(pkgBQuarterlyPrice))} / Quartal. Erste Rechnung ${pricePrefix}${formatCurrency(paket2QuarterlyTotal)} (einmalig inkl. Einrichtung ${pricePrefix}${formatCurrency(pkgBSetupPrice)}).\noder jährlich (15 % Nachlass): danach ${pricePrefix}${formatCurrency(priceAmount(pkgBYearlyPrice))} / Jahr. Erste Rechnung ${pricePrefix}${formatCurrency(paket2YearlyTotal)} (einmalig inkl. Einrichtung ${pricePrefix}${formatCurrency(pkgBSetupPrice)}).\n`
+    : `Mehrere Pakete. Die Beträge werden nicht addiert.\n${pkgAIncluded ? `Paket 1: ${pricePrefix}${formatCurrency(pkgAPrice)}\n` : ''}${pkgBIncluded ? `Paket 2 Einrichtung: ${pricePrefix}${formatCurrency(pkgBSetupPrice)}\nPaket 2 Betreuung: monatlich ${pricePrefix}${formatCurrency(priceAmount(pkgBMonthlyPrice))}, vierteljährlich ${pricePrefix}${formatCurrency(priceAmount(pkgBQuarterlyPrice))}, jährlich ${pricePrefix}${formatCurrency(priceAmount(pkgBYearlyPrice))} (15 % Nachlass)\n` : ''}`}`
   : pkgBIncluded
   ? `Paket 2: nur eine Zahlungsweise. Die Einrichtung wird einmalig berechnet, danach nur das gewählte Intervall.\noder monatlich: danach ${pricePrefix}${formatCurrency(priceAmount(pkgBMonthlyPrice))} / Monat. Erste Rechnung ${pricePrefix}${formatCurrency(paket2MonthlyTotal)} (einmalig inkl. Einrichtung ${pricePrefix}${formatCurrency(pkgBSetupPrice)}).\noder vierteljährlich: danach ${pricePrefix}${formatCurrency(priceAmount(pkgBQuarterlyPrice))} / Quartal. Erste Rechnung ${pricePrefix}${formatCurrency(paket2QuarterlyTotal)} (einmalig inkl. Einrichtung ${pricePrefix}${formatCurrency(pkgBSetupPrice)}).\noder jährlich (15 % Nachlass): danach ${pricePrefix}${formatCurrency(priceAmount(pkgBYearlyPrice))} / Jahr. Erste Rechnung ${pricePrefix}${formatCurrency(paket2YearlyTotal)} (einmalig inkl. Einrichtung ${pricePrefix}${formatCurrency(pkgBSetupPrice)}).\n`
   : pkgAIncluded
@@ -1500,7 +1502,25 @@ Web: www.team-track.de`;
                         <span className="font-bold text-white shrink-0">{pricePrefix}{formatCurrency(pkgAPrice)}</span>
                       </div>
                     )}
-                    {pkgBIncluded && (
+                    {pkgBIncluded && pkgAIncluded && (
+                      <div className="space-y-2 pt-1">
+                        <p className="text-[11px] font-bold text-slate-300">Paket 2: nur eine Zahlungsweise</p>
+                        <p className="text-[10px] text-slate-500">Die Einrichtung wird einmalig berechnet, danach nur das gewählte Intervall.</p>
+                        <div className="text-slate-300">
+                          <span className="block">oder monatlich: danach {pricePrefix}{formatCurrency(priceAmount(pkgBMonthlyPrice))} / Monat</span>
+                          <span className="block text-[10px] text-sky-300">Erste Rechnung {pricePrefix}{formatCurrency(paket2MonthlyTotal)}, inkl. Einrichtung einmalig</span>
+                        </div>
+                        <div className="text-slate-300">
+                          <span className="block">oder vierteljährlich: danach {pricePrefix}{formatCurrency(priceAmount(pkgBQuarterlyPrice))} / Quartal</span>
+                          <span className="block text-[10px] text-sky-300">Erste Rechnung {pricePrefix}{formatCurrency(paket2QuarterlyTotal)}, inkl. Einrichtung einmalig</span>
+                        </div>
+                        <div className="text-slate-300">
+                          <span className="block">oder jährlich (15 % Nachlass): danach {pricePrefix}{formatCurrency(priceAmount(pkgBYearlyPrice))} / Jahr</span>
+                          <span className="block text-[10px] text-sky-300">Erste Rechnung {pricePrefix}{formatCurrency(paket2YearlyTotal)}, inkl. Einrichtung einmalig</span>
+                        </div>
+                      </div>
+                    )}
+                    {pkgBIncluded && !pkgAIncluded && (
                       <>
                         <div className="flex items-center justify-between text-slate-300 gap-2">
                           <span>Paket 2, Einrichtung</span>
