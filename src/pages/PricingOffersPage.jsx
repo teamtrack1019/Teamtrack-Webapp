@@ -449,10 +449,10 @@ ${(() => {
 • Abnahme & Prüfung: Nach Übergabe der betriebsbereiten Software hat der Auftraggeber das System innerhalb von 10 Werktagen zu prüfen und schriftlich abzunehmen.
 • ${PAKET1_PARALLEL_NACHBESSERUNG}
 • Abgrenzung zu Paket 2: ${PAKET1_PARALLEL_ABGRENZUNG}
-` : `\n📌 Vereinbarungen & 30-Tage-Garantie (Paket 1):
+` : `\n📌 Vereinbarungen & 30-Tage-Nachbesserung (Paket 1):
 • Verbindlicher Leistungsumfang: Es werden ausschließlich die oben explizit ausgewählten Module umgesetzt.
 • Abnahme & Prüfung: Nach Übergabe der betriebsbereiten Software hat der Auftraggeber das System innerhalb von 10 Werktagen zu prüfen und schriftlich abzunehmen.
-• Kostenlose 30-Tage-Garantie: Ab dem Tag der Abnahme behebt der Auftragnehmer für einen Zeitraum von 30 Kalendertagen alle reproduzierbaren Fehler (Bugs) der vereinbarten Funktionen kostenlos.
+• Kostenlose 30-Tage-Nachbesserung: Ab dem Tag der Abnahme behebt der Auftragnehmer für einen Zeitraum von 30 Kalendertagen alle reproduzierbaren Fehler (Bugs) der vereinbarten Funktionen kostenlos.
 • Nach Ablauf der 30 Tage (Ausschluss kostenloser Wartung): Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenlose Serviceleistungen. Zukünftige Anpassungen, Sicherheitsupdates oder Betriebssystem-Upgrades erfolgen ausschließlich gegen gesonderte Vergütung zum Stundensatz von 85,- € / Std. oder im Rahmen eines separaten Betreuungsvertrags (Paket 2).
 `;
   }
@@ -607,8 +607,8 @@ ${PAKET1_PARALLEL_ABGRENZUNG}
 Das System und die nachfolgend vereinbarten Module wurden vollständig betriebsbereit implementiert und übergeben:
 ${mods.map(m => `  - ${m}`).join('\n')}
 
-📌 Abnahmeerklärung & 30-Tage-Garantie:
-Mit der heutigen Übergabe beginnt Ihre 30-tägige kostenlose Garantiefrist, in welcher reproduzierbare Funktionsfehler (Bugs) kostenlos durch uns behoben werden. Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenfreie Serviceleistungen. Zukünftige Anpassungen, Sicherheitsupdates oder Upgrades erfolgen ausschließlich gegen gesonderte Vergütung (Stundensatz: 85,- € / Std.) oder im Rahmen eines separaten Betreuungsvertrags (Paket 2).
+📌 Abnahmeerklärung & 30-Tage-Nachbesserung:
+Mit der heutigen Übergabe beginnt Ihre 30-tägige kostenlose Nachbesserungsfrist, in welcher reproduzierbare Funktionsfehler (Bugs) kostenlos durch uns behoben werden. Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenfreie Serviceleistungen. Zukünftige Anpassungen, Sicherheitsupdates oder Upgrades erfolgen ausschließlich gegen gesonderte Vergütung (Stundensatz: 85,- € / Std.) oder im Rahmen eines separaten Betreuungsvertrags (Paket 2).
 `;
     }
 

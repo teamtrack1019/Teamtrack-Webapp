@@ -1095,7 +1095,7 @@ export function createOfferDoc(offer, companySettings = {}) {
       condItems.push(`• Kostenlose 30-Tage-Nachbesserung (Paket 1): ${PAKET1_PARALLEL_NACHBESSERUNG}`);
       condItems.push(`• Abgrenzung zu Paket 2: ${PAKET1_PARALLEL_ABGRENZUNG}`);
     } else {
-      condItems.push('• Kostenlose 30-Tage-Garantie: Ab dem Tag der Abnahme behebt der Auftragnehmer für einen Zeitraum von 30 Kalendertagen alle reproduzierbaren Fehler (Bugs) der vereinbarten Funktionen kostenlos.');
+      condItems.push('• Kostenlose 30-Tage-Nachbesserung: Ab dem Tag der Abnahme behebt der Auftragnehmer für einen Zeitraum von 30 Kalendertagen alle reproduzierbaren Fehler (Bugs) der vereinbarten Funktionen kostenlos.');
       condItems.push('• Nach Ablauf der 30 Tage (Ausschluss kostenloser Wartung): Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenlose Serviceleistungen. Zukünftige Anpassungen, Sicherheitsupdates oder Betriebssystem-Upgrades erfolgen ausschließlich gegen gesonderte Vergütung zum Stundensatz von 85,- € / Std. oder im Rahmen eines separaten Wartungsvertrags (Paket 2).');
     }
     if (hasPkgB && hasPkgA) {
@@ -1550,7 +1550,7 @@ export function createAbnahmeDoc(data, companySettings = {}) {
     statements.push(`AVV: ${PAKET2_PARALLEL_AVV}`);
   } else if (hasPkgA) {
     statements.push(
-      'Garantie & Ausschluss nach 30 Tagen: Mit dem Datum der Unterzeichnung dieses Protokolls beginnt die 30-tägige kostenlose Garantiefrist. Innerhalb dieses Zeitraums behebt der Auftragnehmer alle nachweisbaren, reproduzierbaren Funktionsfehler (Bugs) kostenlos. Nach Ablauf der 30 Kalendertage erlischt jeglicher Anspruch auf unentgeltliche Serviceleistungen. Nachträgliche Anpassungen, Erweiterungen oder Sicherheits-Patches erfolgen ausschließlich gegen gesonderte Vergütung (Stundensatz: 85,- € / Std.) oder im Rahmen eines separaten Wartungsvertrags.'
+      'Nachbesserung & Ausschluss nach 30 Tagen: Mit dem Datum der Unterzeichnung dieses Protokolls beginnt die 30-tägige kostenlose Nachbesserungsfrist. Innerhalb dieses Zeitraums behebt der Auftragnehmer alle nachweisbaren, reproduzierbaren Funktionsfehler (Bugs) kostenlos. Nach Ablauf der 30 Kalendertage erlischt jeglicher Anspruch auf unentgeltliche Serviceleistungen. Nachträgliche Anpassungen, Erweiterungen oder Sicherheits-Patches erfolgen ausschließlich gegen gesonderte Vergütung (Stundensatz: 85,- € / Std.) oder im Rahmen eines separaten Wartungsvertrags.'
     );
   }
 
