@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Trello, 
   Plus, 
@@ -617,11 +618,11 @@ export default function DispositionKanbanPage({
       {/* ========================================================================= */}
       {/* MODAL: CREATE / EDIT AUFTRAG & DISPOSITION                                */}
       {/* ========================================================================= */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-slate-900 border border-slate-700 text-slate-100 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh]">
+      {modalOpen && createPortal(
+        <div className="fixed inset-0 z-[80] flex items-stretch sm:items-center justify-center bg-slate-950/80 backdrop-blur-sm sm:p-4 overscroll-none">
+          <div className="bg-slate-900 border border-slate-700 text-slate-100 shadow-2xl w-full sm:max-w-xl overflow-hidden flex flex-col min-h-0 h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:rounded-3xl">
             {/* Modal Header */}
-            <div className="p-5 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+            <div className="shrink-0 p-5 pt-[max(1.25rem,env(safe-area-inset-top))] bg-slate-950 border-b border-slate-800 flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-sky-500/20 border border-sky-500/30 text-sky-400 rounded-xl">
                   <Trello className="w-5 h-5" />
@@ -644,7 +645,8 @@ export default function DispositionKanbanPage({
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={handleSaveModal} className="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
+            <form onSubmit={handleSaveModal} className="flex flex-col flex-1 min-h-0 text-xs">
+              <div className="p-6 space-y-4 overflow-y-auto overscroll-contain flex-1 min-h-0">
               {/* PRIMARY CUSTOMER SELECTOR (From Kundenverwaltung) */}
               <div className="bg-slate-800/90 p-4 rounded-2xl border border-slate-700 space-y-3">
                 <div className="flex items-center justify-between">
@@ -886,8 +888,10 @@ export default function DispositionKanbanPage({
                 />
               </div>
 
-              {/* Modal Footer */}
-              <div className="pt-3 border-t border-slate-800 flex items-center justify-end space-x-3">
+              </div>
+
+              {/* Modal Footer — stays visible above the phone navigation */}
+              <div className="shrink-0 px-5 py-3 border-t border-slate-800 flex items-center justify-end space-x-3 bg-slate-900 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
@@ -904,7 +908,8 @@ export default function DispositionKanbanPage({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
