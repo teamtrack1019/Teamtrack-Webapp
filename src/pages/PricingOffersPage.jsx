@@ -431,7 +431,7 @@ ${pkgAIncluded ? `• Paket 1 (Komplett-Entwicklung & WebApp): ${pricePrefix}${f
 ${multiplePackages
   ? `${pkgAIncluded && pkgBIncluded ? 'Paket 1 und Paket 2 werden zusammen beauftragt. Die Beträge bleiben getrennt.' : 'Mehrere Pakete. Die Beträge werden nicht addiert.'}\n${pkgAIncluded ? `Paket 1: ${pricePrefix}${formatCurrency(pkgAPrice)}\n` : ''}${pkgBIncluded ? `Paket 2 Einrichtung: ${pricePrefix}${formatCurrency(pkgBSetupPrice)}\nPaket 2 Betreuung: monatlich ${pricePrefix}${formatCurrency(priceAmount(pkgBMonthlyPrice))}, vierteljährlich ${pricePrefix}${formatCurrency(priceAmount(pkgBQuarterlyPrice))}, jährlich ${pricePrefix}${formatCurrency(priceAmount(pkgBYearlyPrice))} (15 % Nachlass)\n` : ''}`
   : pkgBIncluded
-  ? `Gesamtsumme Paket 2\nMonatlich: ${pricePrefix}${formatCurrency(paket2MonthlyTotal)} (Einrichtung + Monat)\nVierteljährlich: ${pricePrefix}${formatCurrency(paket2QuarterlyTotal)} (Einrichtung + Quartal)\nJährlich: ${pricePrefix}${formatCurrency(paket2YearlyTotal)} (Einrichtung + Jahr, 15 % Nachlass)\n`
+  ? `Paket 2: nur eine Zahlungsweise. Die Einrichtung wird einmalig berechnet, danach nur das gewählte Intervall.\noder monatlich: danach ${pricePrefix}${formatCurrency(priceAmount(pkgBMonthlyPrice))} / Monat. Erste Rechnung ${pricePrefix}${formatCurrency(paket2MonthlyTotal)} (einmalig inkl. Einrichtung ${pricePrefix}${formatCurrency(pkgBSetupPrice)}).\noder vierteljährlich: danach ${pricePrefix}${formatCurrency(priceAmount(pkgBQuarterlyPrice))} / Quartal. Erste Rechnung ${pricePrefix}${formatCurrency(paket2QuarterlyTotal)} (einmalig inkl. Einrichtung ${pricePrefix}${formatCurrency(pkgBSetupPrice)}).\noder jährlich (15 % Nachlass): danach ${pricePrefix}${formatCurrency(priceAmount(pkgBYearlyPrice))} / Jahr. Erste Rechnung ${pricePrefix}${formatCurrency(paket2YearlyTotal)} (einmalig inkl. Einrichtung ${pricePrefix}${formatCurrency(pkgBSetupPrice)}).\n`
   : pkgAIncluded
   ? `Gesamtsumme Paket 1: ${pricePrefix}${formatCurrency(pkgAPrice)}\n`
   : (currentPkgBRecurringPrice > 0 || waMonthlyAmount > 0)
@@ -1523,20 +1523,20 @@ Web: www.team-track.de`;
                   </div>
                 ) : pkgBIncluded ? (
                   <div className="space-y-2">
-                    <p className="text-[11px] font-bold text-slate-300">Gesamtsumme Paket 2</p>
-                    <div className="flex items-center justify-between text-slate-300 gap-2">
-                      <span>Monatlich</span>
-                      <span className="font-bold text-sky-300 shrink-0">{pricePrefix}{formatCurrency(paket2MonthlyTotal)}</span>
+                    <p className="text-[11px] font-bold text-slate-300">Nur eine Zahlungsweise</p>
+                    <p className="text-[10px] text-slate-500">Die Einrichtung wird einmalig berechnet, danach nur das gewählte Intervall.</p>
+                    <div className="text-slate-300">
+                      <span className="block">oder monatlich: danach {pricePrefix}{formatCurrency(priceAmount(pkgBMonthlyPrice))} / Monat</span>
+                      <span className="block text-[10px] text-sky-300">Erste Rechnung {pricePrefix}{formatCurrency(paket2MonthlyTotal)}, inkl. Einrichtung einmalig</span>
                     </div>
-                    <div className="flex items-center justify-between text-slate-300 gap-2">
-                      <span>Vierteljährlich</span>
-                      <span className="font-bold text-sky-300 shrink-0">{pricePrefix}{formatCurrency(paket2QuarterlyTotal)}</span>
+                    <div className="text-slate-300">
+                      <span className="block">oder vierteljährlich: danach {pricePrefix}{formatCurrency(priceAmount(pkgBQuarterlyPrice))} / Quartal</span>
+                      <span className="block text-[10px] text-sky-300">Erste Rechnung {pricePrefix}{formatCurrency(paket2QuarterlyTotal)}, inkl. Einrichtung einmalig</span>
                     </div>
-                    <div className="flex items-center justify-between text-slate-300 gap-2">
-                      <span>Jährlich (15 % Nachlass)</span>
-                      <span className="font-bold text-sky-300 shrink-0">{pricePrefix}{formatCurrency(paket2YearlyTotal)}</span>
+                    <div className="text-slate-300">
+                      <span className="block">oder jährlich (15 % Nachlass): danach {pricePrefix}{formatCurrency(priceAmount(pkgBYearlyPrice))} / Jahr</span>
+                      <span className="block text-[10px] text-sky-300">Erste Rechnung {pricePrefix}{formatCurrency(paket2YearlyTotal)}, inkl. Einrichtung einmalig</span>
                     </div>
-                    <p className="text-[10px] text-slate-500">Jeweils Einrichtung plus das gewählte Intervall.</p>
                   </div>
                 ) : pkgAIncluded ? (
                   <div className="pt-1 flex items-center justify-between gap-2">

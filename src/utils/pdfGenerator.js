@@ -919,19 +919,26 @@ export function createOfferDoc(offer, companySettings = {}) {
     }
   }
   const paket2Setup = Number(offer.packageB?.setupPrice || 0);
-  const paket2TotalRows = onlyPaket2 ? [
-    ['Monatlich', paket2Setup + bMonthly],
-    ['Vierteljährlich', paket2Setup + bQuarterly],
-    ['Jährlich (15 % Nachlass)', paket2Setup + bYearly]
-  ] : [];
   const wideTotals = multiplePackages || onlyPaket2;
+  const totalsBoxX = wideTotals ? margin : totalsX;
+  const totalsBoxW = wideTotals ? (pageWidth - margin * 2) : totalsWidth;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  const paket2IntroLines = onlyPaket2
+    ? doc.splitTextToSize('Nur eine Zahlungsweise. Die Einrichtung wird einmalig berechnet, danach nur das gewählte Intervall.', totalsBoxW - 8)
+    : [];
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  const paket2ChoiceLines = onlyPaket2 ? [
+    `oder monatlich: danach ${docPrefix}${formatCurrency(bMonthly)} / Monat. Erste Rechnung ${docPrefix}${formatCurrency(paket2Setup + bMonthly)} (einmalig inkl. Einrichtung ${docPrefix}${formatCurrency(paket2Setup)}).`,
+    `oder vierteljährlich: danach ${docPrefix}${formatCurrency(bQuarterly)} / Quartal. Erste Rechnung ${docPrefix}${formatCurrency(paket2Setup + bQuarterly)} (einmalig inkl. Einrichtung ${docPrefix}${formatCurrency(paket2Setup)}).`,
+    `oder jährlich (15 % Nachlass): danach ${docPrefix}${formatCurrency(bYearly)} / Jahr. Erste Rechnung ${docPrefix}${formatCurrency(paket2Setup + bYearly)} (einmalig inkl. Einrichtung ${docPrefix}${formatCurrency(paket2Setup)}).`
+  ].map(line => doc.splitTextToSize(line, totalsBoxW - 8)) : [];
   const totalsBoxH = multiplePackages
     ? (12 + Math.max(separateRows.length, 1) * 5.5)
     : onlyPaket2
-      ? (14 + paket2TotalRows.length * 5.5)
+      ? (8 + paket2IntroLines.length * 3.8 + paket2ChoiceLines.reduce((sum, lines) => sum + lines.length * 3.4 + 1.6, 0) + 2)
       : (waMonthlySeparate > 0 ? 30 : 24);
-  const totalsBoxX = wideTotals ? margin : totalsX;
-  const totalsBoxW = wideTotals ? (pageWidth - margin * 2) : totalsWidth;
 
   doc.roundedRect(totalsBoxX, finalY, totalsBoxW, totalsBoxH, 2, 2, 'FD');
 
@@ -960,16 +967,16 @@ export function createOfferDoc(offer, companySettings = {}) {
     });
   } else if (onlyPaket2) {
     doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
     doc.setTextColor(15, 23, 42);
-    doc.text('Gesamtsumme Paket 2 (Einrichtung plus gewähltes Intervall)', totalsBoxX + 4, finalY + 6);
-    paket2TotalRows.forEach((row, index) => {
-      const rowY = finalY + 13 + index * 5.5;
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(71, 85, 105);
-      doc.text(row[0], totalsBoxX + 4, rowY);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(0, 130, 203);
-      doc.text(`${docPrefix}${formatCurrency(row[1])}`, totalsBoxX + totalsBoxW - 4, rowY, { align: 'right' });
+    doc.text(paket2IntroLines, totalsBoxX + 4, finalY + 6);
+    let choiceY = finalY + 6 + paket2IntroLines.length * 3.8 + 1.5;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(71, 85, 105);
+    paket2ChoiceLines.forEach((lines) => {
+      doc.text(lines, totalsBoxX + 4, choiceY);
+      choiceY += lines.length * 3.4 + 1.6;
     });
   } else {
   doc.text(oneTimeLabel, totalsX + 4, finalY + 6);
