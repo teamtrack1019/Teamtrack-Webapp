@@ -37,7 +37,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { generateOfferPDF, generateAbnahmePDF } from '../utils/pdfGenerator';
-import { buildInvoiceDraft, buildWhatsAppDisposition, PAKET2_ABNAHME_AVV, PAKET2_ABNAHME_BACKUP, PAKET2_ABNAHME_SCOPE, PAKET2_ABNAHME_SERVICE, PAKET2_ABNAHME_TERMS } from '../utils/offerInvoice';
+import { buildInvoiceDraft, buildWhatsAppDisposition, PAKET1_PARALLEL_ABGRENZUNG, PAKET1_PARALLEL_NACHBESSERUNG, PAKET2_ABNAHME_AVV, PAKET2_ABNAHME_BACKUP, PAKET2_ABNAHME_SCOPE, PAKET2_ABNAHME_SERVICE, PAKET2_ABNAHME_TERMS, PAKET2_PARALLEL_AVV, PAKET2_PARALLEL_BACKUP, PAKET2_PARALLEL_TERMS } from '../utils/offerInvoice';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -540,6 +540,7 @@ Web: www.team-track.de`;
 
     const hasPkgA = Boolean(offer?.packageA && offer.packageA.included);
     const hasPkgB = Boolean(offer?.packageB && offer.packageB.included);
+    const bothMainPackages = hasPkgA && hasPkgB;
     const hasPkgC = Boolean(offer?.packageC && offer.packageC.included);
     const hasWa = Boolean(offer?.packageWhatsApp && offer.packageWhatsApp.included);
     const waOnly = hasWa && !hasPkgA && !hasPkgB && !hasPkgC;
@@ -576,7 +577,16 @@ Datum: ${formatDate(new Date())}
         mods = offer.packageA.moduleNames.split(',').map(s => s.trim());
       }
 
-      bodyText += `
+      bodyText += bothMainPackages ? `
+✅ A) Paket 1 (Komplett-Entwicklung / Festpreis-WebApp):
+Das System und die vereinbarten Module wurden betriebsbereit implementiert und übergeben:
+${mods.map(m => `  - ${m}`).join('\n')}
+
+📌 Abnahme & 30-Tage-Nachbesserung (Paket 1):
+${PAKET1_PARALLEL_NACHBESSERUNG}
+Wichtig – Abgrenzung zu Paket 2:
+${PAKET1_PARALLEL_ABGRENZUNG}
+` : `
 ✅ Paket 1 (Komplett-Entwicklung & WebApp):
 Das System und die nachfolgend vereinbarten Module wurden vollständig betriebsbereit implementiert und übergeben:
 ${mods.map(m => `  - ${m}`).join('\n')}
@@ -587,7 +597,18 @@ Mit der heutigen Übergabe beginnt Ihre 30-tägige kostenlose Garantiefrist, in 
     }
 
     if (hasPkgB) {
-      bodyText += `
+      bodyText += bothMainPackages ? `
+✅ B) Paket 2 (Setup + 7/24 Abo-Betreuung):
+Admin-Zugänge wurden übergeben. Das System geht nahtlos in den laufenden 7/24-Betrieb über.
+Vertragslaufzeit Paket 2:
+${PAKET2_PARALLEL_TERMS.map(term => `- ${term}`).join('\n')}
+
+🔒 Datensicherung:
+${PAKET2_PARALLEL_BACKUP}
+
+AVV:
+${PAKET2_PARALLEL_AVV}
+` : `
 ✅ Paket 2 (Setup + 7/24 Abo-Betreuung):
 Das Initial-Setup wurde erfolgreich bereitgestellt und die Admin-Zugänge übergeben.
 ${PAKET2_ABNAHME_SCOPE}
@@ -1926,8 +1947,8 @@ Web: www.team-track.de`;
 
                 {pkgAIncluded && (
                   <div className="bg-emerald-900/60 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-emerald-700/60 space-y-1">
-                    <strong className="text-white block font-bold">2. Beginn der 30-Tage-Garantie & Ausschluss unentgeltlicher Wartung:</strong>
-                    <span>30 Tage kostenlose Fehlerbehebung reproduzierbarer Bugs ab heute. Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenfreie Serviceleistungen (Zukünftige Arbeiten: 85,- € / Std. oder Wartungsvertrag).</span>
+                    <strong className="text-white block font-bold">{pkgBIncluded ? '2. Abnahme & 30-Tage-Nachbesserung (Paket 1):' : '2. Beginn der 30-Tage-Garantie & Ausschluss unentgeltlicher Wartung:'}</strong>
+                    <span>{pkgBIncluded ? `${PAKET1_PARALLEL_NACHBESSERUNG} ${PAKET1_PARALLEL_ABGRENZUNG}` : '30 Tage kostenlose Fehlerbehebung reproduzierbarer Bugs ab heute. Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenfreie Serviceleistungen (Zukünftige Arbeiten: 85,- € / Std. oder Wartungsvertrag).'}</span>
                   </div>
                 )}
 
@@ -1937,7 +1958,9 @@ Web: www.team-track.de`;
                   </strong>
                   <span>
                     {pkgBIncluded
-                      ? `Mindestvertragslaufzeit 12 Monate ab Bereitstellung, danach automatische Verlängerung um jeweils 12 Monate. Ordentliche Kündigung mit 1 Monat Frist zum Ende der jeweiligen Laufzeit. ${PAKET2_ABNAHME_BACKUP} ${PAKET2_ABNAHME_AVV}`
+                      ? (pkgAIncluded
+                        ? `${PAKET2_PARALLEL_TERMS.join('. ')}. ${PAKET2_PARALLEL_BACKUP} ${PAKET2_PARALLEL_AVV}`
+                        : `Mindestvertragslaufzeit 12 Monate ab Bereitstellung, danach automatische Verlängerung um jeweils 12 Monate. Ordentliche Kündigung mit 1 Monat Frist zum Ende der jeweiligen Laufzeit. ${PAKET2_ABNAHME_BACKUP} ${PAKET2_ABNAHME_AVV}`)
                       : 'Ausdrücklicher Haftungsausschluss bei Datenverlust; die regelmäßige Datensicherung erfolgt eigenverantwortlich durch den Kunden über die integrierte 1-Klick Backup-Funktion im System.'}
                   </span>
                 </div>
@@ -2234,8 +2257,10 @@ Web: www.team-track.de`;
 
                   {abnahmeModalOffer.packageA && abnahmeModalOffer.packageA.included && (
                     <div className="bg-white p-2.5 sm:p-3 rounded-xl border border-emerald-100 space-y-1">
-                      <strong className="text-slate-900 block font-bold">2. Beginn der 30-Tage-Garantie & Ausschluss:</strong>
-                      30 Tage kostenlose Behebung reproduzierbarer Fehler ab heute. Nach 30 Tagen erlischt jeglicher Anspruch auf kostenfreie Services (Zukünftige Arbeiten: 85 €/Std. oder Wartungsvertrag).
+                      <strong className="text-slate-900 block font-bold">{abnahmeModalOffer.packageB && abnahmeModalOffer.packageB.included ? '2. Abnahme & 30-Tage-Nachbesserung (Paket 1):' : '2. Beginn der 30-Tage-Garantie & Ausschluss:'}</strong>
+                      {abnahmeModalOffer.packageB && abnahmeModalOffer.packageB.included
+                        ? `${PAKET1_PARALLEL_NACHBESSERUNG} ${PAKET1_PARALLEL_ABGRENZUNG}`
+                        : '30 Tage kostenlose Behebung reproduzierbarer Fehler ab heute. Nach 30 Tagen erlischt jeglicher Anspruch auf kostenfreie Services (Zukünftige Arbeiten: 85 €/Std. oder Wartungsvertrag).'}
                     </div>
                   )}
 
@@ -2244,7 +2269,9 @@ Web: www.team-track.de`;
                       {abnahmeModalOffer.packageA && abnahmeModalOffer.packageA.included ? '3.' : '2.'} {abnahmeModalOffer.packageB && abnahmeModalOffer.packageB.included ? 'Paket-2-Vertrag & Datensicherung:' : 'Eigenverantwortung Datensicherung (Backups):'}
                     </strong>
                     {abnahmeModalOffer.packageB && abnahmeModalOffer.packageB.included
-                      ? `Mindestvertragslaufzeit 12 Monate ab Bereitstellung, danach automatische Verlängerung um jeweils 12 Monate. Ordentliche Kündigung mit 1 Monat Frist zum Ende der jeweiligen Laufzeit. ${PAKET2_ABNAHME_BACKUP} ${PAKET2_ABNAHME_AVV}`
+                      ? (abnahmeModalOffer.packageA && abnahmeModalOffer.packageA.included
+                        ? `${PAKET2_PARALLEL_TERMS.join('. ')}. ${PAKET2_PARALLEL_BACKUP} ${PAKET2_PARALLEL_AVV}`
+                        : `Mindestvertragslaufzeit 12 Monate ab Bereitstellung, danach automatische Verlängerung um jeweils 12 Monate. Ordentliche Kündigung mit 1 Monat Frist zum Ende der jeweiligen Laufzeit. ${PAKET2_ABNAHME_BACKUP} ${PAKET2_ABNAHME_AVV}`)
                       : 'Ausdrücklicher Ausschluss von Haftungsansprüchen bei Datenverlust; regelmäßige Datensicherung erfolgt eigenverantwortlich durch den Kunden über die 1-Klick Backup-Funktion.'}
                   </div>
                 </div>

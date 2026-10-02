@@ -26,6 +26,20 @@ export const PAKET2_ABNAHME_BACKUP = 'Tägliche automatisierte Backups der Fireb
 
 export const PAKET2_ABNAHME_AVV = 'Die gesondert abzuschließende AVV (Art. 28 DSGVO inkl. TOM) bleibt für Hosting/Betrieb maßgeblich und ist – soweit noch nicht geschehen – gesondert zu unterzeichnen.';
 
+export const PAKET1_PARALLEL_NACHBESSERUNG = 'Mit der heutigen Übergabe / Abnahme beginnt die 30-tägige kostenlose Nachbesserungsfrist. In diesem Zeitraum behebt TeamTrack reproduzierbare Funktionsfehler (Bugs) der vereinbarten Funktionen kostenlos.';
+
+export const PAKET1_PARALLEL_ABGRENZUNG = 'Soweit parallel Paket 2 (7/24 Betreuung) aktiv ist, sind Hosting, tägliche Backups sowie Sicherheits-/Framework-Updates von der laufenden Abo-Betreuung umfasst. Der Stundensatz von 85,- € / Std. gilt für darüber hinausgehende Anpassungen, Change Requests, neue Funktionen oder Upgrades außerhalb des vereinbarten Paket-1-Scopes bzw. außerhalb der Paket-2-Betreuungsleistungen. Nach Ablauf der 30 Tage entfällt der Anspruch auf kostenlose Bug-Nachbesserung aus Paket 1; laufende Betriebsleistungen bleiben über Paket 2 bestehen.';
+
+export const PAKET2_PARALLEL_TERMS = [
+  'Mindestlaufzeit 12 Monate ab Bereitstellung',
+  'automatische Verlängerung um jeweils 12 Monate',
+  'ordentliche Kündigung mit 1 Monat Frist zum Laufzeitende'
+];
+
+export const PAKET2_PARALLEL_BACKUP = 'Tägliche Server-Backups durch TeamTrack im Rahmen von Paket 2. Ergänzend: lokale 1-Klick-Archivierung durch den Auftraggeber.';
+
+export const PAKET2_PARALLEL_AVV = 'Da Hosting/Betrieb personenbezogene Daten im Auftrag verarbeitet, ist die gesondert zu unterzeichnende AVV (Art. 28 DSGVO inkl. TOM) Bestandteil der Zusammenarbeit.';
+
 export function buildWhatsAppDisposition(offer, ownerName) {
   const customerName = offer?.customerName || '';
   return {

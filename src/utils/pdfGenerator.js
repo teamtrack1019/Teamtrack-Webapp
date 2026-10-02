@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatCurrency, formatDate } from './formatters';
-import { PAKET2_ABNAHME_AVV, PAKET2_ABNAHME_BACKUP, PAKET2_ABNAHME_SCOPE, PAKET2_ABNAHME_SERVICE, PAKET2_ABNAHME_TERMS } from './offerInvoice';
+import { PAKET1_PARALLEL_ABGRENZUNG, PAKET1_PARALLEL_NACHBESSERUNG, PAKET2_ABNAHME_AVV, PAKET2_ABNAHME_BACKUP, PAKET2_ABNAHME_SCOPE, PAKET2_ABNAHME_SERVICE, PAKET2_ABNAHME_TERMS, PAKET2_PARALLEL_AVV, PAKET2_PARALLEL_BACKUP, PAKET2_PARALLEL_TERMS } from './offerInvoice';
 import { TEAMTRACK_LOGO_BASE64 } from '../assets/logoBase64';
 
 export function createInvoiceDoc(invoice, companySettings = {}) {
@@ -1382,12 +1382,17 @@ export function createAbnahmeDoc(data, companySettings = {}) {
   }
 
   if (data.packageB && data.packageB.included) {
+    const parallelWithPaket1 = Boolean(data.packageA && data.packageA.included);
     tableBody.push([
       `${pos++}`,
-      `Paket 2: Setup + 7/24 Abo-Betreuung\n` +
-      `Das Initial-Setup wurde erfolgreich bereitgestellt und die Admin-Zugänge übergeben.\n` +
-      `${PAKET2_ABNAHME_SCOPE}\n` +
-      `Übergang in den laufenden 7/24-Betrieb gemäß dem geschlossenen Paket-2-Vertrag (Mindestlaufzeit 12 Monate).`,
+      parallelWithPaket1
+        ? `Paket 2: Setup + 7/24 Abo-Betreuung\n` +
+          `Admin-Zugänge wurden übergeben. Das System geht nahtlos in den laufenden 7/24-Betrieb über.\n` +
+          `Mindestlaufzeit 12 Monate ab Bereitstellung, danach Verlängerung um jeweils 12 Monate. Kündigung mit 1 Monat Frist zum Laufzeitende.`
+        : `Paket 2: Setup + 7/24 Abo-Betreuung\n` +
+          `Das Initial-Setup wurde erfolgreich bereitgestellt und die Admin-Zugänge übergeben.\n` +
+          `${PAKET2_ABNAHME_SCOPE}\n` +
+          `Übergang in den laufenden 7/24-Betrieb gemäß dem geschlossenen Paket-2-Vertrag (Mindestlaufzeit 12 Monate).`,
       'Initial-Setup betriebsbereit\nübergeben & freigegeben'
     ]);
   }
@@ -1496,19 +1501,24 @@ export function createAbnahmeDoc(data, companySettings = {}) {
   );
 
   // 2. Warranty / 30-Day Guarantee
-  if (hasPkgA) {
+  if (hasPkgA && hasPkgB) {
+    statements.push(`Abnahme & 30-Tage-Nachbesserung (Paket 1): ${PAKET1_PARALLEL_NACHBESSERUNG} Wichtig – Abgrenzung zu Paket 2: ${PAKET1_PARALLEL_ABGRENZUNG}`);
+    statements.push(`Vertragslaufzeit Paket 2: Admin-Zugänge wurden übergeben. Das System geht nahtlos in den laufenden 7/24-Betrieb über. ${PAKET2_PARALLEL_TERMS.join('. ')}.`);
+    statements.push(`Datensicherung: ${PAKET2_PARALLEL_BACKUP}`);
+    statements.push(`AVV: ${PAKET2_PARALLEL_AVV}`);
+  } else if (hasPkgA) {
     statements.push(
-      '2. Garantie & Ausschluss nach 30 Tagen: Mit dem Datum der Unterzeichnung dieses Protokolls beginnt die 30-tägige kostenlose Garantiefrist. Innerhalb dieses Zeitraums behebt der Auftragnehmer alle nachweisbaren, reproduzierbaren Funktionsfehler (Bugs) kostenlos. Nach Ablauf der 30 Kalendertage erlischt jeglicher Anspruch auf unentgeltliche Serviceleistungen. Nachträgliche Anpassungen, Erweiterungen oder Sicherheits-Patches erfolgen ausschließlich gegen gesonderte Vergütung (Stundensatz: 85,- € / Std.) oder im Rahmen eines separaten Wartungsvertrags.'
+      'Garantie & Ausschluss nach 30 Tagen: Mit dem Datum der Unterzeichnung dieses Protokolls beginnt die 30-tägige kostenlose Garantiefrist. Innerhalb dieses Zeitraums behebt der Auftragnehmer alle nachweisbaren, reproduzierbaren Funktionsfehler (Bugs) kostenlos. Nach Ablauf der 30 Kalendertage erlischt jeglicher Anspruch auf unentgeltliche Serviceleistungen. Nachträgliche Anpassungen, Erweiterungen oder Sicherheits-Patches erfolgen ausschließlich gegen gesonderte Vergütung (Stundensatz: 85,- € / Std.) oder im Rahmen eines separaten Wartungsvertrags.'
     );
   }
 
-  if (hasPkgB) {
+  if (hasPkgB && !hasPkgA) {
     statements.push(
       `Paket-2-Vertrag: Das System geht hiermit in den laufenden 7/24-Betrieb über gemäß dem geschlossenen Paket-2-Vertrag. ${PAKET2_ABNAHME_TERMS.join(' ')} ${PAKET2_ABNAHME_SERVICE}`
     );
     statements.push(`Datensicherung: ${PAKET2_ABNAHME_BACKUP}`);
     statements.push(`AVV: ${PAKET2_ABNAHME_AVV}`);
-  } else {
+  } else if (!hasPkgB) {
     statements.push(
       'Eigenverantwortung Datensicherung: Die regelmäßige Erstellung und Sicherung von Backups obliegt der alleinigen Sorgfaltspflicht des Auftraggebers. Über die im System integrierte 1-Klick Backup-Funktion können vollständige Datensicherungen jederzeit eigenständig als JSON-Datei exportiert und archiviert werden.'
     );
