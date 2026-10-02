@@ -311,13 +311,13 @@ function PricingOffersContent({
       customerTaxId: selectedCustomer?.taxNumber || '',
       packageA: {
         included: pkgAIncluded,
-        price: Number(pkgAPrice || 2400),
+        price: priceAmount(pkgAPrice),
         selectedModules: PAKET_A_MODULES.filter(m => pkgASelectedModuleIds.includes(m.id)),
         moduleNames: PAKET_A_MODULES.filter(m => pkgASelectedModuleIds.includes(m.id)).map(m => m.title)
       },
       packageB: {
         included: pkgBIncluded,
-        setupPrice: Number(pkgBSetupPrice !== undefined && pkgBSetupPrice !== null && pkgBSetupPrice !== '' ? pkgBSetupPrice : 1490),
+        setupPrice: priceAmount(pkgBSetupPrice),
         interval: pkgBInterval,
         recurringPrice: currentPkgBRecurringPrice,
         monthlyPrice: priceAmount(pkgBMonthlyPrice),
@@ -971,7 +971,7 @@ Web: www.team-track.de`;
                             step="50"
                             disabled={!pkgAIncluded}
                             value={pkgAPrice}
-                            onChange={(e) => setPkgAPrice(Number(e.target.value))}
+                            onChange={(e) => setPkgAPrice(e.target.value === '' ? '' : Number(e.target.value))}
                             className="w-24 sm:w-28 px-2.5 sm:px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-right text-xs sm:text-sm font-black text-slate-900 focus:ring-2 focus:ring-sky-500 focus:outline-none"
                           />
                           <span className="text-xs font-bold text-slate-700">€</span>
@@ -1055,7 +1055,7 @@ Web: www.team-track.de`;
                                 min="0"
                                 step="10"
                                 value={pkgBSetupPrice}
-                                onChange={(e) => setPkgBSetupPrice(Number(e.target.value))}
+                                onChange={(e) => setPkgBSetupPrice(e.target.value === '' ? '' : Number(e.target.value))}
                                 className="w-24 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-right font-bold text-slate-900"
                               />
                               <span className="text-slate-700">€</span>
