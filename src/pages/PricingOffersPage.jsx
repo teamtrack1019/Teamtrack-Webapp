@@ -37,7 +37,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { generateOfferPDF, generateAbnahmePDF } from '../utils/pdfGenerator';
-import { buildInvoiceDraft, buildWhatsAppDisposition } from '../utils/offerInvoice';
+import { buildInvoiceDraft, buildWhatsAppDisposition, PAKET2_ABNAHME_AVV, PAKET2_ABNAHME_BACKUP, PAKET2_ABNAHME_SCOPE, PAKET2_ABNAHME_SERVICE, PAKET2_ABNAHME_TERMS } from '../utils/offerInvoice';
 import { api } from '../api';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -584,10 +584,18 @@ Mit der heutigen Übergabe beginnt Ihre 30-tägige kostenlose Garantiefrist, in 
     }
 
     if (hasPkgB) {
-      const intervalText = offer?.packageB?.interval === 'yearly' ? 'jährlich' : offer?.packageB?.interval === 'quarterly' ? 'vierteljährlich' : 'monatlich';
       bodyText += `
 ✅ Paket 2 (Setup + 7/24 Abo-Betreuung):
-Das Initial-Setup wurde erfolgreich bereitgestellt und die Admin-Zugänge übergeben. Das System geht nahtlos in den laufenden 7/24-Betrieb über (${intervalText} kündbar).
+Das Initial-Setup wurde erfolgreich bereitgestellt und die Admin-Zugänge übergeben.
+${PAKET2_ABNAHME_SCOPE}
+Das System geht hiermit in den laufenden 7/24-Betrieb über gemäß dem geschlossenen Paket-2-Vertrag:
+${PAKET2_ABNAHME_TERMS.map(term => `- ${term}`).join('\n')}
+${PAKET2_ABNAHME_SERVICE}
+
+🔒 Datensicherung:
+${PAKET2_ABNAHME_BACKUP}
+
+${PAKET2_ABNAHME_AVV}
 `;
     }
 
@@ -622,12 +630,7 @@ Mit der Unterschrift ist die Einrichtung abgenommen. Die einmalige Gebühr von $
 `;
     }
 
-    if (hasPkgB) {
-      bodyText += `
-🔒 Datensicherung & Server-Backups:
-Im Rahmen der laufenden 7/24 Betreuung führt TeamTrack tägliche automatisierte Server-Backups durch. Ergänzend obliegt dem Auftraggeber die eigenverantwortliche lokale Archivierung über die integrierte 1-Klick Backup-Funktion.
-`;
-    } else if (!waOnly) {
+    if (!hasPkgB && !waOnly) {
       bodyText += `
 🔒 Wichtiger Hinweis zur Datensicherung:
 Die regelmäßige Erstellung von Datensicherungen (Backups) obliegt der Eigenverantwortung des Kunden und kann jederzeit eigenständig mit 1 Klick über die integrierte Backup-Funktion im System durchgeführt werden.
@@ -1837,7 +1840,7 @@ Web: www.team-track.de`;
                         {pkgBInterval === 'yearly' ? 'Jährlich' : pkgBInterval === 'quarterly' ? 'Vierteljährlich' : 'Monatlich'}
                       </span>
                     </div>
-                    <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-relaxed">Initial-Setup übergeben, Admin-Zugänge freigeschaltet und in laufenden Support überführt.</p>
+                    <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-relaxed">Initial-Setup und Admin-Zugänge übergeben. Vertragslaufzeit 12 Monate ab Bereitstellung, danach Verlängerung um jeweils 12 Monate.</p>
                   </div>
                 </label>
               </div>
@@ -1927,11 +1930,11 @@ Web: www.team-track.de`;
 
                 <div className="bg-emerald-900/60 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-emerald-700/60 space-y-1">
                   <strong className="text-white block font-bold">
-                    {pkgAIncluded ? '3.' : '2.'} {pkgBIncluded ? 'Datensicherung & Server-Backups:' : 'Eigenverantwortung Datensicherung (Backups):'}
+                    {pkgAIncluded ? '3.' : '2.'} {pkgBIncluded ? 'Paket-2-Vertrag & Datensicherung:' : 'Eigenverantwortung Datensicherung (Backups):'}
                   </strong>
                   <span>
                     {pkgBIncluded
-                      ? 'Im Rahmen der laufenden 7/24 Betreuung führt TeamTrack tägliche automatisierte Server-Backups durch. Ergänzend obliegt dem Auftraggeber die eigenverantwortliche lokale Archivierung über die integrierte 1-Klick Backup-Funktion.'
+                      ? `Mindestvertragslaufzeit 12 Monate ab Bereitstellung, danach automatische Verlängerung um jeweils 12 Monate. Ordentliche Kündigung mit 1 Monat Frist zum Ende der jeweiligen Laufzeit. ${PAKET2_ABNAHME_BACKUP} ${PAKET2_ABNAHME_AVV}`
                       : 'Ausdrücklicher Haftungsausschluss bei Datenverlust; die regelmäßige Datensicherung erfolgt eigenverantwortlich durch den Kunden über die integrierte 1-Klick Backup-Funktion im System.'}
                   </span>
                 </div>
@@ -2235,10 +2238,10 @@ Web: www.team-track.de`;
 
                   <div className="bg-white p-2.5 sm:p-3 rounded-xl border border-emerald-100 space-y-1">
                     <strong className="text-slate-900 block font-bold">
-                      {abnahmeModalOffer.packageA && abnahmeModalOffer.packageA.included ? '3.' : '2.'} {abnahmeModalOffer.packageB && abnahmeModalOffer.packageB.included ? 'Datensicherung & Server-Backups:' : 'Eigenverantwortung Datensicherung (Backups):'}
+                      {abnahmeModalOffer.packageA && abnahmeModalOffer.packageA.included ? '3.' : '2.'} {abnahmeModalOffer.packageB && abnahmeModalOffer.packageB.included ? 'Paket-2-Vertrag & Datensicherung:' : 'Eigenverantwortung Datensicherung (Backups):'}
                     </strong>
                     {abnahmeModalOffer.packageB && abnahmeModalOffer.packageB.included
-                      ? 'Im Rahmen der laufenden 7/24 Betreuung führt TeamTrack tägliche automatisierte Server-Backups durch. Ergänzend obliegt dem Auftraggeber die eigenverantwortliche lokale Archivierung über die integrierte 1-Klick Backup-Funktion.'
+                      ? `Mindestvertragslaufzeit 12 Monate ab Bereitstellung, danach automatische Verlängerung um jeweils 12 Monate. Ordentliche Kündigung mit 1 Monat Frist zum Ende der jeweiligen Laufzeit. ${PAKET2_ABNAHME_BACKUP} ${PAKET2_ABNAHME_AVV}`
                       : 'Ausdrücklicher Ausschluss von Haftungsansprüchen bei Datenverlust; regelmäßige Datensicherung erfolgt eigenverantwortlich durch den Kunden über die 1-Klick Backup-Funktion.'}
                   </div>
                 </div>

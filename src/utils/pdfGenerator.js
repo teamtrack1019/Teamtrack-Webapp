@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatCurrency, formatDate } from './formatters';
+import { PAKET2_ABNAHME_AVV, PAKET2_ABNAHME_BACKUP, PAKET2_ABNAHME_SCOPE, PAKET2_ABNAHME_SERVICE, PAKET2_ABNAHME_TERMS } from './offerInvoice';
 import { TEAMTRACK_LOGO_BASE64 } from '../assets/logoBase64';
 
 export function createInvoiceDoc(invoice, companySettings = {}) {
@@ -1372,13 +1373,12 @@ export function createAbnahmeDoc(data, companySettings = {}) {
   }
 
   if (data.packageB && data.packageB.included) {
-    const interval = data.packageB.interval || data.recurringInterval || 'monthly';
-    const intervalLabel = interval === 'yearly' ? 'Jährlich' : interval === 'quarterly' ? 'Vierteljährlich' : 'Monatlich';
     tableBody.push([
       `${pos++}`,
-      `Paket 2: Setup + 7/24 Abo-Betreuung (${intervalLabel})\n` +
-      `• Schlüsselfertige Initial-Einrichtung & Admin-Übergabe\n` +
-      `• Übergang in den laufenden 7/24-Support & Serverbetrieb`,
+      `Paket 2: Setup + 7/24 Abo-Betreuung\n` +
+      `Das Initial-Setup wurde erfolgreich bereitgestellt und die Admin-Zugänge übergeben.\n` +
+      `${PAKET2_ABNAHME_SCOPE}\n` +
+      `Übergang in den laufenden 7/24-Betrieb gemäß dem geschlossenen Paket-2-Vertrag (Mindestlaufzeit 12 Monate).`,
       'Initial-Setup betriebsbereit\nübergeben & freigegeben'
     ]);
   }
@@ -1493,20 +1493,20 @@ export function createAbnahmeDoc(data, companySettings = {}) {
     );
   }
 
-  // 3. Backup responsibility (Automated server backups for Paket B or Customer responsibility)
   if (hasPkgB) {
     statements.push(
-      `${hasPkgA ? '3.' : '2.'} Datensicherung & Server-Backups: Im Rahmen der laufenden 7/24 Betreuung führt TeamTrack tägliche automatisierte Server-Backups durch. Ergänzend obliegt dem Auftraggeber die eigenverantwortliche lokale Archivierung über die integrierte 1-Klick Backup-Funktion.`
+      `Paket-2-Vertrag: Das System geht hiermit in den laufenden 7/24-Betrieb über gemäß dem geschlossenen Paket-2-Vertrag. ${PAKET2_ABNAHME_TERMS.join(' ')} ${PAKET2_ABNAHME_SERVICE}`
     );
+    statements.push(`Datensicherung: ${PAKET2_ABNAHME_BACKUP}`);
+    statements.push(`AVV: ${PAKET2_ABNAHME_AVV}`);
   } else {
     statements.push(
-      `${hasPkgA ? '3.' : '2.'} Eigenverantwortung Datensicherung: Die regelmäßige Erstellung und Sicherung von Backups obliegt der alleinigen Sorgfaltspflicht des Auftraggebers. Über die im System integrierte 1-Klick Backup-Funktion können vollständige Datensicherungen jederzeit eigenständig als JSON-Datei exportiert und archiviert werden.`
+      'Eigenverantwortung Datensicherung: Die regelmäßige Erstellung und Sicherung von Backups obliegt der alleinigen Sorgfaltspflicht des Auftraggebers. Über die im System integrierte 1-Klick Backup-Funktion können vollständige Datensicherungen jederzeit eigenständig als JSON-Datei exportiert und archiviert werden.'
     );
   }
 
-  // 4. Scope Limitation
   statements.push(
-    `${hasPkgA ? '4.' : '3.'} Ausschluss nicht vereinbarter Leistungen: Funktionen, Schnittstellen oder Sonderwünsche, die nicht explizit in diesem Protokoll aufgeführt sind, sind nicht Bestandteil dieser Abnahme und bedürfen einer gesonderten schriftlichen Beauftragung.`
+    'Ausschluss nicht vereinbarter Leistungen: Funktionen, Schnittstellen oder Sonderwünsche, die nicht explizit in diesem Protokoll aufgeführt sind, sind nicht Bestandteil dieser Abnahme und bedürfen einer gesonderten schriftlichen Beauftragung.'
   );
   if (hasWa) {
     const setup = Number(data.packageWhatsApp.setupPrice || 390);
@@ -1517,50 +1517,98 @@ export function createAbnahmeDoc(data, companySettings = {}) {
   }
   }
 
-  const allSplitStatements = statements.map(st => doc.splitTextToSize(st, textWidth));
-  const totalLines = allSplitStatements.reduce((sum, lines) => sum + lines.length, 0);
+  statements.forEach((text, index) => {
+    statements[index] = `${index + 1}. ${text.replace(/^\d+\.\s/, '')}`;
+  });
 
   const fontSize = 6.8;
   const lineSpacing = 2.8;
-  const condH = 5.5 + (totalLines * lineSpacing) + (statements.length * 0.6);
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const footerY = pageHeight - 16;
+  const contentLimit = footerY - 6;
+  const allSplitStatements = statements.map(st => doc.splitTextToSize(st, textWidth));
 
-  doc.setFillColor(255, 255, 255);
-  doc.setDrawColor(203, 213, 225);
-  doc.setLineWidth(0.4);
-  doc.roundedRect(margin, condY, boxWidth, condH, 2, 2, 'FD');
+  let itemIndex = 0;
+  let continuation = false;
+  let lastBottom = condY;
 
-  doc.setFontSize(7.8);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(15, 23, 42);
-  doc.text('Rechtliche Vereinbarungen & Gewährleistungsbedingungen:', margin + 4, condY + 4.2);
+  while (itemIndex < allSplitStatements.length) {
+    if (condY + 28 > contentLimit) {
+      doc.addPage();
+      condY = 18;
+    }
 
-  doc.setFontSize(fontSize);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(51, 65, 85);
+    const chunkStart = condY;
+    const available = contentLimit - chunkStart;
+    let used = 9;
+    const fitting = [];
 
-  let curStmtY = condY + 7.5;
-  allSplitStatements.forEach((lines) => {
-    doc.text(lines, margin + 4, curStmtY);
-    curStmtY += (lines.length * lineSpacing) + 0.6;
-  });
+    while (itemIndex < allSplitStatements.length) {
+      const lines = allSplitStatements[itemIndex];
+      const itemH = (lines.length * lineSpacing) + 1.0;
+      if (fitting.length > 0 && used + itemH > available - 3) break;
+      fitting.push(lines);
+      used += itemH;
+      itemIndex += 1;
+      if (used + 8 > available) break;
+    }
 
-  // 6. SIGNATURE SECTION
-  const sigY = condY + condH + 3.0;
-  if (sigY + 12 < 278) {
+    const boxH = used + 2.5;
+    doc.setFillColor(255, 255, 255);
     doc.setDrawColor(203, 213, 225);
     doc.setLineWidth(0.4);
-    doc.line(margin, sigY + 8, margin + 70, sigY + 8);
-    doc.line(pageWidth - margin - 70, sigY + 8, pageWidth - margin, sigY + 8);
+    doc.roundedRect(margin, chunkStart, boxWidth, boxH, 2, 2, 'FD');
 
-    doc.setFontSize(7.0);
+    doc.setFontSize(7.8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 23, 42);
+    doc.text(
+      continuation
+        ? 'Rechtliche Vereinbarungen (Fortsetzung):'
+        : 'Rechtliche Vereinbarungen & Gewährleistungsbedingungen:',
+      margin + 4,
+      chunkStart + 4.2
+    );
+
+    doc.setFontSize(fontSize);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 116, 139);
-    doc.text('Ort, Datum & Unterschrift Auftragnehmer', margin, sigY + 11.5);
-    doc.text('Ort, Datum, Unterschrift & Stempel Auftraggeber', pageWidth - margin - 70, sigY + 11.5);
+    doc.setTextColor(51, 65, 85);
+
+    let curStmtY = chunkStart + 8.2;
+    fitting.forEach((lines) => {
+      doc.text(lines, margin + 4, curStmtY);
+      curStmtY += (lines.length * lineSpacing) + 1.0;
+    });
+
+    lastBottom = chunkStart + boxH;
+    continuation = true;
+    if (itemIndex < allSplitStatements.length) {
+      doc.addPage();
+      condY = 18;
+    }
   }
 
-  // 7. FOOTER
-  const footerY = 281;
+  // 6. SIGNATURE SECTION
+  let sigY = lastBottom + 6;
+  if (sigY + 14 > contentLimit) {
+    doc.addPage();
+    sigY = 22;
+  }
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.4);
+  doc.line(margin, sigY + 8, margin + 70, sigY + 8);
+  doc.line(pageWidth - margin - 70, sigY + 8, pageWidth - margin, sigY + 8);
+
+  doc.setFontSize(7.0);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  doc.text('Ort, Datum & Unterschrift Auftragnehmer', margin, sigY + 11.5);
+  doc.text('Ort, Datum, Unterschrift & Stempel Auftraggeber', pageWidth - margin - 70, sigY + 11.5);
+
+  // 7. FOOTER on every page
+  const pageCount = doc.getNumberOfPages();
+  for (let page = 1; page <= pageCount; page += 1) {
+    doc.setPage(page);
   doc.setDrawColor(226, 232, 240);
   doc.setLineWidth(0.4);
   doc.line(margin, footerY - 4, pageWidth - margin, footerY - 4);
@@ -1603,6 +1651,7 @@ export function createAbnahmeDoc(data, companySettings = {}) {
   doc.text(`St.-Nr.: ${companySettings.taxNumber || '257/282/11825'}`, col3X, footerY + 3.8);
   doc.text(`E-Mail: ${companySettings.email || 'kontakt@team-track.de'}`, col3X, footerY + 7.6);
   doc.text(`Web: ${companySettings.website || 'www.team-track.de'}`, col3X, footerY + 11.4);
+  }
 
   return doc;
 }

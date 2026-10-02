@@ -11,6 +11,21 @@ Abnahme:
 
 Preise: Einrichtung 390 € einmalig, Betreuung 49 € / Monat, Mindestlaufzeit 12 Monate. Meta-Gebühren extra.`;
 
+export const PAKET2_ABNAHME_SCOPE = 'Vereinbarter Umfang u. a.: Branding, Mitarbeiterkonten, Rollenrechte, Stammdaten-Import.';
+
+export const PAKET2_ABNAHME_TERMS = [
+  'Mindestvertragslaufzeit: 12 Monate ab Bereitstellung',
+  'danach automatische Verlängerung um jeweils 12 Monate',
+  'ordentliche Kündigung: mit 1 Monat Frist zum Ende der jeweiligen Laufzeit (Textform / E-Mail genügt, sofern vertraglich so vereinbart)',
+  'außerordentliche Kündigung aus wichtigem Grund bleibt unberührt'
+];
+
+export const PAKET2_ABNAHME_SERVICE = 'Im Rahmen der laufenden Betreuung erbringt TeamTrack u. a.: Hosting/Betrieb (Ziel-Verfügbarkeit 99,5 %), tägliche automatisierte Server-Backups, Sicherheits- und Framework-Updates sowie technischen Support gemäß SLA.';
+
+export const PAKET2_ABNAHME_BACKUP = 'Tägliche automatisierte Backups der Firebase-/Cloud-Datenbank (i. d. R. 30 Tage Historie). Der Quellcode wird versioniert (GitHub); das Frontend wird über Vercel bereitgestellt. Ergänzend kann der Auftraggeber über die 1-Klick-Exportfunktion eine lokale Kopie ziehen. Ergänzend obliegt dem Auftraggeber die eigenverantwortliche lokale Archivierung über die integrierte 1-Klick-Backup-Funktion.';
+
+export const PAKET2_ABNAHME_AVV = 'Die gesondert abzuschließende AVV (Art. 28 DSGVO inkl. TOM) bleibt für Hosting/Betrieb maßgeblich und ist – soweit noch nicht geschehen – gesondert zu unterzeichnen.';
+
 export function buildWhatsAppDisposition(offer, ownerName) {
   const customerName = offer?.customerName || '';
   return {
