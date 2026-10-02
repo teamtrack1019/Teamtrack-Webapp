@@ -759,7 +759,7 @@ export function createOfferDoc(offer, companySettings = {}) {
       `Einmalige Einrichtung (Setup): ${docPrefix}${formatCurrency(setupPrice)}\n` +
       `Laufende Betreuung, ein Intervall nach Wahl:\n` +
       `${careLines.join('\n')}\n` +
-      `Vertragslaufzeit: 1 Jahr (12 Monate). Die Zahlungsweise ändert die Laufzeit nicht.`,
+      `Vertragslaufzeit: 12 Monate ab Bereitstellung, danach automatische Verlängerung um jeweils 12 Monate. Ordentliche Kündigung mit 1 Monat Frist zum Laufzeitende. Die Zahlungsweise ändert die Laufzeit nicht.`,
       '1 Paket',
       `Einrichtung\n${docPrefix}${formatCurrency(setupPrice)}`,
       `Einrichtung\n${docPrefix}${formatCurrency(setupPrice)}`
@@ -1033,6 +1033,17 @@ export function createOfferDoc(offer, companySettings = {}) {
   const bIntervalLabel = bInterval === 'yearly' ? 'jährlich' : bInterval === 'quarterly' ? 'vierteljährlich' : 'monatlich';
 
   const condItems = [];
+  const pushPaket2Terms = () => {
+    if (isKV) {
+      condItems.push('• Hinweis zum Kostenvoranschlag: Dieses Dokument ist unverbindlich. Preisangaben verstehen sich als „ab“-Preise. Die folgenden Paket-2-Konditionen gelten bei späterer Beauftragung.');
+    }
+    condItems.push(`• Leistungsumfang Paket 2: Einmalige Einrichtung und laufende 7/24-Betreuung. ${PAKET2_ABNAHME_SCOPE}`);
+    condItems.push(`• Betreuung Paket 2: ${PAKET2_ABNAHME_SERVICE}`);
+    condItems.push(`• Vertragslaufzeit Paket 2: ${PAKET2_ABNAHME_TERMS[0]}. ${PAKET2_ABNAHME_TERMS[1]}. Die Zahlungsweise (monatlich, vierteljährlich oder jährlich) ändert die Laufzeit nicht.`);
+    condItems.push(`• Kündigung Paket 2: ${PAKET2_ABNAHME_TERMS[2]}. ${PAKET2_ABNAHME_TERMS[3]}.`);
+    condItems.push(`• Datensicherung Paket 2: ${PAKET2_ABNAHME_BACKUP}`);
+    condItems.push(`• AVV: ${PAKET2_ABNAHME_AVV}`);
+  };
 
   if (hasWa && !hasPkgA && !hasPkgB && !hasPkgC) {
     const setup = Number(offer.packageWhatsApp.setupPrice || 390);
@@ -1045,9 +1056,7 @@ export function createOfferDoc(offer, companySettings = {}) {
     condItems.push(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`);
   } else if (hasPkgB && !hasPkgA && !hasPkgC) {
     // Pure Paket B (Abo)
-    condItems.push(`• Leistungsumfang & Abo-Service: Das System wird mit einer initialen Einrichtung schlüsselfertig implementiert. Die laufende 7/24-Abo-Betreuung umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, hochverfügbaren Cloud-Server-Betrieb in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- und Sicherheitsupdates, integrierte Datensicherungs-Tools sowie laufende Feature-Erweiterungen und Funktionsanpassungen.`);
-    condItems.push('• Vertragslaufzeit: Bei Beauftragung von Paket 2 schließen wir einen Vertrag über 1 Jahr (12 Monate). Die Zahlungsweise (monatlich, vierteljährlich oder jährlich) ändert diese Laufzeit nicht.');
-    condItems.push(`• Datensicherung (Backups): Die regelmäßige Datensicherung liegt in der Verantwortung des Auftraggebers und erfolgt eigenständig über die im System integrierte 1-Klick Backup-Funktion.`);
+    pushPaket2Terms();
     condItems.push(`• Zahlungsmodalitäten: Einmaliges Setup bei Bereitstellung; laufende Abo-Betreuung jeweils zu Beginn des Abrechnungszeitraums (${bIntervalLabel}).`);
     condItems.push(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`);
   } else if (hasPkgA) {
@@ -1060,7 +1069,7 @@ export function createOfferDoc(offer, companySettings = {}) {
       condItems.unshift('• Paketwahl: Paket 1 und Paket 2 sind Alternativen. Beauftragt wird nur ein Paket. Die einmalige Einrichtung gehört zu Paket 2.');
       condItems.push('• Zahlung bei Paket 1: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung.');
       condItems.push('• Zahlung bei Paket 2: Die einmalige Einrichtung wird bei Bereitstellung fällig. Die Betreuung wird monatlich, vierteljährlich oder jährlich gewählt und zu Beginn dieses Intervalls berechnet.');
-      condItems.push('• Vertragslaufzeit Paket 2: Bei Beauftragung von Paket 2 schließen wir einen Vertrag über 1 Jahr (12 Monate). Die Zahlungsweise ändert die Laufzeit nicht.');
+      pushPaket2Terms();
     } else if (hasPkgB) {
       condItems.push(`• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung; laufendes Abo jeweils zu Beginn des Abrechnungszeitraums (${bIntervalLabel}).`);
     } else {
@@ -1072,7 +1081,7 @@ export function createOfferDoc(offer, companySettings = {}) {
     condItems.push('• Verbindlicher Leistungsumfang: Es werden ausschließlich die in diesem Angebot explizit ausgewählten und aufgeführten Module umgesetzt. Nicht im Angebot enthaltene Funktionsbereiche bedürfen einer gesonderten schriftlichen Beauftragung.');
     if (hasPkgB) {
       condItems.push(`• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung; laufendes Abo jeweils zu Beginn des Abrechnungszeitraums (${bIntervalLabel}).`);
-      condItems.push('• Vertragslaufzeit Paket 2: Bei Beauftragung von Paket 2 schließen wir einen Vertrag über 1 Jahr (12 Monate). Die Zahlungsweise ändert die Laufzeit nicht.');
+      pushPaket2Terms();
     } else {
       condItems.push('• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung & Freigabe.');
     }

@@ -450,10 +450,13 @@ ${(() => {
   }
   if (pkgBIncluded) {
     cond += `\nℹ️ Leistungsumfang & Abo-Bedingungen (Paket 2):
-• Schlüsselfertige Implementierung: Das System wird mit einer einmaligen Initial-Einrichtung betriebsbereit übergeben.
-• 7/24-Abo-Betreuung: Umfasst vorrangigen Notfall-Support mit direkter Entwickler-Reaktionszeit, hochverfügbaren Cloud-Server-Betrieb in ISO-zertifizierten Rechenzentren, kontinuierliche DSGVO- & Sicherheitsupdates sowie laufende Feature-Erweiterungen (Mindestlaufzeit 12 Monate, monatlich zahlbar und flexibel erweiterbar).
-• Datensicherung: Integrierte 1-Klick Backup-Funktion zur eigenständigen Datensicherung durch den Kunden.
-• Zahlungsmodalitäten: Setup bei Bereitstellung; laufende Abo-Betreuung jeweils zu Beginn des Abrechnungszeitraums (${intervalText}).
+${isKV ? '• Hinweis: Dieser Kostenvoranschlag ist unverbindlich (Preise mit „ab“). Die folgenden Konditionen gelten bei späterer Beauftragung.\n' : ''}• Einmalige Einrichtung und laufende 7/24-Betreuung. ${PAKET2_ABNAHME_SCOPE}
+• ${PAKET2_ABNAHME_SERVICE}
+• Vertragslaufzeit: ${PAKET2_ABNAHME_TERMS[0]}. ${PAKET2_ABNAHME_TERMS[1]}. Die Zahlungsweise ändert die Laufzeit nicht.
+• Kündigung: ${PAKET2_ABNAHME_TERMS[2]}. ${PAKET2_ABNAHME_TERMS[3]}.
+• Datensicherung: ${PAKET2_ABNAHME_BACKUP}
+• ${PAKET2_ABNAHME_AVV}
+• Zahlungsmodalitäten: Setup bei Bereitstellung; laufende Betreuung jeweils zu Beginn des Abrechnungszeitraums (${intervalText}).
 `;
   }
   if (pkgCIncluded && selectedModulesCount > 0) {
@@ -1689,8 +1692,8 @@ Web: www.team-track.de`;
 
                   <div className="mt-2 pt-2 border-t border-slate-200 text-[10px] text-slate-500 italic bg-amber-50/60 p-2 rounded-lg border border-amber-200/60 min-w-0 break-words">
                     <span className="font-bold text-amber-900 not-italic block mb-0.5">Leistungsumfang im PDF:</span>
-                    {pkgBIncluded && !pkgAIncluded && !pkgCIncluded
-                      ? 'Schlüsselfertige Implementierung inkl. 7/24-Abo-Betreuung, Notfall-Support, DSGVO-Updates, Backups & Feature-Erweiterungen.'
+                    {pkgBIncluded
+                      ? `${pkgAIncluded ? 'Paket 1 und Paket 2 sind Alternativen. ' : ''}Paket 2: 12 Monate ab Bereitstellung, danach jeweils 12 Monate. Kündigung mit 1 Monat zum Laufzeitende. Firebase-Backup, GitHub, Vercel, AVV separat.${isKV ? ' Kostenvoranschlag unverbindlich (ab-Preise).' : ''}`
                       : 'Es werden ausschließlich die explizit ausgewählten Leistungspositionen und Module umgesetzt.'}
                   </div>
                 </div>
