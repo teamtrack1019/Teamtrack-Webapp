@@ -686,11 +686,11 @@ export function createOfferDoc(offer, companySettings = {}) {
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(51, 65, 85);
-  const packagesAreAlternatives = Boolean(offer.packageA?.included && offer.packageB?.included);
-  const introDesc = packagesAreAlternatives
+  const bothMainPackages = Boolean(offer.packageA?.included && offer.packageB?.included);
+  const introDesc = bothMainPackages
     ? (isKV
-      ? 'vielen Dank für Ihre Anfrage. Nachfolgend zwei alternative Pakete. Beauftragt wird nur eines davon:'
-      : 'vielen Dank für Ihr Vertrauen. Nachfolgend zwei alternative Pakete. Beauftragt wird nur eines davon:')
+      ? 'vielen Dank für Ihre Anfrage. Nachfolgend Paket 1 (Festpreis-Entwicklung) und Paket 2 (laufende 7/24-Betreuung). Beide können zusammen beauftragt werden:'
+      : 'vielen Dank für Ihr Vertrauen. Nachfolgend Paket 1 (Festpreis-Entwicklung) und Paket 2 (laufende 7/24-Betreuung). Beide werden zusammen beauftragt:')
     : (isKV
       ? 'vielen Dank für Ihre Anfrage. Nachfolgend erhalten Sie unseren detaillierten und unverbindlichen Kostenvoranschlag für die geplante Umsetzung Ihrer maßgeschneiderten Softwarelösung:'
       : 'vielen Dank für Ihr Vertrauen. Gerne unterbreiten wir Ihnen nachfolgend unser maßgeschneidertes, verbindliches Angebot für die Entwicklung und Bereitstellung Ihrer Lösung:');
@@ -943,8 +943,8 @@ export function createOfferDoc(offer, companySettings = {}) {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(15, 23, 42);
     doc.text(
-      packagesAreAlternatives
-        ? 'Nur ein Paket wird beauftragt. Die Beträge werden nicht addiert.'
+      bothMainPackages
+        ? 'Paket 1 und Paket 2 zusammen. Die Beträge bleiben getrennt.'
         : 'Mehrere Pakete. Die Beträge werden nicht addiert.',
       totalsBoxX + 4,
       finalY + 6
@@ -1063,13 +1063,24 @@ export function createOfferDoc(offer, companySettings = {}) {
     // Paket A (Komplett-Entwicklung, optional + Paket B / C)
     condItems.push('• Verbindlicher Leistungsumfang: Es werden ausschließlich die in diesem Angebot explizit ausgewählten und aufgeführten Module und Leistungspositionen umgesetzt. Nicht im Angebot enthaltene Funktionsbereiche bedürfen einer gesonderten schriftlichen Beauftragung.');
     condItems.push('• Abnahme & Prüfung: Nach Übergabe der betriebsbereiten Software hat der Auftraggeber das System innerhalb von 10 Werktagen zu prüfen und schriftlich abzunehmen.');
-    condItems.push('• Kostenlose 30-Tage-Garantie: Ab dem Tag der Abnahme behebt der Auftragnehmer für einen Zeitraum von 30 Kalendertagen alle reproduzierbaren Fehler (Bugs) der vereinbarten Funktionen kostenlos.');
-    condItems.push('• Nach Ablauf der 30 Tage (Ausschluss kostenloser Wartung): Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenlose Serviceleistungen. Zukünftige Anpassungen, Sicherheitsupdates oder Betriebssystem-Upgrades erfolgen ausschließlich gegen gesonderte Vergütung zum Stundensatz von 85,- € / Std. oder im Rahmen eines separaten Wartungsvertrags (Paket 2).');
     if (hasPkgB && hasPkgA) {
-      condItems.unshift('• Paketwahl: Paket 1 und Paket 2 sind Alternativen. Beauftragt wird nur ein Paket. Die einmalige Einrichtung gehört zu Paket 2.');
+      condItems.push(`• Kostenlose 30-Tage-Nachbesserung (Paket 1): ${PAKET1_PARALLEL_NACHBESSERUNG}`);
+      condItems.push(`• Abgrenzung zu Paket 2: ${PAKET1_PARALLEL_ABGRENZUNG}`);
+    } else {
+      condItems.push('• Kostenlose 30-Tage-Garantie: Ab dem Tag der Abnahme behebt der Auftragnehmer für einen Zeitraum von 30 Kalendertagen alle reproduzierbaren Fehler (Bugs) der vereinbarten Funktionen kostenlos.');
+      condItems.push('• Nach Ablauf der 30 Tage (Ausschluss kostenloser Wartung): Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenlose Serviceleistungen. Zukünftige Anpassungen, Sicherheitsupdates oder Betriebssystem-Upgrades erfolgen ausschließlich gegen gesonderte Vergütung zum Stundensatz von 85,- € / Std. oder im Rahmen eines separaten Wartungsvertrags (Paket 2).');
+    }
+    if (hasPkgB && hasPkgA) {
+      condItems.unshift('• Zusammen beauftragt: Paket 1 ist die Festpreis-Entwicklung. Paket 2 ist die laufende 7/24-Betreuung. Die einmalige Einrichtung gehört zu Paket 2.');
       condItems.push('• Zahlung bei Paket 1: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung.');
       condItems.push('• Zahlung bei Paket 2: Die einmalige Einrichtung wird bei Bereitstellung fällig. Die Betreuung wird monatlich, vierteljährlich oder jährlich gewählt und zu Beginn dieses Intervalls berechnet.');
-      pushPaket2Terms();
+      if (isKV) {
+        condItems.push('• Hinweis zum Kostenvoranschlag: Dieses Dokument ist unverbindlich. Preisangaben verstehen sich als „ab“-Preise. Die folgenden Paket-2-Konditionen gelten bei späterer Beauftragung.');
+      }
+      condItems.push('• Leistungsumfang Paket 2: Laufende 7/24-Betreuung neben Paket 1. Admin-Zugänge werden übergeben. Das System geht in den laufenden 7/24-Betrieb über.');
+      condItems.push(`• Vertragslaufzeit Paket 2: ${PAKET2_PARALLEL_TERMS.join('. ')}.`);
+      condItems.push(`• Datensicherung Paket 2: ${PAKET2_PARALLEL_BACKUP}`);
+      condItems.push(`• AVV: ${PAKET2_PARALLEL_AVV}`);
     } else if (hasPkgB) {
       condItems.push(`• Zahlungsmodalitäten: 50% Anzahlung bei Auftragsannahme, 50% Schlusszahlung nach Bereitstellung; laufendes Abo jeweils zu Beginn des Abrechnungszeitraums (${bIntervalLabel}).`);
     } else {

@@ -429,7 +429,7 @@ ${isKV ? 'Wie besprochen haben wir für Sie einen unverbindlichen Kostenvoransch
 📋 ${isKV ? 'KOSTENVORANSCHLAG' : 'ANGEBOT'} ${offerNumber}
 ${pkgAIncluded ? `• Paket 1 (Komplett-Entwicklung & WebApp): ${pricePrefix}${formatCurrency(pkgAPrice)} (einmalig)\n  Vereinbarter Modulumfang:\n${selectedPkgAModsFormatted}\n` : ''}${pkgBIncluded ? `• Paket 2 (Setup + 7/24 Abo-Betreuung), ein Paket:\n  - Einmalige Einrichtung: ${pricePrefix}${formatCurrency(pkgBSetupPrice)}\n  - Monatlich: ${pricePrefix}${formatCurrency(priceAmount(pkgBMonthlyPrice))} / Monat\n  - Vierteljährlich: ${pricePrefix}${formatCurrency(priceAmount(pkgBQuarterlyPrice))} / Quartal\n  - Jährlich: ${pricePrefix}${formatCurrency(priceAmount(pkgBYearlyPrice))} / Jahr (15 % Nachlass)\n` : ''}${pkgCIncluded && selectedModulesCount > 0 ? `• Paket 3 (Modulare Funktionserweiterung - ${selectedModulesCount} Modul${selectedModulesCount > 1 ? 'e' : ''} zu je ${pricePrefix}${formatCurrency(pkgCUnitPrice)} = ${pricePrefix}${formatCurrency(pkgCTotal)}):\n  Ausgewählte Funktionsbereiche:\n${selectedModsFormatted}\n` : ''}${waIncluded ? `• WhatsApp-Terminassistent: Einrichtung ${pricePrefix}${formatCurrency(waSetupPrice)} (einmalig) + Betreuung ${pricePrefix}${formatCurrency(waMonthlyPrice)} / Monat\n  Mindestlaufzeit: ${waMinMonths} Monate, danach monatlich bis eine Seite mit 30 Tagen kündigt.\n  Einmalig dabei:\n${WHATSAPP_ONCE.map(item => `    - ${item}`).join('\n')}\n  Jeden Monat dabei:\n${WHATSAPP_MONTHLY.map(item => `    - ${item}`).join('\n')}\n` : ''}
 ${multiplePackages
-  ? `${pkgAIncluded && pkgBIncluded ? 'Es wird nur ein Paket beauftragt.' : 'Mehrere Pakete. Die Beträge werden nicht addiert.'}\n${pkgAIncluded ? `Paket 1: ${pricePrefix}${formatCurrency(pkgAPrice)}\n` : ''}${pkgBIncluded ? `Paket 2 Einrichtung: ${pricePrefix}${formatCurrency(pkgBSetupPrice)}\nPaket 2 Betreuung: monatlich ${pricePrefix}${formatCurrency(priceAmount(pkgBMonthlyPrice))}, vierteljährlich ${pricePrefix}${formatCurrency(priceAmount(pkgBQuarterlyPrice))}, jährlich ${pricePrefix}${formatCurrency(priceAmount(pkgBYearlyPrice))} (15 % Nachlass)\n` : ''}`
+  ? `${pkgAIncluded && pkgBIncluded ? 'Paket 1 und Paket 2 werden zusammen beauftragt. Die Beträge bleiben getrennt.' : 'Mehrere Pakete. Die Beträge werden nicht addiert.'}\n${pkgAIncluded ? `Paket 1: ${pricePrefix}${formatCurrency(pkgAPrice)}\n` : ''}${pkgBIncluded ? `Paket 2 Einrichtung: ${pricePrefix}${formatCurrency(pkgBSetupPrice)}\nPaket 2 Betreuung: monatlich ${pricePrefix}${formatCurrency(priceAmount(pkgBMonthlyPrice))}, vierteljährlich ${pricePrefix}${formatCurrency(priceAmount(pkgBQuarterlyPrice))}, jährlich ${pricePrefix}${formatCurrency(priceAmount(pkgBYearlyPrice))} (15 % Nachlass)\n` : ''}`
   : pkgBIncluded
   ? `Gesamtsumme Paket 2\nMonatlich: ${pricePrefix}${formatCurrency(paket2MonthlyTotal)} (Einrichtung + Monat)\nVierteljährlich: ${pricePrefix}${formatCurrency(paket2QuarterlyTotal)} (Einrichtung + Quartal)\nJährlich: ${pricePrefix}${formatCurrency(paket2YearlyTotal)} (Einrichtung + Jahr, 15 % Nachlass)\n`
   : pkgAIncluded
@@ -440,15 +440,29 @@ ${multiplePackages
 }
 ${(() => {
   let cond = '';
+  const bothMainPackages = pkgAIncluded && pkgBIncluded;
   if (pkgAIncluded) {
-    cond += `\n📌 Vereinbarungen & 30-Tage-Garantie (Paket 1):
+    cond += bothMainPackages ? `\n📌 Vereinbarungen & 30-Tage-Nachbesserung (Paket 1):
+• Verbindlicher Leistungsumfang: Es werden ausschließlich die oben explizit ausgewählten Module umgesetzt.
+• Abnahme & Prüfung: Nach Übergabe der betriebsbereiten Software hat der Auftraggeber das System innerhalb von 10 Werktagen zu prüfen und schriftlich abzunehmen.
+• ${PAKET1_PARALLEL_NACHBESSERUNG}
+• Abgrenzung zu Paket 2: ${PAKET1_PARALLEL_ABGRENZUNG}
+` : `\n📌 Vereinbarungen & 30-Tage-Garantie (Paket 1):
 • Verbindlicher Leistungsumfang: Es werden ausschließlich die oben explizit ausgewählten Module umgesetzt.
 • Abnahme & Prüfung: Nach Übergabe der betriebsbereiten Software hat der Auftraggeber das System innerhalb von 10 Werktagen zu prüfen und schriftlich abzunehmen.
 • Kostenlose 30-Tage-Garantie: Ab dem Tag der Abnahme behebt der Auftragnehmer für einen Zeitraum von 30 Kalendertagen alle reproduzierbaren Fehler (Bugs) der vereinbarten Funktionen kostenlos.
-• Nach Ablauf der 30 Tage (Ausschluss kostenloser Wartung): Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenlose Serviceleistungen. Zukünftige Anpassungen, Sicherheitsupdates oder Betriebssystem-Upgrades erfolgen ausschließlich gegen gesonderte Vergütung zum Stundensatz von 85,- € / Std. oder im Rahmen eines separaten Wartungsvertrags (Paket 2).
+• Nach Ablauf der 30 Tage (Ausschluss kostenloser Wartung): Nach Ablauf der 30 Tage erlischt jeglicher Anspruch auf kostenlose Serviceleistungen. Zukünftige Anpassungen, Sicherheitsupdates oder Betriebssystem-Upgrades erfolgen ausschließlich gegen gesonderte Vergütung zum Stundensatz von 85,- € / Std. oder im Rahmen eines separaten Betreuungsvertrags (Paket 2).
 `;
   }
-  if (pkgBIncluded) {
+  if (pkgBIncluded && bothMainPackages) {
+    cond += `\nℹ️ Leistungsumfang & Abo-Bedingungen (Paket 2):
+${isKV ? '• Hinweis: Dieser Kostenvoranschlag ist unverbindlich (Preise mit „ab“). Die folgenden Konditionen gelten bei späterer Beauftragung.\n' : ''}• Laufende 7/24-Betreuung neben Paket 1. Admin-Zugänge werden übergeben. Das System geht in den laufenden 7/24-Betrieb über.
+• Vertragslaufzeit: ${PAKET2_PARALLEL_TERMS.join('. ')}.
+• Datensicherung: ${PAKET2_PARALLEL_BACKUP}
+• ${PAKET2_PARALLEL_AVV}
+• Zahlungsmodalitäten: Setup bei Bereitstellung; laufende Betreuung jeweils zu Beginn des Abrechnungszeitraums (${intervalText}).
+`;
+  } else if (pkgBIncluded) {
     cond += `\nℹ️ Leistungsumfang & Abo-Bedingungen (Paket 2):
 ${isKV ? '• Hinweis: Dieser Kostenvoranschlag ist unverbindlich (Preise mit „ab“). Die folgenden Konditionen gelten bei späterer Beauftragung.\n' : ''}• Einmalige Einrichtung und laufende 7/24-Betreuung. ${PAKET2_ABNAHME_SCOPE}
 • ${PAKET2_ABNAHME_SERVICE}
@@ -1477,7 +1491,7 @@ Web: www.team-track.de`;
                   <div className="space-y-2">
                     <p className="text-[11px] font-bold text-amber-200">
                       {pkgAIncluded && pkgBIncluded
-                        ? 'Zwei Alternativen. Es wird nur ein Paket beauftragt.'
+                        ? 'Paket 1 und Paket 2 zusammen. Die Beträge bleiben getrennt.'
                         : 'Mehrere Pakete. Die Beträge werden nicht addiert.'}
                     </p>
                     {pkgAIncluded && (
@@ -1714,7 +1728,7 @@ Web: www.team-track.de`;
                   <div className="mt-2 pt-2 border-t border-slate-200 text-[10px] text-slate-500 italic bg-amber-50/60 p-2 rounded-lg border border-amber-200/60 min-w-0 break-words">
                     <span className="font-bold text-amber-900 not-italic block mb-0.5">Leistungsumfang im PDF:</span>
                     {pkgBIncluded
-                      ? `${pkgAIncluded ? 'Paket 1 und Paket 2 sind Alternativen. ' : ''}Paket 2: 12 Monate ab Bereitstellung, danach jeweils 12 Monate. Kündigung mit 1 Monat zum Laufzeitende. Firebase-Backup, GitHub, Vercel, AVV separat.${isKV ? ' Kostenvoranschlag unverbindlich (ab-Preise).' : ''}`
+                      ? `${pkgAIncluded ? 'Paket 1 und Paket 2 zusammen: 30 Tage Nachbesserung nur für Paket 1, Betrieb über Paket 2. ' : ''}Paket 2: 12 Monate ab Bereitstellung, danach jeweils 12 Monate. Kündigung mit 1 Monat zum Laufzeitende.${pkgAIncluded ? ' Tägliche Server-Backups durch TeamTrack, lokale 1-Klick-Archivierung durch den Auftraggeber.' : ' Firebase-Backup, GitHub, Vercel, AVV separat.'}${isKV ? ' Kostenvoranschlag unverbindlich (ab-Preise).' : ''}`
                       : 'Es werden ausschließlich die explizit ausgewählten Leistungspositionen und Module umgesetzt.'}
                   </div>
                 </div>
