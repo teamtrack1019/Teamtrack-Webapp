@@ -472,7 +472,7 @@ ${isKV ? '• Hinweis: Dieser Kostenvoranschlag ist unverbindlich (Preise mit �
 • Kündigung: ${PAKET2_ABNAHME_TERMS[2]}. ${PAKET2_ABNAHME_TERMS[3]}.
 • Datensicherung: ${PAKET2_ABNAHME_BACKUP}
 • ${PAKET2_ABNAHME_AVV}
-• Zahlungsmodalitäten: Setup bei Bereitstellung; laufende Betreuung jeweils zu Beginn des Abrechnungszeitraums (${intervalText}).
+• Zahlungsmodalitäten: Setup bei Bereitstellung; laufende Betreuung jeweils zu Beginn des gewählten Abrechnungsintervalls (monatlich, vierteljährlich oder jährlich).
 `;
   }
   if (pkgCIncluded && selectedModulesCount > 0) {

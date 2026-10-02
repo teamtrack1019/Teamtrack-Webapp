@@ -22,7 +22,7 @@ export const PAKET2_ABNAHME_TERMS = [
 
 export const PAKET2_ABNAHME_SERVICE = 'Im Rahmen der laufenden Betreuung erbringt TeamTrack u. a.: Hosting/Betrieb (Ziel-Verfügbarkeit 99,5 %), tägliche automatisierte Server-Backups, Sicherheits- und Framework-Updates sowie technischen Support gemäß SLA.';
 
-export const PAKET2_ABNAHME_BACKUP = 'Tägliche automatisierte Backups der Firebase-/Cloud-Datenbank (i. d. R. 30 Tage Historie). Der Quellcode wird versioniert (GitHub); das Frontend wird über Vercel bereitgestellt. Ergänzend kann der Auftraggeber über die 1-Klick-Exportfunktion eine lokale Kopie ziehen. Ergänzend obliegt dem Auftraggeber die eigenverantwortliche lokale Archivierung über die integrierte 1-Klick-Backup-Funktion.';
+export const PAKET2_ABNAHME_BACKUP = 'Tägliche automatisierte Backups der Firebase-/Cloud-Datenbank (i. d. R. 30 Tage Historie). Der Quellcode wird versioniert (GitHub); das Frontend wird über Vercel bereitgestellt. Ergänzend kann der Auftraggeber über die 1-Klick-Backup-/Exportfunktion eine lokale Kopie archivieren.';
 
 export const PAKET2_ABNAHME_AVV = 'Die gesondert abzuschließende AVV (Art. 28 DSGVO inkl. TOM) bleibt für Hosting/Betrieb maßgeblich und ist – soweit noch nicht geschehen – gesondert zu unterzeichnen.';
 

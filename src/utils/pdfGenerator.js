@@ -557,7 +557,9 @@ export function createOfferDoc(offer, companySettings = {}) {
   const docTitle = isKV ? 'KOSTENVORANSCHLAG' : 'ANGEBOT';
   const docPrefix = isKV ? 'ab ' : '';
   const isKleinunternehmer = companySettings.isKleinunternehmer !== false;
-  const kleinunternehmerText = companySettings.kleinunternehmerText || 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).';
+  const kleinunternehmerText = isKleinunternehmer
+    ? 'Preise zzgl. der gesetzlichen Umsatzsteuer, soweit anwendbar. Derzeit gilt § 19 UStG (Kleinunternehmer) – es wird keine Umsatzsteuer ausgewiesen.'
+    : (companySettings.kleinunternehmerText || 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).');
 
   // 1. TOP HEADER (Prominent 30x30mm Logo Card & Company Info)
   const logoSize = 30;
@@ -1083,7 +1085,7 @@ export function createOfferDoc(offer, companySettings = {}) {
   } else if (hasPkgB && !hasPkgA && !hasPkgC) {
     // Pure Paket B (Abo)
     pushPaket2Terms();
-    condItems.push(`• Zahlungsmodalitäten: Einmaliges Setup bei Bereitstellung; laufende Abo-Betreuung jeweils zu Beginn des Abrechnungszeitraums (${bIntervalLabel}).`);
+    condItems.push('• Zahlungsmodalitäten: Einmaliges Setup bei Bereitstellung; laufende Abo-Betreuung jeweils zu Beginn des gewählten Abrechnungsintervalls (monatlich, vierteljährlich oder jährlich).');
     condItems.push(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`);
   } else if (hasPkgA) {
     // Paket A (Komplett-Entwicklung, optional + Paket B / C)
@@ -1540,7 +1542,10 @@ export function createAbnahmeDoc(data, companySettings = {}) {
   // 2. Warranty / 30-Day Guarantee
   if (hasPkgA && hasPkgB) {
     statements.push(`Abnahme & 30-Tage-Nachbesserung (Paket 1): ${PAKET1_PARALLEL_NACHBESSERUNG} Wichtig – Abgrenzung zu Paket 2: ${PAKET1_PARALLEL_ABGRENZUNG}`);
-    statements.push(`Vertragslaufzeit Paket 2: Admin-Zugänge wurden übergeben. Das System geht nahtlos in den laufenden 7/24-Betrieb über. ${PAKET2_PARALLEL_TERMS.join('. ')}.`);
+    const parallelTerms = PAKET2_PARALLEL_TERMS.map((term, index) => (
+      index === 0 ? term : `${term.charAt(0).toUpperCase()}${term.slice(1)}`
+    ));
+    statements.push(`Vertragslaufzeit Paket 2: Admin-Zugänge wurden übergeben. Das System geht nahtlos in den laufenden 7/24-Betrieb über. ${parallelTerms.join('. ')}.`);
     statements.push(`Datensicherung: ${PAKET2_PARALLEL_BACKUP}`);
     statements.push(`AVV: ${PAKET2_PARALLEL_AVV}`);
   } else if (hasPkgA) {
@@ -1551,7 +1556,7 @@ export function createAbnahmeDoc(data, companySettings = {}) {
 
   if (hasPkgB && !hasPkgA) {
     statements.push(
-      `Paket-2-Vertrag: Das System geht hiermit in den laufenden 7/24-Betrieb über gemäß dem geschlossenen Paket-2-Vertrag. ${PAKET2_ABNAHME_TERMS.join(' ')} ${PAKET2_ABNAHME_SERVICE}`
+      'Paket-2-Vertrag: Das System geht hiermit in den laufenden 7/24-Betrieb über gemäß dem geschlossenen Paket-2-Vertrag. Mindestvertragslaufzeit: 12 Monate ab Bereitstellung. Danach automatische Verlängerung um jeweils 12 Monate. Ordentliche Kündigung: mit 1 Monat Frist zum Ende der jeweiligen Laufzeit (Textform / E-Mail genügt). Außerordentliche Kündigung aus wichtigem Grund bleibt unberührt. ' + PAKET2_ABNAHME_SERVICE
     );
     statements.push(`Datensicherung: ${PAKET2_ABNAHME_BACKUP}`);
     statements.push(`AVV: ${PAKET2_ABNAHME_AVV}`);
