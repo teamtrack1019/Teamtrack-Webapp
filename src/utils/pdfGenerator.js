@@ -1077,11 +1077,18 @@ export function createOfferDoc(offer, companySettings = {}) {
     const setup = Number(offer.packageWhatsApp.setupPrice || 390);
     const monthly = Number(offer.packageWhatsApp.monthlyPrice || 49);
     const months = Number(offer.packageWhatsApp.minMonths || 12);
-    condItems.push('• Leistung: Der WhatsApp-Terminassistent schreibt die Chat-Nachrichten, bietet nur freie Zeiten an, vergibt dieselbe Uhrzeit nicht doppelt und trägt den Termin in den Kalender ein (zum Beispiel Google Kalender).');
-    condItems.push(`• Preise: Einrichtung ${formatCurrency(setup)} einmalig. Betreuung ${formatCurrency(monthly)} pro Monat. Mindestlaufzeit ${months} Monate, danach monatliche Verlängerung, bis eine Seite mit 30 Tagen kündigt.`);
-    condItems.push('• Meta-Gebühren: Die Gebühren von Meta für WhatsApp sind nicht in der monatlichen Betreuung enthalten. Sie laufen über die Karte des Auftraggebers.');
-    condItems.push('• Zahlung: Die einmalige Einrichtung wird mit der Abnahme fällig. Die monatliche Betreuung wird getrennt, jeweils zu Monatsbeginn, berechnet.');
-    condItems.push(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))}.`);
+    const waCustomer = offer.customerName || 'der Auftraggeber';
+    const validUntil = formatDate(offer.validUntilDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+    condItems.push('• Leistung: Der WhatsApp-Terminassistent führt den Chat, bietet nur freie Zeiten an, vergibt dieselbe Uhrzeit nicht doppelt und trägt den Termin in den Kalender ein (z. B. Google Kalender).');
+    condItems.push(`• Preise & Laufzeit: Einrichtung ${formatCurrency(setup)} einmalig. Betreuung ${formatCurrency(monthly)} pro Monat. Mindestlaufzeit ${months} Monate ab Bereitstellung. Danach verlängert sich der Betreuungsvertrag auf unbestimmte Zeit und kann von beiden Seiten mit einer Frist von 30 Tagen zum Monatsende ordentlich gekündigt werden (Textform / E-Mail genügt). Das Recht zur außerordentlichen Kündigung aus wichtigem Grund bleibt unberührt.`);
+    condItems.push('• Abnahme der Einrichtung: Nach betriebsbereiter Übergabe prüft der Auftraggeber das System innerhalb von 10 Werktagen und nimmt schriftlich ab (Textform genügt). Mit Abnahme bzw. produktiver Nutzung gilt die Einrichtung als abgenommen.');
+    condItems.push('• 30-Tage-Nachbesserung (Einrichtung): Ab Abnahme behebt TeamTrack für 30 Kalendertage reproduzierbare Funktionsfehler (Bugs) der vereinbarten Einrichtungsleistungen kostenlos. Nicht umfasst sind Änderungswünsche, neue Funktionen sowie Störungen von Meta/WhatsApp, Google Kalender oder sonstigen Drittanbietern.');
+    condItems.push('• Meta-Gebühren: Die Gebühren von Meta für WhatsApp sind nicht in der monatlichen Betreuung enthalten und laufen über die Zahlungsmittel des Auftraggebers.');
+    condItems.push('• Zahlung: Die einmalige Einrichtung wird mit der Abnahme fällig. Die monatliche Betreuung wird getrennt, jeweils zu Beginn des Monats, berechnet.');
+    condItems.push(`• Datenschutz / AVV: Soweit TeamTrack im Rahmen von Hosting, Betrieb oder Betreuung personenbezogene Daten (z. B. Namen, Telefonnummern, Termindaten) im Auftrag verarbeitet, agiert TeamTrack als Auftragsverarbeiter (Art. 28 DSGVO); ${waCustomer} bleibt Verantwortlicher. Hierzu ist die gesondert abzuschließende AVV inkl. TOM Bestandteil der Zusammenarbeit. Unterauftragsverarbeiter können insbesondere Meta (WhatsApp) und Google (Kalender) sowie die vereinbarte Hosting-/Cloud-Infrastruktur (EU, soweit vereinbart) sein.`);
+    condItems.push('• Datensicherung: Soweit die Lösung durch TeamTrack betrieben/gehostet wird, erfolgen automatisierte Sicherungen der anwendungsrelevanten Daten im üblichen Rahmen. Für Ausfälle oder Datenverluste bei Drittanbietern (Meta, Google usw.) übernimmt TeamTrack keine Haftung.');
+    condItems.push('• AGB: Es gelten die Allgemeinen Geschäftsbedingungen (B2B) von TeamTrack in der bei Auftragserteilung gültigen Fassung. Bei Widersprüchen gehen die Regelungen dieses Angebots / Einzelvertrags den AGB vor; in datenschutzrechtlichen Fragen geht die AVV vor. Es gilt deutsches Recht; Gerichtsstand ist – soweit gesetzlich zulässig – Würzburg.');
+    condItems.push(`• Gültigkeitsdauer: Dieses ${isKV ? 'Dokument' : 'Angebot'} ist gültig bis zum ${validUntil}.`);
   } else if (hasPkgB && !hasPkgA && !hasPkgC) {
     // Pure Paket B (Abo)
     pushPaket2Terms();
