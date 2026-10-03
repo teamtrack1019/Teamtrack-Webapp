@@ -34,6 +34,12 @@ import { formatDate, formatDateTime, getLeadSourceBadge, getStatusBadge } from '
 import { buildInvoiceDraft, buildWhatsAppDisposition, WHATSAPP_JOB_NOTES } from '../utils/offerInvoice';
 import { useLanguage } from '../context/LanguageContext';
 
+function customerPlace(customer) {
+  const address = customer?.address || '';
+  const match = String(address).match(/\b(\d{5})\s+([^,\n]+)/);
+  return match ? `${match[1]} ${match[2].trim()}` : '';
+}
+
 export default function DispositionKanbanPage({
   customers = [],
   companySettings = {},
@@ -84,6 +90,13 @@ export default function DispositionKanbanPage({
       glowColor: 'shadow-emerald-500/10'
     }
   ], [isTR]);
+
+  const customersByName = useMemo(
+    () => [...customers].sort((a, b) =>
+      (a.companyName || '').localeCompare(b.companyName || '', 'de', { sensitivity: 'base' })
+    ),
+    [customers]
+  );
 
   const [dispositions, setDispositions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -232,7 +245,7 @@ export default function DispositionKanbanPage({
         title: '',
         customerId: defaultCust?.id || '',
         customerName: defaultCust?.companyName || '',
-        project: defaultCust?.address ? defaultCust.address.split(',')[1]?.trim() || defaultCust.address : (defaultCust?.businessType || ''),
+        project: customerPlace(defaultCust),
         priority: 'medium',
         status: 'geplant',
         tags: '#Projekt, #Digitalisierung',
@@ -369,7 +382,7 @@ export default function DispositionKanbanPage({
               className="bg-transparent text-xs font-bold text-slate-200 focus:outline-none cursor-pointer flex-1 min-w-0 truncate max-w-full"
             >
               <option value="all" className="bg-slate-900">{isTR ? `Tüm Müşteriler (${customers.length})` : `Alle Kunden (${customers.length})`}</option>
-              {customers.map(c => (
+              {customersByName.map(c => (
                 <option key={c.id} value={c.id} className="bg-slate-900">
                   {c.companyName} {c.contactPerson ? `(${c.contactPerson})` : ''}
                 </option>
@@ -684,7 +697,7 @@ export default function DispositionKanbanPage({
                       customerName,
                       project: isWhatsApp
                         ? 'WhatsApp-Termin'
-                        : (formData.project || (matched?.address ? matched.address.split(',')[1]?.trim() || matched.address : '')),
+                        : customerPlace(matched),
                       title: isWhatsApp
                         ? `WhatsApp-Terminassistent${customerName ? ` – ${customerName}` : ''}`
                         : formData.title
@@ -693,7 +706,7 @@ export default function DispositionKanbanPage({
                   className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-600 rounded-xl text-white font-bold text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none cursor-pointer"
                 >
                   <option value="">-- Kunde auswählen ({customers.length} registriert) --</option>
-                  {customers.map(c => (
+                  {customersByName.map(c => (
                     <option key={c.id} value={c.id}>
                       {c.companyName} {c.contactPerson ? `• z.Hd. ${c.contactPerson}` : ''}
                     </option>
