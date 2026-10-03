@@ -36,6 +36,7 @@ import {
   Info
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
+import { formalGreeting } from '../utils/greeting';
 import { generateOfferPDF, generateAbnahmePDF } from '../utils/pdfGenerator';
 import { buildInvoiceDraft, buildWhatsAppDisposition, PAKET1_PARALLEL_ABGRENZUNG, PAKET1_PARALLEL_NACHBESSERUNG, PAKET2_ABNAHME_AVV, PAKET2_ABNAHME_BACKUP, PAKET2_ABNAHME_SCOPE, PAKET2_ABNAHME_SERVICE, PAKET2_ABNAHME_TERMS, PAKET2_PARALLEL_AVV, PAKET2_PARALLEL_BACKUP, PAKET2_PARALLEL_TERMS } from '../utils/offerInvoice';
 import { api } from '../api';
@@ -421,9 +422,7 @@ function PricingOffersContent({
   // Compose Email Text
   const getOfferEmailBody = () => {
     const cust = selectedCustomer || { companyName: 'Ihr Unternehmen', contactPerson: '' };
-    const greeting = cust.contactPerson 
-      ? (cust.contactPerson.toLowerCase().startsWith('frau') ? `Sehr geehrte ${cust.contactPerson},` : cust.contactPerson.toLowerCase().startsWith('herr') ? `Sehr geehrter ${cust.contactPerson},` : `Sehr geehrte(r) Frau/Herr ${cust.contactPerson},`)
-      : 'Sehr geehrte Damen und Herren,';
+    const greeting = formalGreeting(cust.contactPerson, cust.companyName);
 
     const intervalText = pkgBInterval === 'yearly' ? 'jährlich' : pkgBInterval === 'quarterly' ? 'vierteljährlich' : 'monatlich';
 
@@ -566,10 +565,7 @@ Web: www.team-track.de`;
       companyName: offer?.customerName || 'Ihr Unternehmen', 
       contactPerson: offer?.customerContact || '' 
     };
-    const cp = String(cust.contactPerson || '').trim();
-    const greeting = cp 
-      ? (cp.toLowerCase().startsWith('frau') ? `Sehr geehrte ${cp},` : cp.toLowerCase().startsWith('herr') ? `Sehr geehrter ${cp},` : `Sehr geehrte(r) Frau/Herr ${cp},`)
-      : 'Sehr geehrte Damen und Herren,';
+    const greeting = formalGreeting(cust.contactPerson, cust.companyName);
 
     const hasPkgA = Boolean(offer?.packageA && offer.packageA.included);
     const hasPkgB = Boolean(offer?.packageB && offer.packageB.included);

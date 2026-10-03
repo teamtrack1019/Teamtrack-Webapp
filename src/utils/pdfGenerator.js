@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatCurrency, formatDate } from './formatters';
+import { formalGreeting } from './greeting';
 import { PAKET1_PARALLEL_ABGRENZUNG, PAKET1_PARALLEL_NACHBESSERUNG, PAKET2_ABNAHME_AVV, PAKET2_ABNAHME_BACKUP, PAKET2_ABNAHME_SCOPE, PAKET2_ABNAHME_SERVICE, PAKET2_ABNAHME_TERMS, PAKET2_PARALLEL_AVV, PAKET2_PARALLEL_BACKUP, PAKET2_PARALLEL_TERMS } from './offerInvoice';
 import { TEAMTRACK_LOGO_BASE64 } from '../assets/logoBase64';
 
@@ -680,9 +681,7 @@ export function createOfferDoc(offer, companySettings = {}) {
   doc.setFontSize(9.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  const greeting = offer.customerContact 
-    ? (offer.customerContact.toLowerCase().startsWith('frau') ? `Sehr geehrte ${offer.customerContact},` : offer.customerContact.toLowerCase().startsWith('herr') ? `Sehr geehrter ${offer.customerContact},` : `Sehr geehrte(r) Frau/Herr ${offer.customerContact},`)
-    : 'Sehr geehrte Damen und Herren,';
+  const greeting = formalGreeting(offer.customerContact, offer.customerName);
   doc.text(greeting, margin, introY);
 
   doc.setFontSize(8.5);

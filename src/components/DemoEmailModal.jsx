@@ -2,19 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Mail, Send, Sparkles, CheckCircle2, X, Copy, Check, ExternalLink, Globe } from 'lucide-react';
 import { TEAMTRACK_LOGO_BASE64 } from '../assets/logoBase64';
 import { formatCurrency, formatDate } from '../utils/formatters';
+import { formalGreeting } from '../utils/greeting';
 
 function getGreeting(contactPerson, isFormal = true) {
-  if (!contactPerson || contactPerson.trim() === '') {
-    return isFormal ? 'Sehr geehrte Damen und Herren,' : 'Guten Tag,';
+  if (!isFormal) {
+    const trimmed = String(contactPerson || '').trim();
+    return trimmed ? `Hallo ${trimmed},` : 'Guten Tag,';
   }
-  const trimmed = contactPerson.trim();
-  if (/^frau\b/i.test(trimmed)) {
-    return isFormal ? `Sehr geehrte ${trimmed},` : `Hallo ${trimmed},`;
-  }
-  if (/^herr\b/i.test(trimmed)) {
-    return isFormal ? `Sehr geehrter ${trimmed},` : `Hallo ${trimmed},`;
-  }
-  return isFormal ? `Sehr geehrte(r) Frau/Herr ${trimmed},` : `Hallo Frau/Herr ${trimmed},`;
+  return formalGreeting(contactPerson);
 }
 
 const COMPANY_SIGNATURE_DETAILS = `TeamTrack-Software
