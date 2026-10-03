@@ -474,7 +474,9 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent,
           <div className="bg-sky-50 border border-sky-200 rounded-xl p-3 text-xs text-sky-900 flex items-start gap-2">
             <CheckCircle2 className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
             <div>
-              Beim Klick auf eine der Schaltflächen öffnet sich Outlook und der Status dieses Kunden wird automatisch als <span className="font-bold">"Gesendet"</span> erfasst.
+              {templateKey === 'offer_document'
+                ? 'Beim Öffnen in Outlook wird dieses Angebot bzw. dieser Kostenvoranschlag beim Kunden als Gesendet gespeichert.'
+                : 'Beim Klick auf eine der Schaltflächen öffnet sich Outlook und der Status dieses Kunden wird automatisch als Gesendet erfasst.'}
             </div>
           </div>
         </div>

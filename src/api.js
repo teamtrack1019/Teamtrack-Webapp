@@ -821,8 +821,8 @@ async function handleLocalRequest(endpoint, options = {}) {
           hasChanges = true;
         }
 
-        const offerEmailSent = cust.offerEmailSent || Boolean(lastOffer);
-        const offerEmailSentAt = cust.offerEmailSentAt || lastOffer?.createdAt || lastOffer?.date;
+        const offerEmailSent = Boolean(cust.offerTemplateSent);
+        const offerEmailSentAt = cust.offerTemplateSentAt || null;
         const offerEmailType = cust.offerEmailType || lastOffer?.type;
         const offerEmailNumber = cust.offerEmailNumber || lastOffer?.offerNumber;
 
@@ -875,9 +875,20 @@ async function handleLocalRequest(endpoint, options = {}) {
       const customer = db.customers.find(c => c.id === custId);
       if (customer) {
         const now = new Date().toISOString();
-        customer.demoEmailSent = true;
-        customer.demoEmailSentAt = now;
-        customer.demoEmailTemplate = body.templateType || 'digitalisierung_intro';
+        const templateType = body.templateType || 'digitalisierung_intro';
+        if (templateType === 'offer_document') {
+          const latestOffer = (db.offers || []).find(o => o.customerId === customer.id) || customer.lastOffer || null;
+          customer.offerTemplateSent = true;
+          customer.offerTemplateSentAt = now;
+          customer.offerEmailSent = true;
+          customer.offerEmailSentAt = now;
+          customer.offerEmailType = latestOffer?.type || 'angebot';
+          customer.offerEmailNumber = latestOffer?.offerNumber || '';
+        } else {
+          customer.demoEmailSent = true;
+          customer.demoEmailSentAt = now;
+          customer.demoEmailTemplate = templateType;
+        }
         customer.updatedAt = now;
 
         const emailLog = {
@@ -928,8 +939,8 @@ async function handleLocalRequest(endpoint, options = {}) {
         pushToFirebase(db);
       }
 
-      const offerEmailSent = customer.offerEmailSent || Boolean(lastOffer);
-      const offerEmailSentAt = customer.offerEmailSentAt || lastOffer?.createdAt || lastOffer?.date;
+      const offerEmailSent = Boolean(customer.offerTemplateSent);
+      const offerEmailSentAt = customer.offerTemplateSentAt || null;
       const offerEmailType = customer.offerEmailType || lastOffer?.type;
       const offerEmailNumber = customer.offerEmailNumber || lastOffer?.offerNumber;
 
@@ -1469,7 +1480,7 @@ async function handleLocalRequest(endpoint, options = {}) {
 
       db.offers.unshift(newOffer);
 
-      // Auto-sync with customer record and log in E-Mail history
+      // Keep the latest offer on the customer. Sent status is set only by the offer email template.
       if (newOffer.customerId) {
         const targetCust = db.customers.find(c => c.id === newOffer.customerId);
         if (targetCust) {
@@ -1479,27 +1490,10 @@ async function handleLocalRequest(endpoint, options = {}) {
             offerNumber: newOffer.offerNumber,
             type: newOffer.type,
             date: newOffer.date,
-            totalAmount: newOffer.totalAmount || newOffer.totalOneTime,
-            sentAt: nowStr
+            validUntilDate: newOffer.validUntilDate || '',
+            totalAmount: newOffer.totalAmount || newOffer.totalOneTime
           };
-          targetCust.offerEmailSent = true;
-          targetCust.offerEmailSentAt = nowStr;
-          targetCust.offerEmailType = newOffer.type;
-          targetCust.offerEmailNumber = newOffer.offerNumber;
           targetCust.updatedAt = nowStr;
-
-          const emailLog = {
-            id: `mail-offer-${Date.now()}`,
-            customerId: targetCust.id,
-            customerName: targetCust.companyName,
-            recipientEmail: targetCust.email || newOffer.customerEmail,
-            subject: `${newOffer.type === 'kostenvoranschlag' ? 'Kostenvoranschlag' : 'Angebot'} ${newOffer.offerNumber} für ${targetCust.companyName}`,
-            templateType: newOffer.type,
-            sentAt: nowStr,
-            body: body.emailBody || `${newOffer.type === 'kostenvoranschlag' ? 'Kostenvoranschlag' : 'Angebot'} ${newOffer.offerNumber} über ${newOffer.totalAmount || newOffer.totalOneTime} € erfasst & versendet.`
-          };
-          db.emailLogs = db.emailLogs || [];
-          db.emailLogs.unshift(emailLog);
         }
       }
 
@@ -1523,13 +1517,9 @@ async function handleLocalRequest(endpoint, options = {}) {
               offerNumber: updatedOffer.offerNumber,
               type: updatedOffer.type,
               date: updatedOffer.date,
-              totalAmount: updatedOffer.totalAmount || updatedOffer.totalOneTime,
-              sentAt: new Date().toISOString()
+              validUntilDate: updatedOffer.validUntilDate || '',
+              totalAmount: updatedOffer.totalAmount || updatedOffer.totalOneTime
             };
-            targetCust.offerEmailSent = true;
-            targetCust.offerEmailSentAt = targetCust.offerEmailSentAt || new Date().toISOString();
-            targetCust.offerEmailType = updatedOffer.type;
-            targetCust.offerEmailNumber = updatedOffer.offerNumber;
             targetCust.updatedAt = new Date().toISOString();
           }
         }

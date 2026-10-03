@@ -549,7 +549,7 @@ export default function CustomersPage({
                 })()}
 
                 {/* Angebot / Kostenvoranschlag Standard Sent Badge */}
-                {(selectedCustomer.offerEmailSent || selectedCustomer.lastOffer) && (
+                {selectedCustomer.offerEmailSent && (
                   <div className={`border rounded-xl px-3 py-2 flex items-center justify-between text-xs font-semibold ${
                     (selectedCustomer.offerEmailType || selectedCustomer.lastOffer?.type) === 'kostenvoranschlag'
                       ? 'bg-amber-50/90 border-amber-200 text-amber-950'
@@ -847,7 +847,7 @@ export default function CustomersPage({
                     })()}
 
                     {/* Angebot / Kostenvoranschlag Standard Sent Badge */}
-                    {(customer.offerEmailSent || customer.lastOffer) && (
+                    {customer.offerEmailSent && (
                       <div className={`border rounded-lg px-2.5 py-1.5 flex items-center justify-between text-[11px] font-semibold ${
                         (customer.offerEmailType || customer.lastOffer?.type) === 'kostenvoranschlag'
                           ? 'bg-amber-50/90 border-amber-200 text-amber-950'

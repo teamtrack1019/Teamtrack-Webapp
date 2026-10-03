@@ -301,18 +301,20 @@ export default function CustomerDetailPage({
                         <FileSpreadsheet className={`w-4 h-4 ${isKV ? 'text-amber-600' : 'text-sky-600'}`} />
                         <span>{isTR ? (isKV ? 'Maliyet Tahmini Durumu' : 'Teklif Durumu') : (isKV ? 'Kostenvoranschlag Status' : 'Angebot Status')}</span>
                       </span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        isKV ? 'bg-amber-200/80 text-amber-900' : 'bg-sky-200/80 text-sky-900'
-                      }`}>
-                        {isTR ? 'Gönderildi' : 'Gesendet'}
-                      </span>
+                      {customer.offerEmailSent && (
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          isKV ? 'bg-amber-200/80 text-amber-900' : 'bg-sky-200/80 text-sky-900'
+                        }`}>
+                          {isTR ? 'Gönderildi' : 'Gesendet'}
+                        </span>
+                      )}
                     </div>
                     <div className="text-xs text-slate-800 space-y-1">
                       <div className="font-bold text-slate-900">
                         {customer.offerEmailNumber || customer.lastOffer?.offerNumber || offers[0]?.offerNumber || (isTR ? 'Belge' : 'Dokument')}
                       </div>
                       <div className="text-[11px] text-slate-600">
-                        {isTR ? 'Gönderilme:' : 'Gesendet am:'} <span className="font-semibold text-slate-900">{formatDateTime(customer.offerEmailSentAt || customer.lastOffer?.sentAt || offers[0]?.createdAt)}</span>
+                        {customer.offerEmailSent ? (isTR ? 'Gönderilme:' : 'Gesendet am:') : (isTR ? 'Kayıt:' : 'Gespeichert am:')} <span className="font-semibold text-slate-900">{formatDateTime(customer.offerEmailSent ? customer.offerEmailSentAt : (customer.lastOffer?.date || offers[0]?.date || offers[0]?.createdAt))}</span>
                       </div>
                       {(customer.lastOffer?.validUntilDate || customer.offerValidUntilDate) && (
                         <div className="text-[11px] text-slate-600">
