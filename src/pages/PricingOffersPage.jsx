@@ -98,6 +98,12 @@ function PricingOffersContent({
 }) {
   const { t, isTR } = useLanguage();
   const safeCustomers = Array.isArray(customers) ? customers : [];
+  const customersByName = useMemo(
+    () => [...safeCustomers].sort((a, b) =>
+      (a.companyName || '').localeCompare(b.companyName || '', 'de', { sensitivity: 'base' })
+    ),
+    [safeCustomers]
+  );
   const [activeTab, setActiveTab] = useState(initialTab || 'creator'); // 'creator' | 'abnahme' | 'history'
   const [offersList, setOffersList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -887,7 +893,7 @@ Web: www.team-track.de`;
                     className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none"
                   >
                     <option value="">-- Kunde auswählen --</option>
-                    {safeCustomers.map(c => (
+                    {customersByName.map(c => (
                       <option key={c.id} value={c.id}>
                         {c.companyName} {c.contactPerson ? `(${c.contactPerson})` : ''}
                       </option>
@@ -1788,7 +1794,7 @@ Web: www.team-track.de`;
                     className="w-full px-3 py-2 sm:px-3.5 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   >
                     <option value="">-- Kunde auswählen --</option>
-                    {safeCustomers.map(c => (
+                    {customersByName.map(c => (
                       <option key={c.id} value={c.id}>
                         {c.companyName} {c.contactPerson ? `(${c.contactPerson})` : ''}
                       </option>
