@@ -624,6 +624,7 @@ export default function App() {
         isOpen={demoEmailModalOpen}
         onClose={() => setDemoEmailModalOpen(false)}
         customer={demoEmailCustomer}
+        companySettings={companySettings}
         initialTemplateKey={demoEmailTemplateKey}
         onEmailSent={handleDemoEmailSent}
       />

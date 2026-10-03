@@ -678,6 +678,18 @@ async function handleLocalRequest(endpoint, options = {}) {
     return itemSum > 0 ? itemSum : Number(inv.netAmount || inv.grossAmount || 0);
   };
 
+  const latestInvoiceSummary = (list) => {
+    if (!list || list.length === 0) return null;
+    const latest = [...list].sort((a, b) =>
+      String(b.createdAt || b.date || '').localeCompare(String(a.createdAt || a.date || ''))
+    )[0];
+    return {
+      invoiceNumber: latest.invoiceNumber || '',
+      amount: getInvTotal(latest),
+      date: latest.date || ''
+    };
+  };
+
   // DASHBOARD STATS
   if (endpoint === '/dashboard/stats') {
     const activeAbos = db.services.filter(s => s.type === 'abo' && s.status === 'active');
@@ -824,6 +836,7 @@ async function handleLocalRequest(endpoint, options = {}) {
           invoicesCount: custInvoices.length,
           offersCount: custOffers.length,
           lastOffer,
+          lastInvoice: latestInvoiceSummary(custInvoices),
           offerEmailSent,
           offerEmailSentAt,
           offerEmailType,
@@ -925,6 +938,7 @@ async function handleLocalRequest(endpoint, options = {}) {
           ...customer,
           status: targetStatus,
           lastOffer,
+          lastInvoice: latestInvoiceSummary(custInvoices),
           offerEmailSent,
           offerEmailSentAt,
           offerEmailType,

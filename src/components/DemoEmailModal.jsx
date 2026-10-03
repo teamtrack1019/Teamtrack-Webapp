@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Send, Sparkles, CheckCircle2, X, Copy, Check, ExternalLink, Globe } from 'lucide-react';
 import { TEAMTRACK_LOGO_BASE64 } from '../assets/logoBase64';
+import { formatCurrency, formatDate } from '../utils/formatters';
 
 function getGreeting(contactPerson, isFormal = true) {
   if (!contactPerson || contactPerson.trim() === '') {
@@ -123,10 +124,76 @@ Der Termin landet in Ihrem Kalender, zum Beispiel im Google Kalender. Preise, Da
 Wenn Sie möchten, zeige ich Ihnen das in einer kurzen Demo — am Bildschirm, ohne Verpflichtung. Antworten Sie einfach kurz, dann vereinbaren wir einen Termin.
 
 ${COMPANY_SIGNATURE}`
+  },
+  offer_document: {
+    name: '6. Angebot / Kostenvoranschlag',
+    subject: (cust) => {
+      const isKV = (cust.offerEmailType || cust.lastOffer?.type) === 'kostenvoranschlag';
+      const offerNum = cust.offerEmailNumber || cust.lastOffer?.offerNumber || '';
+      const label = isKV ? 'Kostenvoranschlag' : 'Angebot';
+      return `${label}${offerNum ? ` ${offerNum}` : ''} – TeamTrack`;
+    },
+    body: (cust) => {
+      const isKV = (cust.offerEmailType || cust.lastOffer?.type) === 'kostenvoranschlag';
+      const offerNum = cust.offerEmailNumber || cust.lastOffer?.offerNumber || '';
+      const docLabel = isKV ? 'unseren Kostenvoranschlag' : 'unser Angebot';
+      const refText = offerNum ? `${docLabel} ${offerNum}` : docLabel;
+      const validUntil = cust.lastOffer?.validUntilDate || cust.offerValidUntilDate;
+      const validLine = validUntil
+        ? `Das Dokument ist gültig bis zum ${formatDate(validUntil)}.\n\n`
+        : '';
+
+      return `${getGreeting(cust.contactPerson, true)}
+
+anbei erhalten Sie ${refText} für die Digitalisierung Ihrer Betriebsabläufe.
+
+${validLine}Bei Fragen zum Leistungsumfang stehe ich Ihnen gerne persönlich zur Verfügung. Ich freue mich, wenn wir das Projekt gemeinsam umsetzen dürfen.
+
+Vielen Dank im Voraus
+
+${COMPANY_SIGNATURE}`;
+    }
+  },
+  invoice_send: {
+    name: '7. Rechnung',
+    subject: (cust) => {
+      const invoiceNumber = cust.lastInvoice?.invoiceNumber || '';
+      return `Rechnung${invoiceNumber ? ` ${invoiceNumber}` : ''} – TeamTrack`;
+    },
+    body: (cust, settings = {}) => {
+      const offerAmount = Number(cust.lastOffer?.totalAmount || cust.lastOffer?.totalOneTime || 0);
+      const invoiceAmount = Number(cust.lastInvoice?.amount || 0);
+      const amount = offerAmount > 0 ? offerAmount : invoiceAmount;
+      const amountText = amount > 0 ? formatCurrency(amount) : '…… €';
+      const invoiceNumber = cust.lastInvoice?.invoiceNumber || '';
+      const holder = settings.ownerName || 'Huriye Ünalsoy';
+      const bank = settings.bankName || 'Postbank';
+      const iban = settings.iban || 'DE16 1001 0010 0012 7271 85';
+      const bic = settings.bic || 'PBNKDEFF';
+
+      return `${getGreeting(cust.contactPerson, true)}
+
+anbei erhalten Sie die Rechnung${invoiceNumber ? ` ${invoiceNumber}` : ''}.
+
+Bitte überweisen Sie den Betrag von ${amountText} auf folgendes Konto:
+
+Kontoinhaber: ${holder}
+Bank: ${bank}
+IBAN: ${iban}
+BIC: ${bic}
+
+Der Betrag ist innerhalb von 14 Tagen ohne Abzug fällig. Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.
+
+Wir würden uns sehr freuen, wenn Sie auch bei künftigen Aufträgen wieder mit uns zusammenarbeiten.
+
+Vielen Dank im Voraus
+
+${COMPANY_SIGNATURE}`;
+    }
   }
 };
 
-export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent, initialTemplateKey = 'digitalisierung_intro' }) {
+export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent, companySettings = {}, initialTemplateKey = 'digitalisierung_intro' }) {
   const [templateKey, setTemplateKey] = useState(initialTemplateKey);
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
@@ -142,10 +209,10 @@ export default function DemoEmailModal({ isOpen, onClose, customer, onEmailSent,
   useEffect(() => {
     if (customer) {
       const template = EMAIL_TEMPLATES[templateKey] || EMAIL_TEMPLATES.digitalisierung_intro;
-      setSubject(template.subject);
-      setBody(template.body(customer));
+      setSubject(typeof template.subject === 'function' ? template.subject(customer) : template.subject);
+      setBody(template.body(customer, companySettings));
     }
-  }, [customer, templateKey]);
+  }, [customer, templateKey, companySettings]);
 
   if (!isOpen || !customer) return null;
 
