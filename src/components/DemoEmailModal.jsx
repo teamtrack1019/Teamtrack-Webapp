@@ -190,6 +190,54 @@ Vielen Dank im Voraus
 
 ${COMPANY_SIGNATURE}`;
     }
+  },
+  invoice_paket1: {
+    name: '8. Rechnung Paket 1 (50 % / 50 %)',
+    subject: (cust) => {
+      const invoiceNumber = cust.lastInvoice?.invoiceNumber || '';
+      return `Rechnung${invoiceNumber ? ` ${invoiceNumber}` : ''} – Paket 1, 50 % – TeamTrack`;
+    },
+    body: (cust, settings = {}) => {
+      const paket1 = cust.lastOffer?.packageA?.included
+        ? Number(cust.lastOffer.packageA.price || 0)
+        : 0;
+      const half = paket1 > 0 ? paket1 / 2 : 0;
+      const invoiceAmount = Number(cust.lastInvoice?.amount || 0);
+      const due = invoiceAmount > 0 ? invoiceAmount : half;
+      const money = (value) => (value > 0 ? formatCurrency(value) : '…… €');
+      const invoiceNumber = cust.lastInvoice?.invoiceNumber || '';
+      const holder = settings.ownerName || 'Huriye Ünalsoy';
+      const bank = settings.bankName || 'Postbank';
+      const iban = settings.iban || 'DE16 1001 0010 0012 7271 85';
+      const bic = settings.bic || 'PBNKDEFF';
+      const isDeposit = half > 0 && (invoiceAmount === 0 || Math.abs(invoiceAmount - half) < 0.05);
+      const partLabel = isDeposit
+        ? 'Bitte überweisen Sie mit dieser Rechnung die Anzahlung (50 % bei Auftragserteilung)'
+        : 'Bitte überweisen Sie den Betrag dieser Rechnung';
+
+      return `${getGreeting(cust.contactPerson, true)}
+
+anbei erhalten Sie die Rechnung${invoiceNumber ? ` ${invoiceNumber}` : ''} zu Paket 1 (Komplett-Entwicklung & WebApp).
+
+Der Festpreis für Paket 1 beträgt ${money(paket1)}. Die Zahlung erfolgt in zwei gleichen Teilen:
+• 50 % Anzahlung bei Auftragserteilung: ${money(half)}
+• 50 % Schlusszahlung nach Bereitstellung: ${money(half)}
+
+${partLabel} von ${money(due)} auf folgendes Konto:
+
+Kontoinhaber: ${holder}
+Bank: ${bank}
+IBAN: ${iban}
+BIC: ${bic}
+
+Der Betrag ist innerhalb von 14 Tagen ohne Abzug fällig. Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.
+
+Wir würden uns sehr freuen, wenn Sie auch bei künftigen Aufträgen wieder mit uns zusammenarbeiten.
+
+Vielen Dank im Voraus
+
+${COMPANY_SIGNATURE}`;
+    }
   }
 };
 
